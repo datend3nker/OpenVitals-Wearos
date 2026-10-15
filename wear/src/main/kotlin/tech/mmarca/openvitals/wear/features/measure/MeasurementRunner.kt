@@ -5,19 +5,15 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import androidx.health.services.client.HealthServices
-import androidx.health.services.client.MeasureCallback
-import androidx.health.services.client.data.Availability
-import androidx.health.services.client.data.DataPointContainer
-import androidx.health.services.client.data.DataType
-import androidx.health.services.client.data.DataTypeAvailability
-import androidx.health.services.client.data.DeltaDataType
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.withTimeoutOrNull
+import tech.mmarca.openvitals.wear.SensorTime
+import tech.mmarca.openvitals.wear.isUsableHeartRate
 
 /**
  * Runs one [Measurement] against the real sensors. Each flow emits
@@ -38,7 +34,7 @@ class MeasurementRunner(private val context: Context) {
         var offBody = false
         var settled: Double? = null
         withTimeoutOrNull(Measurement.HEART_RATE.durationSeconds * 1000L) {
-            healthServicesHeartRate()
+            sensorHeartRate()
                 .transformWhile { sample ->
                     when (sample) {
                         is HeartRateSample.Reading -> {
@@ -95,34 +91,21 @@ class MeasurementRunner(private val context: Context) {
         emit(MeasureEvent.Result(value = hpa, secondary = altitude.toDouble()))
     }
 
-    private fun healthServicesHeartRate(): Flow<HeartRateSample> = callbackFlow {
-        val client = try {
-            HealthServices.getClient(context).measureClient
-        } catch (e: Exception) {
-            throw MeasureException(MeasureError.NOT_SUPPORTED, e)
-        }
-        val callback = object : MeasureCallback {
-            override fun onAvailabilityChanged(dataType: DeltaDataType<*, *>, availability: Availability) {
-                if (availability !is DataTypeAvailability) return
-                when (availability) {
-                    DataTypeAvailability.AVAILABLE -> Unit
-                    DataTypeAvailability.UNAVAILABLE_DEVICE_OFF_BODY -> trySend(HeartRateSample.Waiting(offBody = true))
-                    else -> trySend(HeartRateSample.Waiting(offBody = false))
-                }
-            }
-
-            override fun onDataReceived(data: DataPointContainer) {
-                data.getData(DataType.HEART_RATE_BPM).forEach { trySend(HeartRateSample.Reading(it.value)) }
-            }
-
-            override fun onRegistrationFailed(throwable: Throwable) {
-                val error = if (throwable is SecurityException) MeasureError.PERMISSION_DENIED else MeasureError.FAILED
-                close(MeasureException(error, throwable))
+    /**
+     * The heart rate sensor, unbatched, as the recorder reads it: no contact
+     * means off the wrist, an unreliable reading means still settling.
+     */
+    private fun sensorHeartRate(): Flow<HeartRateSample> =
+        sensorEvents(Sensor.TYPE_HEART_RATE).mapNotNull { event ->
+            val bpm = event.values.firstOrNull() ?: return@mapNotNull null
+            // The cached reading handed to a new listener carries the time the sensor last ran.
+            if (SensorTime.isStale(SensorTime.epochMillisOf(event.timestamp))) return@mapNotNull null
+            when {
+                event.accuracy == SensorManager.SENSOR_STATUS_NO_CONTACT -> HeartRateSample.Waiting(offBody = true)
+                isUsableHeartRate(event.accuracy, bpm.toInt()) -> HeartRateSample.Reading(bpm.toDouble())
+                else -> HeartRateSample.Waiting(offBody = false)
             }
         }
-        client.registerMeasureCallback(DataType.HEART_RATE_BPM, callback)
-        awaitClose { client.unregisterMeasureCallbackAsync(DataType.HEART_RATE_BPM, callback) }
-    }
 
     private fun sensorEvents(type: Int): Flow<SensorEvent> = callbackFlow {
         val manager = context.getSystemService(SensorManager::class.java)

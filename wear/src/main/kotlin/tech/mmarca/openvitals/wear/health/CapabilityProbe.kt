@@ -1,125 +1,81 @@
 package tech.mmarca.openvitals.wear.health
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorManager
-import android.util.Log
-import androidx.health.services.client.HealthServices
-import androidx.health.services.client.data.DataType
-import androidx.health.services.client.data.ExerciseType
-import androidx.health.services.client.getCapabilities
-import kotlinx.coroutines.withTimeoutOrNull
 import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.features.measure.Measurement
 import tech.mmarca.openvitals.wear.features.recording.ActivityType
 import tech.mmarca.openvitals.wear.features.recording.WorkoutField
 
-private const val TAG = "CapabilityProbe"
-private const val HealthServicesTimeoutMillis = 5_000L
+/** The sensors that decide what the watch offers. */
+data class WatchSensors(
+    val heartRate: Boolean,
+    /** Single beats (`TYPE_HEART_BEAT`), for the HRV measurement. */
+    val heartBeat: Boolean,
+    val stepCounter: Boolean,
+    val barometer: Boolean,
+    val gps: Boolean,
+    /** A vendor sensor whose type names SpO2. */
+    val vendorSpo2: Boolean,
+)
 
 /**
- * Asks Health Services and the sensor list what this watch can do. Health
- * Services is the source of truth where it answers; the raw sensor list fills
- * in what it does not cover (single beats, the barometer, vendor SpO2) and
- * stands in for it on a watch without it.
+ * Reads the sensor list and the GPS feature, nothing else: the watch app
+ * stays on AOSP APIs, without Health Services.
  */
 class CapabilityProbe(private val context: Context) {
 
-    suspend fun probe(): WearCapabilities {
+    fun probe(): WearCapabilities {
         val sensors = context.getSystemService(SensorManager::class.java)
-        val hasSensor = { type: Int -> sensors?.getDefaultSensor(type) != null }
-        val hasBeatSensor = hasSensor(Sensor.TYPE_HEART_BEAT)
-        val hasBarometer = hasSensor(Sensor.TYPE_PRESSURE)
-        val hasVendorSpo2 = sensors?.getSensorList(Sensor.TYPE_ALL).orEmpty()
-            .any { it.stringType.contains("spo2", ignoreCase = true) }
-
-        val client = runCatching { HealthServices.getClient(context) }.getOrNull()
-        val passive = client?.let { healthServicesCall { it.passiveMonitoringClient.getCapabilities() } }
-        val measure = client?.let { healthServicesCall { it.measureClient.getCapabilities() } }
-        val exercise = client?.let { healthServicesCall { it.exerciseClient.getCapabilities() } }
-
-        val sensorMetrics = buildSet {
-            passive?.supportedDataTypesPassiveMonitoring?.forEach { type ->
-                PassiveMetrics[type]?.let(::add)
-            }
-            if (passive == null) {
-                // No Health Services answer: fall back to what the raw sensors can count.
-                if (hasSensor(Sensor.TYPE_STEP_COUNTER)) add(MetricTile.STEPS)
-                if (hasSensor(Sensor.TYPE_HEART_RATE)) add(MetricTile.HEART_RATE)
-            }
-            if (hasBarometer && passive == null) {
-                add(MetricTile.FLOORS)
-                add(MetricTile.ELEVATION)
-            }
-            if (hasVendorSpo2) add(MetricTile.BLOOD_OXYGEN)
-            if (exercise?.typeToCapabilities?.values?.any { DataType.VO2_MAX in it.supportedDataTypes } == true) {
-                add(MetricTile.VO2_MAX)
-            }
-        }
-
-        val measurements = buildSet {
-            if (measure?.supportedDataTypesMeasure?.contains(DataType.HEART_RATE_BPM) == true) {
-                add(Measurement.HEART_RATE)
-            }
-            if (hasBeatSensor) add(Measurement.HRV)
-            if (hasBarometer) add(Measurement.AIR_PRESSURE)
-        }
-
-        val workouts = buildMap {
-            ActivityType.entries.forEach { activity ->
-                val typeCapabilities = exercise?.typeToCapabilities?.get(activity.exerciseType) ?: return@forEach
-                put(
-                    activity,
-                    typeCapabilities.supportedDataTypes.mapNotNullTo(mutableSetOf()) { WorkoutFields[it] },
-                )
-            }
-        }
-
-        return WearCapabilities(
-            probed = true,
-            sensorMetrics = sensorMetrics,
-            measurements = measurements,
-            workouts = workouts,
-        )
-    }
-
-    /** A Health Services call that fails or hangs counts as "not supported". */
-    private suspend fun <T> healthServicesCall(call: suspend () -> T): T? =
-        try {
-            withTimeoutOrNull(HealthServicesTimeoutMillis) { call() }
-        } catch (e: Exception) {
-            Log.w(TAG, "Health Services capability query failed", e)
-            null
-        }
-
-    private companion object {
-        val PassiveMetrics = mapOf(
-            DataType.STEPS_DAILY to MetricTile.STEPS,
-            DataType.HEART_RATE_BPM to MetricTile.HEART_RATE,
-            DataType.DISTANCE_DAILY to MetricTile.DISTANCE,
-            DataType.CALORIES_DAILY to MetricTile.ACTIVE_CALORIES,
-            DataType.FLOORS_DAILY to MetricTile.FLOORS,
-            DataType.ELEVATION_GAIN_DAILY to MetricTile.ELEVATION,
-        )
-
-        val WorkoutFields = mapOf(
-            DataType.HEART_RATE_BPM to WorkoutField.HEART_RATE,
-            DataType.DISTANCE_TOTAL to WorkoutField.DISTANCE,
-            DataType.CALORIES_TOTAL to WorkoutField.CALORIES,
-            DataType.PACE to WorkoutField.PACE,
-            DataType.SPEED to WorkoutField.SPEED,
-            DataType.ELEVATION_GAIN_TOTAL to WorkoutField.ELEVATION,
-            DataType.STEPS_TOTAL to WorkoutField.STEPS,
+        val has = { type: Int -> sensors?.getDefaultSensor(type) != null }
+        return capabilitiesOf(
+            WatchSensors(
+                heartRate = has(Sensor.TYPE_HEART_RATE),
+                heartBeat = has(Sensor.TYPE_HEART_BEAT),
+                stepCounter = has(Sensor.TYPE_STEP_COUNTER),
+                barometer = has(Sensor.TYPE_PRESSURE),
+                gps = context.packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS),
+                vendorSpo2 = sensors?.getSensorList(Sensor.TYPE_ALL).orEmpty()
+                    .any { it.stringType.contains("spo2", ignoreCase = true) },
+            ),
         )
     }
 }
 
-/** The Health Services exercise a workout is recorded as. */
-val ActivityType.exerciseType: ExerciseType
-    get() = when (this) {
-        ActivityType.WALK -> ExerciseType.WALKING
-        ActivityType.RUN -> ExerciseType.RUNNING
-        ActivityType.CYCLE -> ExerciseType.BIKING
-        ActivityType.HIKE -> ExerciseType.HIKING
-        ActivityType.WORKOUT -> ExerciseType.WORKOUT
+/**
+ * What the watch offers, from its sensors. Distance and active calories come
+ * from the step counter: the phone derives them from the step minutes.
+ * VO2 max and a workout's calories have no source without Health Services,
+ * so they are never offered.
+ */
+fun capabilitiesOf(sensors: WatchSensors): WearCapabilities {
+    val sensorMetrics = buildSet {
+        if (sensors.stepCounter) addAll(listOf(MetricTile.STEPS, MetricTile.DISTANCE, MetricTile.ACTIVE_CALORIES))
+        if (sensors.heartRate) add(MetricTile.HEART_RATE)
+        if (sensors.barometer) addAll(listOf(MetricTile.FLOORS, MetricTile.ELEVATION))
+        if (sensors.vendorSpo2) add(MetricTile.BLOOD_OXYGEN)
     }
+    val measurements = buildSet {
+        if (sensors.heartRate) add(Measurement.HEART_RATE)
+        if (sensors.heartBeat) add(Measurement.HRV)
+        if (sensors.barometer) add(Measurement.AIR_PRESSURE)
+    }
+    val workouts = ActivityType.entries
+        .associateWith { workoutFields(it, sensors) }
+        .filterValues { it.isNotEmpty() }
+    return WearCapabilities(probed = true, sensorMetrics = sensorMetrics, measurements = measurements, workouts = workouts)
+}
+
+private fun workoutFields(activity: ActivityType, sensors: WatchSensors): Set<WorkoutField> = buildSet {
+    val outdoor = activity != ActivityType.WORKOUT
+    val onFoot = activity in setOf(ActivityType.WALK, ActivityType.RUN, ActivityType.HIKE)
+    if (sensors.heartRate) add(WorkoutField.HEART_RATE)
+    if (outdoor && sensors.gps) {
+        add(WorkoutField.DISTANCE)
+        add(if (activity == ActivityType.CYCLE) WorkoutField.SPEED else WorkoutField.PACE)
+    }
+    if (outdoor && (sensors.barometer || sensors.gps)) add(WorkoutField.ELEVATION)
+    if (onFoot && sensors.stepCounter) add(WorkoutField.STEPS)
+}

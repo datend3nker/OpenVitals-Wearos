@@ -92,7 +92,7 @@ enum class MetricTile(
     /** Percent. Needs a vendor SpO2 sensor. */
     BLOOD_OXYGEN(R.string.metric_blood_oxygen, Icons.Outlined.Bloodtype, VitalsColor, MetricKind.SAMPLED),
 
-    /** ml/kg/min. Estimated by the watch during outdoor workouts. */
+    /** ml/kg/min. Never offered: only Health Services estimates it, and the watch app does not use it. */
     VO2_MAX(R.string.metric_vo2_max, Icons.Outlined.Speed, WorkoutColor, MetricKind.SAMPLED),
 
     /** Beats per minute, one value per day. */

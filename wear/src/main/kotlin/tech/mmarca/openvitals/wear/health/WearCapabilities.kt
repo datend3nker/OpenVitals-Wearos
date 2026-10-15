@@ -7,8 +7,7 @@ import tech.mmarca.openvitals.wear.features.recording.ActivityType
 import tech.mmarca.openvitals.wear.features.recording.WorkoutField
 
 /**
- * What this watch can actually measure, as reported by Health Services and
- * the sensor list. Nothing the UI offers as a sensor reading, a measurement
+ * What this watch can actually measure, read from its sensor list. Nothing the UI offers as a sensor reading, a measurement
  * or a workout should go beyond this.
  */
 data class WearCapabilities(
@@ -18,7 +17,7 @@ data class WearCapabilities(
     val sensorMetrics: Set<MetricTile> = emptySet(),
     /** Measurements a button can start right now. */
     val measurements: Set<Measurement> = emptySet(),
-    /** Workouts Health Services can record, with the fields each one reports. */
+    /** Workouts its sensors support, with the fields each one reports. */
     val workouts: Map<ActivityType, Set<WorkoutField>> = emptyMap(),
 ) {
     /** The metrics to offer as tiles: every phone and logged metric, sensor metrics if measured here. */

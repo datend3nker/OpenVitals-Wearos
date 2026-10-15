@@ -20,11 +20,6 @@
     <!-- The step counter. -->
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 
-    <!-- Health Services answers capability queries and spot measurements. -->
-    <queries>
-        <package android:name="com.google.android.wearable.healthservices" />
-    </queries>
-
     <!-- The RFCOMM listener the phone pings. Legacy pair up to API 30, runtime grant from 31. -->
     <uses-permission
         android:name="android.permission.BLUETOOTH"

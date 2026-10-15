@@ -105,8 +105,6 @@ dependencies {
     implementation(libs.androidx.wear.tiles)
     implementation(libs.androidx.wear.protolayout)
     implementation(libs.androidx.wear.protolayout.material)
-    // Sensor capabilities, on-demand heart rate and exercise data types.
-    implementation(libs.androidx.health.services.client)
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)

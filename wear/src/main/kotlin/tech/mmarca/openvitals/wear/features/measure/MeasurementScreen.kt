@@ -43,9 +43,8 @@ import androidx.wear.compose.material3.ProgressIndicatorDefaults
 import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.Text
 import tech.mmarca.openvitals.wear.R
+import tech.mmarca.openvitals.wear.WearPermissions
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.health.HeartRatePermission
-import tech.mmarca.openvitals.wear.health.hasHeartRatePermission
 import tech.mmarca.openvitals.wear.ui.components.MetricValueRow
 import tech.mmarca.openvitals.wear.ui.preview.WearPreviews
 import tech.mmarca.openvitals.wear.ui.theme.Emphasis
@@ -91,8 +90,8 @@ fun MeasurementRoute(
                 state = state,
                 unitSystem = unitSystem,
                 onStart = {
-                    if (measurement.needsHeartRatePermission && !context.hasHeartRatePermission()) {
-                        permissionLauncher.launch(HeartRatePermission)
+                    if (measurement.needsHeartRatePermission && !WearPermissions.hasHeartRate(context)) {
+                        permissionLauncher.launch(WearPermissions.heartRate)
                     } else {
                         viewModel.start()
                     }
