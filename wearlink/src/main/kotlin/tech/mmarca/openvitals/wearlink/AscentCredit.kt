@@ -18,4 +18,17 @@ object AscentCredit {
     /** The metres of [climbedMetres] that [steps] (this minute and the one before) carry. */
     fun creditedMetres(climbedMetres: Double, steps: Int): Double =
         minOf(climbedMetres, steps * METRES_PER_FLOOR / MIN_STEPS_PER_FLOOR).coerceAtLeast(0.0)
+
+    /**
+     * The credited metres per minute. [climbedAt] and [stepsAt] are keyed on
+     * the minute's start in epoch milliseconds. Minutes that credit nothing
+     * are left out.
+     */
+    fun creditedByMinute(climbedAt: Map<Long, Double>, stepsAt: Map<Long, Int>): Map<Long, Double> =
+        climbedAt.mapNotNull { (start, climbed) ->
+            val walked = (stepsAt[start - MINUTE_MILLIS] ?: 0) + (stepsAt[start] ?: 0)
+            creditedMetres(climbed, walked).takeIf { it > 0.0 }?.let { start to it }
+        }.toMap()
+
+    private const val MINUTE_MILLIS = 60_000L
 }

@@ -59,14 +59,11 @@ object WearOsFloorsImport {
 
     /** Per minute start, the metres that had enough steps around them. Minutes with none are left out. */
     private fun credited(ascent: List<WearOsAscentMinute>, steps: List<WearOsStepMinute>): List<Pair<Instant, Double>> {
-        val stepsAt = HashMap<Instant, Int>()
-        for (minute in steps) stepsAt.merge(minute.start, minute.steps, ::maxOf)
-        return ascent.groupBy { it.start }.mapNotNull { (start, same) ->
-            val climbed = same.maxOf { it.metres }
-            val walked = (stepsAt[start.minusSeconds(SECONDS_PER_MINUTE)] ?: 0) + (stepsAt[start] ?: 0)
-            val credited = AscentCredit.creditedMetres(climbed, walked)
-            if (credited > 0.0) start to credited else null
-        }
+        val climbedAt = LinkedHashMap<Long, Double>()
+        for (minute in ascent) climbedAt.merge(minute.start.toEpochMilli(), minute.metres, ::maxOf)
+        val stepsAt = HashMap<Long, Int>()
+        for (minute in steps) stepsAt.merge(minute.start.toEpochMilli(), minute.steps, ::maxOf)
+        return AscentCredit.creditedByMinute(climbedAt, stepsAt).map { (start, metres) -> Instant.ofEpochMilli(start) to metres }
     }
 
     private fun watchMetadata(clientRecordId: String, metres: Double): Metadata =

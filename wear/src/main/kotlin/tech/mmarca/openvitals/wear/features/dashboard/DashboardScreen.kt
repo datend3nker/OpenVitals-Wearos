@@ -3,9 +3,6 @@ package tech.mmarca.openvitals.wear.features.dashboard
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AddCircleOutline
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,7 +14,6 @@ import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
-import androidx.wear.compose.material3.EdgeButton
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.ScreenScaffold
@@ -37,40 +33,25 @@ import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
 import tech.mmarca.openvitals.wear.ui.components.metricUnitLabel
 import tech.mmarca.openvitals.wear.ui.preview.SampleData
 import tech.mmarca.openvitals.wear.ui.preview.WearPreviews
-import tech.mmarca.openvitals.wear.ui.theme.HeartColor
-import tech.mmarca.openvitals.wear.ui.theme.HydrationColor
 import tech.mmarca.openvitals.wear.ui.theme.OpenVitalsWearTheme
 
 /**
  * [tiles] is what the user chose to see, in their order. The first three of
- * them with a daily goal also show as activity rings at the top. The measure
- * button only appears when the watch supports at least one measurement.
+ * them with a daily goal also show as activity rings at the top.
  */
 @Composable
 fun DashboardScreen(
     tiles: List<MetricTile>,
     metrics: Map<MetricTile, MetricUiState>,
     unitSystem: UnitSystem,
-    canMeasure: Boolean,
     onOpenMetric: (MetricTile) -> Unit,
-    onMeasure: () -> Unit,
-    onQuickLog: () -> Unit,
-    onEditTiles: () -> Unit,
-    onStartActivity: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
     val rings = activityRings(tiles, metrics, unitSystem)
 
-    ScreenScaffold(
-        scrollState = listState,
-        edgeButton = {
-            EdgeButton(onClick = onStartActivity) {
-                Text(stringResource(R.string.dashboard_start_activity))
-            }
-        },
-    ) { contentPadding ->
+    ScreenScaffold(scrollState = listState) { contentPadding ->
         TransformingLazyColumn(state = listState, contentPadding = contentPadding) {
             item {
                 ListHeader(
@@ -85,32 +66,6 @@ fun DashboardScreen(
             if (rings.isNotEmpty()) {
                 item { ActivityRings(rings, modifier = Modifier.padding(bottom = 4.dp)) }
             }
-            if (canMeasure) {
-                item {
-                    Button(
-                        onClick = onMeasure,
-                        label = { Text(stringResource(R.string.measure_title)) },
-                        icon = { Icon(Icons.Outlined.MonitorHeart, contentDescription = null, tint = HeartColor) },
-                        colors = ButtonDefaults.filledTonalButtonColors(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .transformedHeight(this, transformationSpec),
-                        transformation = SurfaceTransformation(transformationSpec),
-                    )
-                }
-            }
-            item {
-                Button(
-                    onClick = onQuickLog,
-                    label = { Text(stringResource(R.string.quicklog_title)) },
-                    icon = { Icon(Icons.Outlined.AddCircleOutline, contentDescription = null, tint = HydrationColor) },
-                    colors = ButtonDefaults.filledTonalButtonColors(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, transformationSpec),
-                    transformation = SurfaceTransformation(transformationSpec),
-                )
-            }
             items(tiles, key = { it.name }) { metric ->
                 val state = metrics[metric]
                 MetricTile(
@@ -123,18 +78,6 @@ fun DashboardScreen(
                     icon = metric.icon,
                     accentColor = metric.accentColor,
                     onClick = { onOpenMetric(metric) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, transformationSpec),
-                    transformation = SurfaceTransformation(transformationSpec),
-                )
-            }
-            item {
-                Button(
-                    onClick = onEditTiles,
-                    label = { Text(stringResource(R.string.tiles_edit)) },
-                    icon = { Icon(Icons.Outlined.Edit, contentDescription = null) },
-                    colors = ButtonDefaults.filledTonalButtonColors(),
                     modifier = Modifier
                         .fillMaxWidth()
                         .transformedHeight(this, transformationSpec),
@@ -182,7 +125,7 @@ private fun activityRings(
 private fun DashboardScreenPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.METRIC, true, {}, {}, {}, {}, {}, {})
+            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.METRIC, {}, {})
         }
     }
 }
@@ -192,7 +135,7 @@ private fun DashboardScreenPreview() {
 private fun DashboardScreenEmptyPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(MetricTile.DefaultTiles, emptyMap(), UnitSystem.METRIC, false, {}, {}, {}, {}, {}, {})
+            DashboardScreen(MetricTile.DefaultTiles, emptyMap(), UnitSystem.METRIC, {}, {})
         }
     }
 }
@@ -202,7 +145,7 @@ private fun DashboardScreenEmptyPreview() {
 private fun DashboardScreenImperialPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.IMPERIAL, true, {}, {}, {}, {}, {}, {})
+            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.IMPERIAL, {}, {})
         }
     }
 }
