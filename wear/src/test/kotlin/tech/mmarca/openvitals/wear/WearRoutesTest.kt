@@ -18,11 +18,11 @@ class WearRoutesTest {
 
     @Test
     fun availableMetrics_offerPhoneAndLoggedMetrics_andOnlyMeasuredSensorOnes() {
-        val available = WearCapabilities(probed = true, sensorMetrics = setOf(WearMetric.STEPS)).availableMetrics
-        assertTrue(WearMetric.STEPS in available)
-        assertTrue(WearMetric.SLEEP in available)
-        assertTrue(WearMetric.HYDRATION in available)
-        assertFalse(WearMetric.HEART_RATE in available)
-        assertFalse(WearMetric.BLOOD_OXYGEN in available)
+        val available = WearCapabilities(probed = true, sensorMetrics = setOf(MetricTile.STEPS)).availableMetrics
+        assertTrue(MetricTile.STEPS in available)
+        assertTrue(MetricTile.SLEEP in available)
+        assertTrue(MetricTile.HYDRATION in available)
+        assertFalse(MetricTile.HEART_RATE in available)
+        assertFalse(MetricTile.BLOOD_OXYGEN in available)
     }
 }

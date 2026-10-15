@@ -35,7 +35,7 @@ import kotlinx.coroutines.guava.future
 import tech.mmarca.openvitals.wear.MainActivity
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.WearMetric
+import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.WearPreferences
 import tech.mmarca.openvitals.wear.WearRoutes
 import tech.mmarca.openvitals.wear.features.measure.Measurement
@@ -136,7 +136,7 @@ class QuickLogTileService : TileService() {
                     hydration,
                     context.getString(
                         R.string.quicklog_add_water,
-                        formatMetricValue(WearMetric.HYDRATION, WaterServingMl, unitSystem),
+                        formatMetricValue(MetricTile.HYDRATION, WaterServingMl, unitSystem),
                         unit,
                     ),
                 ),
@@ -187,8 +187,8 @@ class QuickLogTileService : TileService() {
                     context,
                     context.getString(
                         R.string.quicklog_water_today,
-                        formatMetricValue(WearMetric.HYDRATION, waterToday, unitSystem),
-                        formatMetricValue(WearMetric.HYDRATION, goal, unitSystem),
+                        formatMetricValue(MetricTile.HYDRATION, waterToday, unitSystem),
+                        formatMetricValue(MetricTile.HYDRATION, goal, unitSystem),
                         unit,
                     ),
                 )

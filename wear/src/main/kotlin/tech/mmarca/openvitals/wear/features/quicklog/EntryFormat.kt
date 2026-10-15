@@ -14,7 +14,7 @@ import androidx.compose.ui.res.stringResource
 import kotlin.math.roundToInt
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.WearMetric
+import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.ui.components.formatCount
 import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
 import tech.mmarca.openvitals.wear.ui.components.metricUnitLabel
@@ -47,10 +47,10 @@ val EntryType.color: Color
 /** The entry's value with its unit, e.g. "72.4 kg" or "121/79 mmHg". */
 @Composable
 fun formatEntry(entry: LoggedEntry, unitSystem: UnitSystem): String = when (entry.type) {
-    EntryType.WATER -> metricValue(WearMetric.HYDRATION, entry.value, unitSystem)
-    EntryType.WEIGHT -> metricValue(WearMetric.WEIGHT, entry.value, unitSystem)
-    EntryType.HEART_RATE -> metricValue(WearMetric.HEART_RATE, entry.value, unitSystem)
-    EntryType.HRV -> metricValue(WearMetric.HRV, entry.value, unitSystem)
+    EntryType.WATER -> metricValue(MetricTile.HYDRATION, entry.value, unitSystem)
+    EntryType.WEIGHT -> metricValue(MetricTile.WEIGHT, entry.value, unitSystem)
+    EntryType.HEART_RATE -> metricValue(MetricTile.HEART_RATE, entry.value, unitSystem)
+    EntryType.HRV -> metricValue(MetricTile.HRV, entry.value, unitSystem)
     EntryType.MINDFULNESS -> stringResource(R.string.quicklog_minutes, entry.value.roundToInt())
     EntryType.BLOOD_PRESSURE -> stringResource(
         R.string.quicklog_blood_pressure_value,
@@ -60,5 +60,5 @@ fun formatEntry(entry: LoggedEntry, unitSystem: UnitSystem): String = when (entr
 }
 
 @Composable
-private fun metricValue(metric: WearMetric, value: Double, unitSystem: UnitSystem): String =
+private fun metricValue(metric: MetricTile, value: Double, unitSystem: UnitSystem): String =
     "${formatMetricValue(metric, value, unitSystem)} ${stringResource(metricUnitLabel(metric, unitSystem))}"

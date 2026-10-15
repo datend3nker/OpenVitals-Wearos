@@ -2,22 +2,22 @@ package tech.mmarca.openvitals.wear
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import tech.mmarca.openvitals.wear.WearMetric.BLOOD_OXYGEN
-import tech.mmarca.openvitals.wear.WearMetric.DISTANCE
-import tech.mmarca.openvitals.wear.WearMetric.FLOORS
-import tech.mmarca.openvitals.wear.WearMetric.HEART_RATE
-import tech.mmarca.openvitals.wear.WearMetric.STEPS
+import tech.mmarca.openvitals.wear.MetricTile.BLOOD_OXYGEN
+import tech.mmarca.openvitals.wear.MetricTile.DISTANCE
+import tech.mmarca.openvitals.wear.MetricTile.FLOORS
+import tech.mmarca.openvitals.wear.MetricTile.HEART_RATE
+import tech.mmarca.openvitals.wear.MetricTile.STEPS
 
 class WearTilePreferencesTest {
 
     @Test
     fun decode_nothingStored_returnsDefaults() {
-        assertEquals(WearMetric.DefaultTiles, decodeTiles(null))
+        assertEquals(MetricTile.DefaultTiles, decodeTiles(null))
     }
 
     @Test
     fun decode_emptyString_returnsNoTiles() {
-        assertEquals(emptyList<WearMetric>(), decodeTiles(""))
+        assertEquals(emptyList<MetricTile>(), decodeTiles(""))
     }
 
     @Test

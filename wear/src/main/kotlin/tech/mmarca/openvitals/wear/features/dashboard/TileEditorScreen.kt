@@ -28,7 +28,7 @@ import androidx.wear.compose.material3.Text
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import tech.mmarca.openvitals.wear.R
-import tech.mmarca.openvitals.wear.WearMetric
+import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.ui.preview.SampleData
 import tech.mmarca.openvitals.wear.ui.preview.WearPreviews
 import tech.mmarca.openvitals.wear.ui.theme.OpenVitalsWearTheme
@@ -43,10 +43,10 @@ import tech.mmarca.openvitals.wear.ui.theme.OpenVitalsWearTheme
  */
 @Composable
 fun TileEditorScreen(
-    available: List<WearMetric>,
-    tiles: List<WearMetric>,
-    onToggle: (WearMetric, Boolean) -> Unit,
-    onMove: (moved: WearMetric, target: WearMetric) -> Unit,
+    available: List<MetricTile>,
+    tiles: List<MetricTile>,
+    onToggle: (MetricTile, Boolean) -> Unit,
+    onMove: (moved: MetricTile, target: MetricTile) -> Unit,
     onReset: () -> Unit,
 ) {
     val listState = rememberLazyListState()
@@ -55,8 +55,8 @@ fun TileEditorScreen(
     // Only active tiles are ReorderableItems, so a drag never lands on a header
     // or on an inactive row.
     val reorderState = rememberReorderableLazyListState(listState) { from, to ->
-        val moved = from.key as? WearMetric
-        val target = to.key as? WearMetric
+        val moved = from.key as? MetricTile
+        val target = to.key as? MetricTile
         if (moved != null && target != null) onMove(moved, target)
     }
 
@@ -127,7 +127,7 @@ fun TileEditorScreen(
 
 @Composable
 private fun TileSwitch(
-    metric: WearMetric,
+    metric: MetricTile,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
@@ -161,7 +161,7 @@ private fun TileEditorScreenPreview() {
         AppScaffold {
             TileEditorScreen(
                 available = SampleData.uiState.availableMetrics.toList(),
-                tiles = WearMetric.DefaultTiles,
+                tiles = MetricTile.DefaultTiles,
                 onToggle = { _, _ -> },
                 onMove = { _, _ -> },
                 onReset = {},

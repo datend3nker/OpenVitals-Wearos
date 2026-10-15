@@ -1,130 +1,96 @@
 package tech.mmarca.openvitals.wear
 
-import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
-import androidx.compose.material.icons.outlined.Bedtime
-import androidx.compose.material.icons.outlined.Bloodtype
-import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.Insights
-import androidx.compose.material.icons.outlined.LocalFireDepartment
-import androidx.compose.material.icons.outlined.MonitorHeart
-import androidx.compose.material.icons.outlined.MonitorWeight
-import androidx.compose.material.icons.outlined.Speed
-import androidx.compose.material.icons.outlined.Stairs
-import androidx.compose.material.icons.outlined.Straighten
-import androidx.compose.material.icons.outlined.Terrain
-import androidx.compose.material.icons.outlined.WaterDrop
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import tech.mmarca.openvitals.wear.ui.theme.ActiveCaloriesColor
-import tech.mmarca.openvitals.wear.ui.theme.DistanceColor
-import tech.mmarca.openvitals.wear.ui.theme.ElevationColor
-import tech.mmarca.openvitals.wear.ui.theme.FloorsColor
-import tech.mmarca.openvitals.wear.ui.theme.HeartColor
-import tech.mmarca.openvitals.wear.ui.theme.HydrationColor
-import tech.mmarca.openvitals.wear.ui.theme.SleepColor
-import tech.mmarca.openvitals.wear.ui.theme.StepsColor
-import tech.mmarca.openvitals.wear.ui.theme.VitalsColor
-import tech.mmarca.openvitals.wear.ui.theme.WeightColor
-import tech.mmarca.openvitals.wear.ui.theme.WorkoutColor
-
-/** How a metric's readings add up, which decides its chart and its stats. */
-enum class MetricKind {
-    /** A running total for the day: bars per hour, goal and daily averages. */
-    CUMULATIVE,
-
-    /** A value sampled over time: a line, with low, average and high. */
-    SAMPLED,
-}
-
-/** Where a metric's readings come from, which decides whether a watch can offer it. */
-enum class MetricSource {
-    /** Measured by this watch. Offered only when its sensor is there. */
-    SENSOR,
-
-    /** Measured elsewhere and synced from the phone. Always offered. */
-    PHONE,
-
-    /** Entered by hand on the watch. Always offered. */
-    LOGGED,
-}
+import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 
 /**
- * Everything the watch can show as a dashboard tile and a detail screen.
- * Which of these a given watch offers depends on its sensors and arrives as
- * `WearUiState.availableMetrics`. Adding a metric here is all the UI needs:
- * the tile, the tile editor and the detail screen are driven by this enum.
+ * One series the watch records for the phone, and everything [MetricStore]
+ * needs to keep it: a stable key, how a value becomes the row's text and
+ * back, its time, what a second value at the same time does, and how long
+ * rows stay.
  *
- * Readings are stored in the base unit noted per entry; the unit system
- * only changes how they are displayed.
+ * The row text is the value's line in the `:wearlink` protocol, so the
+ * format is defined and tested once, in that module, and what the store
+ * holds is exactly what the phone receives. A new metric is one more
+ * definition in [WearMetrics] plus its line in `:wearlink`; the store, its
+ * pruning and its tests do not change.
  */
-enum class WearMetric(
-    @param:StringRes val label: Int,
-    val icon: ImageVector,
-    val accentColor: Color,
-    val kind: MetricKind,
-    val source: MetricSource = MetricSource.SENSOR,
+class WearMetric<T>(
+    /** The table key. Never reused or renamed: it is how the rows are found. */
+    val key: String,
+    val encode: (T) -> String,
+    /** Null for a row this build cannot read; such a row is skipped, never fatal. */
+    val decode: (String) -> T?,
+    val timeOf: (T) -> Long,
+    val onSameTime: OnSameTime,
+    val retentionMillis: Long = WEEK_MILLIS,
 ) {
-    /** Count. */
-    STEPS(R.string.metric_steps, Icons.AutoMirrored.Outlined.DirectionsWalk, StepsColor, MetricKind.CUMULATIVE),
+    /** What a value does when the store already holds one at its time. */
+    enum class OnSameTime {
+        /** The first value stays: a sample is final once taken. */
+        KEEP,
 
-    /** Beats per minute. */
-    HEART_RATE(R.string.metric_heart_rate, Icons.Outlined.Favorite, HeartColor, MetricKind.SAMPLED),
+        /** The new value replaces it: a row that is rewritten as its period fills in. */
+        REPLACE,
+    }
 
-    /** Metres. */
-    DISTANCE(R.string.metric_distance, Icons.Outlined.Straighten, DistanceColor, MetricKind.CUMULATIVE),
-
-    /** Kilocalories. */
-    ACTIVE_CALORIES(
-        R.string.metric_active_calories,
-        Icons.Outlined.LocalFireDepartment,
-        ActiveCaloriesColor,
-        MetricKind.CUMULATIVE,
-    ),
-
-    /** Count. Needs a barometer. */
-    FLOORS(R.string.metric_floors, Icons.Outlined.Stairs, FloorsColor, MetricKind.CUMULATIVE),
-
-    /** Metres gained. Needs a barometer. */
-    ELEVATION(R.string.metric_elevation, Icons.Outlined.Terrain, ElevationColor, MetricKind.CUMULATIVE),
-
-    /** Percent. Needs a vendor SpO2 sensor. */
-    BLOOD_OXYGEN(R.string.metric_blood_oxygen, Icons.Outlined.Bloodtype, VitalsColor, MetricKind.SAMPLED),
-
-    /** ml/kg/min. Estimated by the watch during outdoor workouts. */
-    VO2_MAX(R.string.metric_vo2_max, Icons.Outlined.Speed, WorkoutColor, MetricKind.SAMPLED),
-
-    /** Beats per minute, one value per day. */
-    RESTING_HEART_RATE(
-        R.string.metric_resting_heart_rate,
-        Icons.Outlined.MonitorHeart,
-        HeartColor,
-        MetricKind.SAMPLED,
-        MetricSource.PHONE,
-    ),
-
-    /** Milliseconds RMSSD. Synced, or measured on a watch that reports single beats. */
-    HRV(R.string.metric_hrv, Icons.Outlined.Insights, VitalsColor, MetricKind.SAMPLED, MetricSource.PHONE),
-
-    /** Minutes asleep. The stages arrive as `WearUiState.sleepStages`. */
-    SLEEP(R.string.metric_sleep, Icons.Outlined.Bedtime, SleepColor, MetricKind.CUMULATIVE, MetricSource.PHONE),
-
-    /** Millilitres. */
-    HYDRATION(
-        R.string.metric_hydration,
-        Icons.Outlined.WaterDrop,
-        HydrationColor,
-        MetricKind.CUMULATIVE,
-        MetricSource.LOGGED,
-    ),
-
-    /** Kilograms. */
-    WEIGHT(R.string.metric_weight, Icons.Outlined.MonitorWeight, WeightColor, MetricKind.SAMPLED, MetricSource.LOGGED),
-    ;
+    override fun toString(): String = "WearMetric($key)"
 
     companion object {
-        /** The dashboard before the user has edited it. */
-        val DefaultTiles = listOf(STEPS, HEART_RATE, SLEEP, ACTIVE_CALORIES, HYDRATION)
+        /** A week: long enough to miss a few days of syncing, small enough to stay bounded. */
+        const val WEEK_MILLIS: Long = 7L * 24 * 60 * 60 * 1000
     }
+}
+
+/** Every series the watch records. */
+object WearMetrics {
+
+    /** One heart rate sample every ten seconds at most; see `HeartRateRecorder`. */
+    val HEART_RATE = WearMetric(
+        key = WearLinkProtocol.CAP_HEART_RATE,
+        encode = { s: WearLinkProtocol.HeartRateSample -> WearLinkProtocol.formatSample(s.epochMillis, s.bpm) },
+        decode = WearLinkProtocol::parseSample,
+        timeOf = { it.epochMillis },
+        onSameTime = WearMetric.OnSameTime.KEEP,
+    )
+
+    /**
+     * One row per clock minute, the sleep pipeline's input; see
+     * `docs/engineering/sleep-minute-features.md`. A minute is written again
+     * while late readings for it arrive, so the newest row wins.
+     */
+    val SLEEP_MINUTES = WearMetric(
+        key = WearLinkProtocol.CAP_SLEEP_MINUTES,
+        encode = WearLinkProtocol::formatSleepMinute,
+        decode = WearLinkProtocol::parseSleepMinute,
+        timeOf = { it.epochMillis },
+        onSameTime = WearMetric.OnSameTime.REPLACE,
+    )
+
+    /**
+     * Steps per clock minute; see `StepRecorder`. A minute is written again
+     * while late steps for it arrive, so the newest row wins.
+     */
+    val STEPS = WearMetric(
+        key = WearLinkProtocol.CAP_STEPS,
+        encode = WearLinkProtocol::formatStepMinute,
+        decode = WearLinkProtocol::parseStepMinute,
+        timeOf = { it.epochMillis },
+        onSameTime = WearMetric.OnSameTime.REPLACE,
+    )
+
+    /**
+     * Height climbed per clock minute, in decimetres; see `AscentRecorder`. A
+     * minute is written again while late readings arrive, so the newest row
+     * wins. Rows of builds that sent whole floors (`fl`) are under another
+     * key and are never read as ascent.
+     */
+    val ASCENT = WearMetric(
+        key = WearLinkProtocol.CAP_ASCENT,
+        encode = WearLinkProtocol::formatAscentMinute,
+        decode = WearLinkProtocol::parseAscentMinute,
+        timeOf = { it.epochMillis },
+        onSameTime = WearMetric.OnSameTime.REPLACE,
+    )
+
+    val ALL: List<WearMetric<*>> = listOf(HEART_RATE, SLEEP_MINUTES, STEPS, ASCENT)
 }

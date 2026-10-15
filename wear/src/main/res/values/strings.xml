@@ -156,4 +156,33 @@
     <string name="settings_units">Units</string>
     <string name="settings_units_metric">Metric</string>
     <string name="settings_units_imperial">Imperial</string>
+
+    <string name="status_heart_rate_not_granted">Heart rate access is off</string>
+    <string name="status_heart_rate_waiting">Waiting for a heart rate…</string>
+    <string name="status_heart_rate_bpm">%1$d bpm</string>
+    <string name="status_samples_stored">%1$d samples on the watch</string>
+    <string name="status_minutes_stored">%1$d sleep minutes on the watch</string>
+    <string name="status_step_minutes_stored">%1$d minutes of steps on the watch</string>
+    <string name="status_steps_not_granted">Step counting is off: allow Physical activity</string>
+    <string name="status_steps_no_sensor">This watch has no step counter</string>
+    <string name="status_bedtime_off">Turn on bedtime mode at night to record every sleep minute</string>
+    <string name="status_bedtime_holding">Bedtime: recording every minute</string>
+    <string name="status_bedtime_paused_off_wrist">Bedtime: paused while off the wrist</string>
+    <string name="status_bedtime_paused_charging">Bedtime: paused while charging</string>
+    <string name="status_link_listening">Phone link on</string>
+    <string name="status_link_not_granted">Phone link needs Nearby devices</string>
+    <string name="action_grant">Allow</string>
+    <string name="status_link_bluetooth_off">Bluetooth is off</string>
+    <string name="status_link_starting">Phone link starting…</string>
+    <string name="status_phone_trusted">Linked to %1$s</string>
+    <string name="status_phone_pending">Allow OpenVitals on %1$s?</string>
+    <string name="phone_request_body">Open OpenVitals on the watch to answer</string>
+    <string name="action_allow">Allow</string>
+    <string name="action_block">Block</string>
+    <string name="status_phone_refused">%1$s was refused: its key changed</string>
+    <string name="action_forget_phone">Forget phone</string>
+    <string name="status_phone_bond_lost">%1$s is no longer paired</string>
+    <string name="action_open_bluetooth">Bluetooth settings</string>
+    <string name="link_requests_channel_name">Phone requests</string>
+    <string name="status_ppg_logging">Raw PPG log on · long press to stop</string>
 </resources>

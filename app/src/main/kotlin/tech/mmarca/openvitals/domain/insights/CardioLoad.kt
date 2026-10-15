@@ -6,6 +6,7 @@ import java.time.Duration
 import java.time.Instant
 import kotlin.math.exp
 import kotlin.math.roundToInt
+import tech.mmarca.openvitals.domain.preferences.BiologicalSex
 
 private const val MinimumTrimpMinutes = 5.0
 private const val GoodHeartRateCoverageMinutes = 10.0
@@ -90,11 +91,12 @@ fun calculateCardioLoad(
     activityWindows: List<CardioLoadTimeWindow>,
     ageYears: Int? = null,
     explicitMaxHeartRate: Long? = null,
+    sex: BiologicalSex? = null,
 ): CardioLoadEstimate {
     val fallback = movementFallbackCardioLoad(steps)
     val resting = restingHeartRate ?: baselineRestingHeartRate ?: samples.estimatedRestingHeartRate()
     val maxHeartRate = resting?.let {
-        maxHeartRateContext(observedMaxHeartRate, samples, it, ageYears, explicitMaxHeartRate)
+        maxHeartRateContext(observedMaxHeartRate, samples, it, ageYears, sex, explicitMaxHeartRate)
     }
     val trimp = if (resting != null && maxHeartRate != null) {
         calculateTrimp(
@@ -102,6 +104,7 @@ fun calculateCardioLoad(
             restingHeartRate = resting,
             maxHeartRate = maxHeartRate.bpm,
             activityWindows = activityWindows,
+            weighting = BanisterWeighting.of(sex),
         )
     } else {
         null
@@ -165,6 +168,7 @@ private fun calculateTrimp(
     restingHeartRate: Long,
     maxHeartRate: Long,
     activityWindows: List<CardioLoadTimeWindow>,
+    weighting: BanisterWeighting,
 ): TrimpResult? {
     val sortedSamples = samples
         .sortedBy { it.time }
@@ -197,7 +201,7 @@ private fun calculateTrimp(
         }
 
         coveredMinutes += intervalMinutes
-        score += intervalMinutes * heartRateReserve * 0.64 * exp(1.92 * heartRateReserve)
+        score += intervalMinutes * heartRateReserve * weighting.factor * exp(weighting.exponent * heartRateReserve)
     }
 
     if (coveredMinutes <= 0.0) return null
@@ -208,6 +212,26 @@ private fun calculateTrimp(
     )
 }
 
+/**
+ * Banister's TRIMP weighting, `a · e^(b · ΔHR)` with ΔHR the fraction of heart
+ * rate reserve, which tracks how blood lactate climbs with effort: a = 0.64,
+ * b = 1.92 for men, a = 0.86, b = 1.67 for women. Morton, Fitz-Clarke and
+ * Banister, "Modeling human performance in running", J Appl Physiol
+ * 1990;69(3):1171–1177, doi:10.1152/jappl.1990.69.3.1171; the constants as
+ * restated in doi:10.2147/CIA.S211568. Without a recorded sex the men's
+ * constants stay, as before the profile carried one.
+ */
+private enum class BanisterWeighting(val factor: Double, val exponent: Double) {
+    MEN(0.64, 1.92),
+    WOMEN(0.86, 1.67),
+    ;
+
+    companion object {
+        fun of(sex: BiologicalSex?): BanisterWeighting = if (sex == BiologicalSex.FEMALE) WOMEN else MEN
+    }
+}
+
+/** Days without usable heart rate: the highest of steps, distance and active energy, each divided by a fixed divisor. Divisors: app heuristic, no published source. */
 private fun movementFallbackCardioLoad(steps: DailySteps?): Int {
     steps ?: return 0
     val rawLoad = maxOf(
@@ -227,6 +251,7 @@ private fun maxHeartRateContext(
     samples: List<HeartRateSample>,
     restingHeartRate: Long,
     ageYears: Int?,
+    sex: BiologicalSex?,
     explicitMaxHeartRate: Long? = null,
 ): MaxHeartRateContext? {
     // A stated maximum outranks everything.
@@ -239,9 +264,9 @@ private fun maxHeartRateContext(
         ObservedMaxHeartRateMinimumBpm,
         restingHeartRate + ObservedMaxHeartRateRestingDeltaBpm,
     )
-    // Prefer Tanaka over an observed+10 floor, which understated the maximum by 30-40 bpm.
+    // Prefer the age formula over an observed+10 floor, which understated the maximum by 30-40 bpm.
     val estimatedMax = maxOf(
-        ageYears?.let { tanakaMaxHeartRate(it) } ?: 0L,
+        ageYears?.let { ageMaxHeartRate(it, sex) } ?: 0L,
         observedMax + 10L,
         restingHeartRate + 70L,
     )
@@ -250,10 +275,6 @@ private fun maxHeartRateContext(
         isObservedAvailable = observedAvailable,
     )
 }
-
-/** Tanaka (208 - 0.7*age), matching heart-rate recovery and Body Energy. */
-internal fun tanakaMaxHeartRate(ageYears: Int): Long =
-    (208.0 - 0.7 * ageYears).roundToInt().toLong().coerceAtLeast(1L)
 
 private fun List<HeartRateSample>.estimatedRestingHeartRate(): Long? {
     if (isEmpty()) return null

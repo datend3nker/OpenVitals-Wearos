@@ -6,14 +6,22 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.Instant
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tech.mmarca.openvitals.data.repository.BleDeviceRepository
@@ -32,6 +40,8 @@ import tech.mmarca.openvitals.devices.garmin.OnboardGarminWatchUseCase
 import tech.mmarca.openvitals.devices.wearos.OnboardWearOsWatchUseCase
 import tech.mmarca.openvitals.devices.wearos.WearOsCompanionManager
 import tech.mmarca.openvitals.devices.wearos.WearOsCompanionStatus
+import tech.mmarca.openvitals.devices.wearos.WearOsLinkSnapshot
+import tech.mmarca.openvitals.devices.wearos.WearOsLinkStore
 import tech.mmarca.openvitals.domain.model.BleSensorDevice
 import tech.mmarca.openvitals.navigation.WATCH_DEVICE_ID_ARG
 import tech.mmarca.openvitals.sensors.ble.BleSensorCoordinator
@@ -126,6 +136,7 @@ class WatchDeviceViewModel @Inject constructor(
     private val healthConnectManager: tech.mmarca.openvitals.healthconnect.HealthConnectManager,
     private val dispatchers: tech.mmarca.openvitals.core.performance.DispatcherProvider,
     private val wearOsCompanionManager: WearOsCompanionManager,
+    private val wearOsLinkStore: WearOsLinkStore,
 ) : ViewModel() {
 
     val deviceId: String = savedStateHandle.get<String>(WATCH_DEVICE_ID_ARG).orEmpty()
@@ -171,10 +182,40 @@ class WatchDeviceViewModel @Inject constructor(
         .combine(agpsStore.agps) { state, agps -> state.copy(agps = agps) }
         .stateInViewModel(initial = WatchDeviceUiState())
 
+    /**
+     * A Wear OS watch's heart rate as it happens, null while none arrives.
+     * Streams only while the screen collects it, so the watch's sensor runs
+     * unbatched only while someone looks.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val wearOsLiveHeartRateBpm: StateFlow<Int?> = deviceRepository.devicesFlow
+        .map { devices -> devices.firstOrNull { it.id == deviceId }?.takeIf { it.isWearosWatch } }
+        .distinctUntilChanged { old, new -> old?.address == new?.address && old?.bluetoothName == new?.bluetoothName }
+        .flatMapLatest { device ->
+            device?.let { wearOsCompanionManager.liveHeartRate(it.address, it.bluetoothName) } ?: flowOf(null)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(LIVE_STOP_TIMEOUT_MS), null)
+
     init {
         // The first check runs once the device has loaded; later ones are by hand.
         viewModelScope.launch {
             if (uiState.first { it.device != null }.device?.isWearosWatch == true) checkWearOsStatus()
+        }
+        // A sync that ends in a typed failure updates the status row without another ping.
+        viewModelScope.launch {
+            wearOsLinkStore.snapshots.collect { snapshots ->
+                val snapshot = snapshots[deviceId] ?: return@collect
+                localState.update { state ->
+                    state.copy(
+                        wearOsStatus = state.wearOsStatus.copy(
+                            appStatus = snapshot.status,
+                            watchName = snapshot.watchName ?: state.wearOsStatus.watchName,
+                            bondLost = snapshot.bondLost,
+                            lastCheckedAt = snapshot.checkedAt,
+                        ),
+                    )
+                }
+            }
         }
     }
 
@@ -212,6 +253,10 @@ class WatchDeviceViewModel @Inject constructor(
                     targetName = device.bluetoothName,
                 )
                 localState.update { it.copy(wearOsStatus = status, wearOsError = null) }
+                wearOsLinkStore.record(
+                    device.id,
+                    WearOsLinkSnapshot(status.appStatus, watchName = status.watchName, bondLost = status.bondLost, checkedAt = Instant.now()),
+                )
             } catch (e: Exception) {
                 val error = e.toScreenError(logTag = TAG, logMessage = "Wear OS status check failed")
                 localState.update { it.copy(wearOsError = error) }
@@ -417,3 +462,6 @@ class WatchDeviceViewModel @Inject constructor(
 }
 
 private const val TAG = "WatchDeviceViewModel"
+
+/** Keeps the live stream through a rotation; longer, and the watch's sensor runs for nothing. */
+private const val LIVE_STOP_TIMEOUT_MS = 5_000L

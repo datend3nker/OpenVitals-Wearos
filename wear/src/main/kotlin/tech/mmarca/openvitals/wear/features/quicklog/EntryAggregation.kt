@@ -4,7 +4,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import tech.mmarca.openvitals.wear.MetricUiState
-import tech.mmarca.openvitals.wear.WearMetric
+import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.WearUiState
 
 private const val DaysInWeek = 7
@@ -24,7 +24,7 @@ internal fun WearUiState.withEntries(
     val updated = metrics.toMutableMap()
 
     byType[EntryType.WATER]?.let { water ->
-        updated[WearMetric.HYDRATION] = MetricUiState(
+        updated[MetricTile.HYDRATION] = MetricUiState(
             current = water.onDay(today, zone).sumOf { it.value },
             goal = preferences.waterGoalMl.toDouble(),
             today = water.onDay(today, zone).hourlyTotals(zone),
@@ -32,19 +32,19 @@ internal fun WearUiState.withEntries(
         )
     }
     byType[EntryType.WEIGHT]?.let { weights ->
-        updated[WearMetric.WEIGHT] = MetricUiState(
+        updated[MetricTile.WEIGHT] = MetricUiState(
             current = weights.last().value,
             today = weights.onDay(today, zone).map { it.value },
             week = lastDays(today).mapNotNull { day -> weights.onDay(day, zone).lastOrNull()?.value },
         )
     }
-    byType[EntryType.HEART_RATE]?.let { updated.fillCurrent(WearMetric.HEART_RATE, it.last().value) }
-    byType[EntryType.HRV]?.let { updated.fillCurrent(WearMetric.HRV, it.last().value) }
+    byType[EntryType.HEART_RATE]?.let { updated.fillCurrent(MetricTile.HEART_RATE, it.last().value) }
+    byType[EntryType.HRV]?.let { updated.fillCurrent(MetricTile.HRV, it.last().value) }
 
     return copy(metrics = updated, entries = entries)
 }
 
-private fun MutableMap<WearMetric, MetricUiState>.fillCurrent(metric: WearMetric, value: Double) {
+private fun MutableMap<MetricTile, MetricUiState>.fillCurrent(metric: MetricTile, value: Double) {
     val existing = this[metric] ?: MetricUiState()
     if (existing.current == null) this[metric] = existing.copy(current = value)
 }

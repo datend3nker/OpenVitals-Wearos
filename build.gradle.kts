@@ -4,6 +4,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.compose) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kover) apply false
     alias(libs.plugins.hilt.android) apply false
     alias(libs.plugins.ksp) apply false
@@ -13,7 +14,7 @@ val openVitalsGroup = providers.gradleProperty("openVitalsGroup")
     .orElse("tech.mmarca.openvitals")
 val openVitalsArtifactVersion = providers.gradleProperty("openVitalsArtifactVersion")
     .orElse(providers.environmentVariable("OPENVITALS_ARTIFACT_VERSION"))
-    .orElse("2.13.0-SNAPSHOT")
+    .orElse("2.14.2-SNAPSHOT")
 
 allprojects {
     group = openVitalsGroup.get()
@@ -44,8 +45,8 @@ tasks.register("verifyAndroidTest") {
 
 tasks.register("verifyCiUnitTest") {
     group = "verification"
-    description = "Runs the phone app unit tests against the CI build type."
-    dependsOn(":app:testCiUnitTest")
+    description = "Runs the phone app unit tests against the CI build type, and the shared link module's."
+    dependsOn(":wearlink:test", ":app:testCiUnitTest")
 }
 
 tasks.register<Exec>("verifyTranslations") {
@@ -84,6 +85,7 @@ tasks.register("verifyWearCi") {
     group = "verification"
     description = "Runs Wear OS module unit tests, lint, build, and android-test compile checks for CI."
     dependsOn(
+        ":wearlink:test",
         ":wear:testDebugUnitTest",
         ":wear:lintDebug",
         ":wear:assembleDebug",

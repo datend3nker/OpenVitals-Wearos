@@ -9,7 +9,7 @@ import androidx.health.services.client.data.DataType
 import androidx.health.services.client.data.ExerciseType
 import androidx.health.services.client.getCapabilities
 import kotlinx.coroutines.withTimeoutOrNull
-import tech.mmarca.openvitals.wear.WearMetric
+import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.features.measure.Measurement
 import tech.mmarca.openvitals.wear.features.recording.ActivityType
 import tech.mmarca.openvitals.wear.features.recording.WorkoutField
@@ -44,16 +44,16 @@ class CapabilityProbe(private val context: Context) {
             }
             if (passive == null) {
                 // No Health Services answer: fall back to what the raw sensors can count.
-                if (hasSensor(Sensor.TYPE_STEP_COUNTER)) add(WearMetric.STEPS)
-                if (hasSensor(Sensor.TYPE_HEART_RATE)) add(WearMetric.HEART_RATE)
+                if (hasSensor(Sensor.TYPE_STEP_COUNTER)) add(MetricTile.STEPS)
+                if (hasSensor(Sensor.TYPE_HEART_RATE)) add(MetricTile.HEART_RATE)
             }
             if (hasBarometer && passive == null) {
-                add(WearMetric.FLOORS)
-                add(WearMetric.ELEVATION)
+                add(MetricTile.FLOORS)
+                add(MetricTile.ELEVATION)
             }
-            if (hasVendorSpo2) add(WearMetric.BLOOD_OXYGEN)
+            if (hasVendorSpo2) add(MetricTile.BLOOD_OXYGEN)
             if (exercise?.typeToCapabilities?.values?.any { DataType.VO2_MAX in it.supportedDataTypes } == true) {
-                add(WearMetric.VO2_MAX)
+                add(MetricTile.VO2_MAX)
             }
         }
 
@@ -94,12 +94,12 @@ class CapabilityProbe(private val context: Context) {
 
     private companion object {
         val PassiveMetrics = mapOf(
-            DataType.STEPS_DAILY to WearMetric.STEPS,
-            DataType.HEART_RATE_BPM to WearMetric.HEART_RATE,
-            DataType.DISTANCE_DAILY to WearMetric.DISTANCE,
-            DataType.CALORIES_DAILY to WearMetric.ACTIVE_CALORIES,
-            DataType.FLOORS_DAILY to WearMetric.FLOORS,
-            DataType.ELEVATION_GAIN_DAILY to WearMetric.ELEVATION,
+            DataType.STEPS_DAILY to MetricTile.STEPS,
+            DataType.HEART_RATE_BPM to MetricTile.HEART_RATE,
+            DataType.DISTANCE_DAILY to MetricTile.DISTANCE,
+            DataType.CALORIES_DAILY to MetricTile.ACTIVE_CALORIES,
+            DataType.FLOORS_DAILY to MetricTile.FLOORS,
+            DataType.ELEVATION_GAIN_DAILY to MetricTile.ELEVATION,
         )
 
         val WorkoutFields = mapOf(

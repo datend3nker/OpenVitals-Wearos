@@ -43,7 +43,7 @@ import androidx.wear.compose.material3.lazy.transformedHeight
 import java.util.Date
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.WearMetric
+import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.WearUiState
 import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
 import tech.mmarca.openvitals.wear.ui.components.metricUnitLabel
@@ -79,8 +79,8 @@ fun QuickLogScreen(
     var showSaved by remember { mutableStateOf(false) }
     val lastWeight = state.entries.lastOrNull { it.type == EntryType.WEIGHT }
     val lastPressure = state.entries.lastOrNull { it.type == EntryType.BLOOD_PRESSURE }
-    val waterToday = state.metrics[WearMetric.HYDRATION]?.current ?: 0.0
-    val waterUnit = stringResource(metricUnitLabel(WearMetric.HYDRATION, unitSystem))
+    val waterToday = state.metrics[MetricTile.HYDRATION]?.current ?: 0.0
+    val waterUnit = stringResource(metricUnitLabel(MetricTile.HYDRATION, unitSystem))
     val notLogged = stringResource(R.string.quicklog_not_logged)
 
     ScreenScaffold(scrollState = listState) { contentPadding ->
@@ -99,13 +99,13 @@ fun QuickLogScreen(
                 QuickLogButton(
                     label = stringResource(
                         R.string.quicklog_add_water,
-                        formatMetricValue(WearMetric.HYDRATION, WaterServingMl, unitSystem),
+                        formatMetricValue(MetricTile.HYDRATION, WaterServingMl, unitSystem),
                         waterUnit,
                     ),
                     secondary = stringResource(
                         R.string.quicklog_water_today,
-                        formatMetricValue(WearMetric.HYDRATION, waterToday, unitSystem),
-                        formatMetricValue(WearMetric.HYDRATION, state.preferences.waterGoalMl.toDouble(), unitSystem),
+                        formatMetricValue(MetricTile.HYDRATION, waterToday, unitSystem),
+                        formatMetricValue(MetricTile.HYDRATION, state.preferences.waterGoalMl.toDouble(), unitSystem),
                         waterUnit,
                     ),
                     icon = Icons.Outlined.WaterDrop,

@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +38,8 @@ import java.util.Locale
 import kotlinx.coroutines.launch
 import tech.mmarca.openvitals.core.performance.offMainIo
 import tech.mmarca.openvitals.R
+import tech.mmarca.openvitals.domain.model.NutritionNutrient
+import tech.mmarca.openvitals.features.nutrition.titleRes
 import tech.mmarca.openvitals.healthconnect.HealthConnectFeature
 import tech.mmarca.openvitals.ui.components.OpenVitalsCard
 import tech.mmarca.openvitals.ui.components.OpenVitalsFilledButton
@@ -88,12 +91,24 @@ fun CsvImportScreen(
                 state = state,
                 onPick = { filePicker.launch(CsvMimeTypes) },
             )
-            CsvImportStep.MAPPING -> CsvMappingStep(state = state, viewModel = viewModel)
-            CsvImportStep.CONFIRM -> CsvConfirmStep(
-                state = state,
-                viewModel = viewModel,
-                onGrantPermissions = { permissionLauncher.launch(state.missingPermissions) },
-            )
+            CsvImportStep.MAPPING -> if (state.drip != null) {
+                DripOptionsStep(state = state, viewModel = viewModel)
+            } else {
+                CsvMappingStep(state = state, viewModel = viewModel)
+            }
+            CsvImportStep.CONFIRM -> if (state.drip != null) {
+                DripConfirmStep(
+                    state = state,
+                    viewModel = viewModel,
+                    onGrantPermissions = { permissionLauncher.launch(state.missingPermissions) },
+                )
+            } else {
+                CsvConfirmStep(
+                    state = state,
+                    viewModel = viewModel,
+                    onGrantPermissions = { permissionLauncher.launch(state.missingPermissions) },
+                )
+            }
             CsvImportStep.IMPORTING -> CsvImportingStep(state = state, onCancel = viewModel::cancelImport)
             CsvImportStep.DONE -> CsvDoneStep(state = state, viewModel = viewModel, onDone = onDone)
         }
@@ -215,6 +230,7 @@ internal fun CsvMappingStep(
                     mapping = mapping.columns.firstOrNull { it.columnIndex == index }
                         ?: CsvColumnMapping(columnIndex = index),
                     onSetRole = { role, metric -> viewModel.setColumnRole(index, role, metric) },
+                    onSetNutrient = { nutrient -> viewModel.setColumnNutrient(index, nutrient) },
                     onSetInterpretation = { viewModel.setColumnInterpretation(index, it) },
                     modifier = Modifier.padding(bottom = 8.dp),
                 )
@@ -277,6 +293,7 @@ internal fun CsvConfirmStep(
     val mapping = state.mapping ?: return
     val sample = state.sample ?: return
     val missing = state.missingPermissions
+    val nutrientValues = remember(sample, mapping) { previewNutrientValues(rows = sample.dataRows, mapping = mapping) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
@@ -294,7 +311,7 @@ internal fun CsvConfirmStep(
                             text = stringResource(
                                 R.string.settings_csv_import_confirm_summary,
                                 state.fileName.orEmpty(),
-                                mapping.metricColumns.size,
+                                mapping.metricColumns.size + mapping.nutrientColumns.size,
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(top = 8.dp),
@@ -305,6 +322,11 @@ internal fun CsvConfirmStep(
                         // The per-metric range catches a bad derivation as 3% or 150%.
                         mapping.metricColumns.forEach { column ->
                             CsvMetricRangeLine(column = column, sample = sample, mapping = mapping)
+                        }
+                        // In the unit labels print, so a column read in the wrong unit stands out.
+                        mapping.nutrientColumns.forEach { column ->
+                            val nutrient = column.nutrient ?: return@forEach
+                            CsvNutrientRangeLine(nutrient = nutrient, values = nutrientValues[nutrient].orEmpty())
                         }
                     }
                 }
@@ -369,6 +391,23 @@ private fun CsvMetricRangeLine(
     )
 }
 
+/** One nutrient's observed range across the sample, in the unit labels print it in. */
+@Composable
+private fun CsvNutrientRangeLine(nutrient: NutritionNutrient, values: List<Double>) {
+    if (values.isEmpty()) return
+
+    Text(
+        text = stringResource(
+            R.string.settings_csv_import_confirm_range,
+            stringResource(nutrient.titleRes()),
+            csvNutrientPreviewText(nutrient, values.min()),
+            csvNutrientPreviewText(nutrient, values.max()),
+        ),
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.padding(bottom = 4.dp),
+    )
+}
+
 @Composable
 private fun CsvImportingStep(
     state: CsvImportState,
@@ -398,6 +437,20 @@ private fun CsvImportingStep(
             ),
             style = MaterialTheme.typography.bodyMedium,
         )
+        if (progress.journalDays > 0) {
+            Text(
+                text = stringResource(R.string.settings_csv_import_journal_days, progress.journalDays),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+        progress.resumingInSeconds?.let { seconds ->
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.settings_csv_import_quota_pause, seconds),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         Spacer(Modifier.weight(1f))
         OpenVitalsOutlinedButton(
             onClick = onCancel,

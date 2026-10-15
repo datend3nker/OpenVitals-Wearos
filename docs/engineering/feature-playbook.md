@@ -85,11 +85,11 @@ Sections hidden outside diagnostics builds are filtered in `SettingsScreenConten
 
 ### Add A Room Entity
 
-The database is at version 16. A new entity means:
+The database is at version 17. A new entity means:
 
 1. Add the `@Entity` and its DAO under `data/local/<area>/`.
 2. Add the entity to the `entities` array in `OpenVitalsDatabase`, add the abstract DAO accessor, and bump `VERSION` to 17.
-3. Add a `MIGRATION_16_17` in the companion object that creates the table, and add it to `ALL_MIGRATIONS`. Provide the DAO in `di/AppModule.kt`. Build once and commit the schema file Room writes to `app/schemas`.
+3. Add a `MIGRATION_17_18` in the companion object that creates the table, and add it to `ALL_MIGRATIONS`. Provide the DAO in `di/AppModule.kt`. Build once and commit the schema file Room writes to `app/schemas`.
 4. Give the migration a KDoc saying whether it copies data or only creates the table, and why. Every existing migration does.
 5. Prefer a natural composite primary key that makes a re-import idempotent, as `garmin_wellness_samples` does with `(metric, time_millis)`.
 
@@ -111,7 +111,7 @@ Keep the contract free of windowing, aggregation, and interpretation, as `Garmin
 2. Register the classifier where the others are constructed, in `sensors/ble/BleSensorCoordinator`.
 3. Take a lease via `withRadioLease(address, RadioLeaseOwner.*)` around every BLE link. Do not invent a fifth owner tag without a reason.
 4. Keep protocol code transport-free so it is testable over an in-memory pipe; only the GATT client should touch `android.bluetooth`.
-5. Bind the new port in `di/DevicesModule.kt`. Do not add a Hilt module inside `devices/`.
+5. Bind the new port in `di/DevicesModule.kt`. Do not add a Hilt module inside `devices/`. A `DeviceSyncPort` is bound `@IntoSet`; `CompositeDeviceSyncPort` routes each device to the port whose `canSync` claims it, so no two integrations may claim the same device.
 6. Write imported data through `AppleHealthImportRepository.insertImportedRecords` with a deterministic `clientRecordId`, so a re-sync upserts. Health Connect replaces a record only when its `clientRecordVersion` is higher, so a record that is rewritten as it grows needs a rising version.
 
 A device that only broadcasts, like the scale in `devices/xiaomi`, skips steps 1 to 3: it has nothing to classify in the sensor scan, no bond, no sync, and no link to lease. It still follows 4 to 6. If it is heard in the background, store what it said in Room before writing to Health Connect: a background write cannot ask for a permission, and the device will not say it twice. To be woken when it starts advertising, associate it through `CompanionDevicePairing` and bind a `CompanionPresenceObserver` `@IntoSet` in `di/DevicesModule.kt`; do not add a second `CompanionDeviceService`, Android reports to the primary one only.

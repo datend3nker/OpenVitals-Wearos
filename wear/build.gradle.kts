@@ -37,6 +37,7 @@ android {
     defaultConfig {
         applicationId = "tech.mmarca.openvitals"
         minSdk = 30
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         targetSdk = 36
         versionCode = wearVersionCode
         versionName = wearVersionNameOverride.orElse(wearBaseVersionName).get()
@@ -85,9 +86,11 @@ android {
     buildFeatures {
         compose = true
     }
+
 }
 
 dependencies {
+    implementation(project(":wearlink"))
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     implementation(libs.androidx.compose.ui)
@@ -110,4 +113,10 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    // Real org.json for local tests (the android.jar copy is a throwing stub): the feature vector is JSON.
+    testImplementation(libs.org.json)
+    // The metric store against real SQLite, on a watch or emulator; CI compiles it.
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
 }

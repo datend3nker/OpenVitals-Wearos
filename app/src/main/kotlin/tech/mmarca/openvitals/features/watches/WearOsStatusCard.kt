@@ -1,5 +1,7 @@
 package tech.mmarca.openvitals.features.watches
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,16 +21,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import tech.mmarca.openvitals.R
 import tech.mmarca.openvitals.core.presentation.ScreenError
 import tech.mmarca.openvitals.core.presentation.resolve
+import androidx.compose.ui.res.pluralStringResource
+import tech.mmarca.openvitals.devices.core.sync.DeviceSyncPhase
 import tech.mmarca.openvitals.devices.wearos.WearOsAppStatus
 import tech.mmarca.openvitals.devices.wearos.WearOsCompanionStatus
+import tech.mmarca.openvitals.devices.wearos.messageRes
+import tech.mmarca.openvitals.domain.model.BleSensorDevice
 import tech.mmarca.openvitals.ui.components.OpenVitalsCard
 import tech.mmarca.openvitals.ui.components.OpenVitalsOutlinedButton
 import tech.mmarca.openvitals.ui.components.PermissionCallout
+import tech.mmarca.openvitals.ui.components.formatDeviceTime
 import tech.mmarca.openvitals.ui.theme.Spacing
 
 @Composable
@@ -38,7 +46,10 @@ internal fun WearOsStatusCard(
     isChecking: Boolean,
     onCheck: () -> Unit,
     onGrantBluetooth: () -> Unit,
+    /** The heart rate the watch streams while this screen is open; null while none arrives. */
+    liveHeartRateBpm: Int? = null,
 ) {
+    val context = LocalContext.current
     if (error == ScreenError.PermissionDenied) {
         PermissionCallout(
             title = stringResource(R.string.message_missing_permissions_title),
@@ -98,12 +109,11 @@ internal fun WearOsStatusCard(
                 Spacer(modifier = Modifier.width(Spacing.sm))
                 Text(
                     text = when (status.appStatus) {
-                        WearOsAppStatus.APP_RUNNING ->
-                            stringResource(R.string.settings_watch_wearos_app_running)
-                        WearOsAppStatus.NO_ANSWER ->
-                            stringResource(R.string.settings_watch_wearos_app_no_answer)
-                        WearOsAppStatus.NOT_PAIRED ->
-                            stringResource(R.string.settings_watch_not_connected)
+                        WearOsAppStatus.APP_RUNNING -> status.watchName
+                            ?.let { stringResource(R.string.settings_watch_wearos_linked_to, it) }
+                            ?: stringResource(R.string.settings_watch_wearos_app_running)
+                        WearOsAppStatus.NOT_PAIRED -> stringResource(R.string.settings_watch_not_connected)
+                        else -> stringResource(status.appStatus.messageRes())
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (status.isAppRunning) {
@@ -112,6 +122,25 @@ internal fun WearOsStatusCard(
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
                 )
+            }
+            liveHeartRateBpm?.let { bpm ->
+                Text(
+                    text = stringResource(R.string.settings_watch_live_now, bpm),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            if (status.bondLost || status.appStatus == WearOsAppStatus.NOT_PAIRED) {
+                Text(
+                    text = stringResource(R.string.settings_watch_wearos_status_bond_lost),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OpenVitalsOutlinedButton(
+                    onClick = { runCatching { context.startActivity(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) } },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.settings_sensors_open_bluetooth))
+                }
             }
 
             error.resolve()?.let { message ->
@@ -142,6 +171,102 @@ internal fun WearOsStatusCard(
                     )
                     Spacer(modifier = Modifier.width(Spacing.sm))
                     Text(stringResource(R.string.settings_watch_wearos_check_app))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The sync for a Wear OS watch: what it does, when it last ran, what the
+ * last run brought (heart rate samples and estimated nights), and the
+ * button. The sync itself is the shared [DeviceSyncController] flow; this
+ * card only words it.
+ */
+@Composable
+internal fun WearOsSyncCard(
+    device: BleSensorDevice,
+    sync: DeviceSyncUiState,
+    onSync: () -> Unit,
+) {
+    val syncingThis = sync.isSyncingDevice(device.id)
+    OpenVitalsCard {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Spacing.lg),
+            verticalArrangement = Arrangement.spacedBy(Spacing.md),
+        ) {
+            Text(
+                text = stringResource(R.string.settings_watch_wearos_sync_body),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            val syncedAt = device.lastSyncedAt
+            Text(
+                text = if (syncedAt == null) {
+                    stringResource(R.string.settings_watch_never_synced)
+                } else {
+                    stringResource(R.string.settings_watch_last_synced, formatDeviceTime(syncedAt))
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            // Only after a run this session; the counts are not persisted.
+            val samples = sync.lastFileCount
+            val nights = sync.lastNightCount ?: 0
+            val stepMinutes = sync.lastStepMinuteCount ?: 0
+            if (!sync.isSyncing && sync.phase == DeviceSyncPhase.COMPLETE && samples != null) {
+                val lines = buildList {
+                    if (samples > 0) add(pluralStringResource(R.plurals.settings_watch_wearos_synced_samples, samples, samples))
+                    if (stepMinutes > 0) {
+                        add(pluralStringResource(R.plurals.settings_watch_wearos_synced_step_minutes, stepMinutes, stepMinutes))
+                    }
+                    if (nights > 0) add(pluralStringResource(R.plurals.settings_watch_wearos_synced_nights, nights, nights))
+                    if (isEmpty()) add(stringResource(R.string.settings_watch_wearos_synced_none))
+                }
+                for (line in lines) {
+                    Text(
+                        text = line,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+                if (sync.lastMissingBodyWeight) {
+                    Text(
+                        text = stringResource(R.string.settings_watch_wearos_needs_weight),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            sync.error.resolve()?.let { message ->
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            OpenVitalsOutlinedButton(
+                onClick = onSync,
+                // One sync at a time, whichever watch it is for.
+                enabled = !sync.isSyncing,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                if (syncingThis) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(WearOsButtonIconSize),
+                        strokeWidth = WearOsProgressStroke,
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.sm))
+                    Text(stringResource(R.string.settings_watch_wearos_syncing))
+                } else {
+                    Icon(
+                        imageVector = Icons.Outlined.Sync,
+                        contentDescription = null,
+                        modifier = Modifier.size(WearOsButtonIconSize),
+                    )
+                    Spacer(modifier = Modifier.width(Spacing.sm))
+                    Text(stringResource(R.string.settings_watch_wearos_sync_now))
                 }
             }
         }

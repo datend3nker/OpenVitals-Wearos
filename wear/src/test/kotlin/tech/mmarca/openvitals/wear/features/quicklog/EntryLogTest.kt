@@ -6,7 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import tech.mmarca.openvitals.wear.MetricUiState
-import tech.mmarca.openvitals.wear.WearMetric
+import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.WearUiState
 
 class EntryLogTest {
@@ -42,7 +42,7 @@ class EntryLogTest {
             LoggedEntry(EntryType.WATER, at(today, 10), 250.0),
             LoggedEntry(EntryType.WATER, at(today, 10), 250.0),
         )
-        val hydration = WearUiState().withEntries(entries, today, zone).metrics.getValue(WearMetric.HYDRATION)
+        val hydration = WearUiState().withEntries(entries, today, zone).metrics.getValue(MetricTile.HYDRATION)
 
         assertEquals(750.0, hydration.current!!, 0.0)
         assertEquals(2_000.0, hydration.goal!!, 0.0)
@@ -56,16 +56,16 @@ class EntryLogTest {
         val measured = listOf(LoggedEntry(EntryType.HEART_RATE, at(today, 9), 64.0))
 
         val empty = WearUiState().withEntries(measured, today, zone)
-        assertEquals(64.0, empty.metrics.getValue(WearMetric.HEART_RATE).current!!, 0.0)
+        assertEquals(64.0, empty.metrics.getValue(MetricTile.HEART_RATE).current!!, 0.0)
 
-        val withReading = WearUiState(metrics = mapOf(WearMetric.HEART_RATE to MetricUiState(current = 72.0)))
+        val withReading = WearUiState(metrics = mapOf(MetricTile.HEART_RATE to MetricUiState(current = 72.0)))
             .withEntries(measured, today, zone)
-        assertEquals(72.0, withReading.metrics.getValue(WearMetric.HEART_RATE).current!!, 0.0)
+        assertEquals(72.0, withReading.metrics.getValue(MetricTile.HEART_RATE).current!!, 0.0)
     }
 
     @Test
     fun noEntries_leaveMetricsAlone() {
         val state = WearUiState().withEntries(emptyList(), today, zone)
-        assertNull(state.metrics[WearMetric.HYDRATION])
+        assertNull(state.metrics[MetricTile.HYDRATION])
     }
 }

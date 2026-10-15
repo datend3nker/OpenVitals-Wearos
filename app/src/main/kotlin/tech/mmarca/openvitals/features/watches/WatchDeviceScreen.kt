@@ -60,6 +60,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import tech.mmarca.openvitals.R
+import tech.mmarca.openvitals.core.presentation.resolve
 import tech.mmarca.openvitals.devices.core.sync.AutoSyncInterval
 import tech.mmarca.openvitals.devices.garmin.GarminAgpsFileState
 import tech.mmarca.openvitals.devices.garmin.GarminAgpsKind
@@ -175,6 +176,7 @@ fun WatchDeviceScreen(
         )
 
         if (device.isWearosWatch) {
+            val liveHeartRateBpm by viewModel.wearOsLiveHeartRateBpm.collectAsStateWithLifecycle()
             SectionHeader(stringResource(R.string.settings_watch_wearos_status_section))
             WearOsStatusCard(
                 status = state.wearOsStatus,
@@ -184,7 +186,10 @@ fun WatchDeviceScreen(
                 onGrantBluetooth = {
                     bluetoothPermission.launch(android.Manifest.permission.BLUETOOTH_CONNECT)
                 },
+                liveHeartRateBpm = liveHeartRateBpm,
             )
+            SectionHeader(stringResource(R.string.settings_watch_wearos_sync_section))
+            WearOsSyncCard(device = device, sync = state.sync, onSync = viewModel::syncNow)
         }
 
         if (isGarmin) {
@@ -220,7 +225,7 @@ fun WatchDeviceScreen(
                     modifier = Modifier.padding(horizontal = Spacing.lg),
                 )
             }
-            state.sync.errorMessage?.let { message ->
+            state.sync.error.resolve()?.let { message ->
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodySmall,
@@ -262,8 +267,8 @@ fun WatchDeviceScreen(
         }
 
         SectionHeader(stringResource(R.string.settings_watch_section_device))
-        if (isGarmin) {
-            // First: the schedule decides whether this screen is ever visited again.
+        // First: the schedule decides whether this screen is ever visited again.
+        if (isGarmin || device.isWearosWatch) {
             AutoSyncCard(
                 selected = state.autoSync,
                 backgroundReadMissing = state.backgroundReadMissing,
@@ -279,6 +284,8 @@ fun WatchDeviceScreen(
                     backgroundAccessLauncher.launch(setOf(viewModel.backgroundReadPermission))
                 },
             )
+        }
+        if (isGarmin) {
             OpenVitalsCard {
                 Column(
                     modifier = Modifier
@@ -422,10 +429,10 @@ private fun StatusCard(
     isBikeComputer: Boolean,
     onRename: () -> Unit,
 ) {
-    // A WearOS watch has no sync, so the status line names the device.
+    // A WearOS watch never synced is named; synced, it reads like a Garmin, minus the file count.
     val statusLine = buildString {
         val syncedAt = device.lastSyncedAt
-        if (!isGarmin) {
+        if (!isGarmin && syncedAt == null) {
             append(device.bluetoothName ?: device.address)
         } else if (syncedAt == null) {
             append(stringResource(R.string.settings_watch_never_synced))
@@ -438,7 +445,7 @@ private fun StatusCard(
             )
             // Only after a sync this session; the count is not persisted.
             val files = sync.lastFileCount
-            if (files != null && files > 0) {
+            if (isGarmin && files != null && files > 0) {
                 append(" · ")
                 append(
                     pluralStringResource(

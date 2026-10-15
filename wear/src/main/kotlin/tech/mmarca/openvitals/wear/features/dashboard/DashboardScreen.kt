@@ -29,7 +29,7 @@ import tech.mmarca.openvitals.wear.MetricKind
 import tech.mmarca.openvitals.wear.MetricUiState
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.WearMetric
+import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.ui.components.ActivityRing
 import tech.mmarca.openvitals.wear.ui.components.ActivityRings
 import tech.mmarca.openvitals.wear.ui.components.MetricTile
@@ -48,11 +48,11 @@ import tech.mmarca.openvitals.wear.ui.theme.OpenVitalsWearTheme
  */
 @Composable
 fun DashboardScreen(
-    tiles: List<WearMetric>,
-    metrics: Map<WearMetric, MetricUiState>,
+    tiles: List<MetricTile>,
+    metrics: Map<MetricTile, MetricUiState>,
     unitSystem: UnitSystem,
     canMeasure: Boolean,
-    onOpenMetric: (WearMetric) -> Unit,
+    onOpenMetric: (MetricTile) -> Unit,
     onMeasure: () -> Unit,
     onQuickLog: () -> Unit,
     onEditTiles: () -> Unit,
@@ -160,8 +160,8 @@ fun DashboardScreen(
 /** Rings for the first three chosen cumulative metrics that have a goal. */
 @Composable
 private fun activityRings(
-    tiles: List<WearMetric>,
-    metrics: Map<WearMetric, MetricUiState>,
+    tiles: List<MetricTile>,
+    metrics: Map<MetricTile, MetricUiState>,
     unitSystem: UnitSystem,
 ): List<ActivityRing> =
     tiles.mapNotNull { metric ->
@@ -182,7 +182,7 @@ private fun activityRings(
 private fun DashboardScreenPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(WearMetric.DefaultTiles, SampleData.metrics, UnitSystem.METRIC, true, {}, {}, {}, {}, {}, {})
+            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.METRIC, true, {}, {}, {}, {}, {}, {})
         }
     }
 }
@@ -192,7 +192,7 @@ private fun DashboardScreenPreview() {
 private fun DashboardScreenEmptyPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(WearMetric.DefaultTiles, emptyMap(), UnitSystem.METRIC, false, {}, {}, {}, {}, {}, {})
+            DashboardScreen(MetricTile.DefaultTiles, emptyMap(), UnitSystem.METRIC, false, {}, {}, {}, {}, {}, {})
         }
     }
 }
@@ -202,7 +202,7 @@ private fun DashboardScreenEmptyPreview() {
 private fun DashboardScreenImperialPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(WearMetric.DefaultTiles, SampleData.metrics, UnitSystem.IMPERIAL, true, {}, {}, {}, {}, {}, {})
+            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.IMPERIAL, true, {}, {}, {}, {}, {}, {})
         }
     }
 }

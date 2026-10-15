@@ -9,15 +9,15 @@ class WearTilePreferences(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun loadTiles(): List<WearMetric> = decodeTiles(prefs.getString(KEY_TILES, null))
+    fun loadTiles(): List<MetricTile> = decodeTiles(prefs.getString(KEY_TILES, null))
 
-    fun saveTiles(tiles: List<WearMetric>) {
+    fun saveTiles(tiles: List<MetricTile>) {
         prefs.edit { putString(KEY_TILES, encodeTiles(tiles)) }
     }
 
-    fun resetTiles(): List<WearMetric> {
+    fun resetTiles(): List<MetricTile> {
         prefs.edit { remove(KEY_TILES) }
-        return WearMetric.DefaultTiles
+        return MetricTile.DefaultTiles
     }
 
     private companion object {
@@ -26,21 +26,21 @@ class WearTilePreferences(context: Context) {
     }
 }
 
-internal fun encodeTiles(tiles: List<WearMetric>): String = tiles.joinToString(",") { it.name }
+internal fun encodeTiles(tiles: List<MetricTile>): String = tiles.joinToString(",") { it.name }
 
 /**
  * Reads a stored tile list. Nothing stored means the defaults; an empty string
  * means the user switched every tile off. Unknown names are dropped.
  */
-internal fun decodeTiles(raw: String?): List<WearMetric> {
-    if (raw == null) return WearMetric.DefaultTiles
+internal fun decodeTiles(raw: String?): List<MetricTile> {
+    if (raw == null) return MetricTile.DefaultTiles
     return raw.split(",")
-        .mapNotNull { name -> WearMetric.entries.firstOrNull { it.name == name.trim() } }
+        .mapNotNull { name -> MetricTile.entries.firstOrNull { it.name == name.trim() } }
         .distinct()
 }
 
 /** Moves [moved] to the position of [target], shifting the tiles in between. */
-internal fun List<WearMetric>.withTileMoved(moved: WearMetric, target: WearMetric): List<WearMetric> {
+internal fun List<MetricTile>.withTileMoved(moved: MetricTile, target: MetricTile): List<MetricTile> {
     val targetIndex = indexOf(target)
     if (moved == target || moved !in this || targetIndex < 0) return this
     return toMutableList().apply {

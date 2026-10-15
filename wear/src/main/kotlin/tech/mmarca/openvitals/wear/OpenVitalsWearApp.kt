@@ -48,6 +48,8 @@ fun OpenVitalsWearApp(
     onLog: (LoggedEntry) -> Unit = {},
     deepLinkRoute: String? = null,
     onDeepLinkHandled: () -> Unit = {},
+    /** Link and recorder status, permissions and paired phones; the activity owns its stores. */
+    statusScreen: @Composable () -> Unit = {},
 ) {
     // The nav graph is built once, so every destination reads the latest
     // state through this holder instead of a value captured at build time.
@@ -62,7 +64,7 @@ fun OpenVitalsWearApp(
             var activityType by rememberSaveable { mutableStateOf(state.recording.activityType) }
             var paused by rememberSaveable { mutableStateOf(state.recording.paused) }
             var chosenTiles by remember { mutableStateOf(tilePrefs.loadTiles()) }
-            fun updateTiles(updated: List<WearMetric>) {
+            fun updateTiles(updated: List<MetricTile>) {
                 chosenTiles = updated
                 tilePrefs.saveTiles(updated)
             }
@@ -100,21 +102,21 @@ fun OpenVitalsWearApp(
                     )
                 }
                 composable(WearRoutes.METRIC) { entry ->
-                    val metric = WearMetric.valueOf(checkNotNull(entry.arguments?.getString(WearRoutes.METRIC_ARG)))
+                    val metric = MetricTile.valueOf(checkNotNull(entry.arguments?.getString(WearRoutes.METRIC_ARG)))
                     val measurement = metric.spotMeasurement?.takeIf { it in currentState.capabilities.measurements }
                     MetricDetailScreen(
                         metric = metric,
                         state = currentState.metrics[metric] ?: MetricUiState(),
                         unitSystem = currentState.preferences.unitSystem,
                         maxHeartRate = currentState.preferences.maxHeartRate,
-                        restingHeartRate = currentState.metrics[WearMetric.RESTING_HEART_RATE]?.current,
+                        restingHeartRate = currentState.metrics[MetricTile.RESTING_HEART_RATE]?.current,
                         sleepStages = currentState.sleepStages,
                         onMeasure = measurement?.let { { navController.navigate(WearRoutes.measurement(it)) } },
                     )
                 }
                 composable(WearRoutes.TILE_EDITOR) {
                     TileEditorScreen(
-                        available = WearMetric.entries.filter { it in currentState.availableMetrics },
+                        available = MetricTile.entries.filter { it in currentState.availableMetrics },
                         tiles = visibleTiles(),
                         onToggle = { metric, checked ->
                             updateTiles(if (checked) chosenTiles + metric else chosenTiles - metric)
@@ -152,7 +154,7 @@ fun OpenVitalsWearApp(
                 composable(WearRoutes.LOG_WEIGHT) {
                     WeightEntryScreen(
                         initialKg = currentState.entries.lastOrNull { it.type == EntryType.WEIGHT }?.value
-                            ?: currentState.metrics[WearMetric.WEIGHT]?.current
+                            ?: currentState.metrics[MetricTile.WEIGHT]?.current
                             ?: DefaultWeightKg,
                         unitSystem = currentState.preferences.unitSystem,
                         onSave = { kilograms ->
@@ -217,20 +219,21 @@ fun OpenVitalsWearApp(
                     SettingsScreen(
                         state = currentState.settings,
                         unitSystem = currentState.preferences.unitSystem,
-                        onPhoneClick = {},
-                        onSensorAccessClick = {},
+                        onPhoneClick = { navController.navigate(WearRoutes.STATUS) },
+                        onSensorAccessClick = { navController.navigate(WearRoutes.STATUS) },
                         onUnitsClick = {},
                     )
                 }
+                composable(WearRoutes.STATUS) { statusScreen() }
             }
         }
     }
 }
 
 /** The spot measurement that refreshes this metric, if there is one. */
-private val WearMetric.spotMeasurement: Measurement?
+private val MetricTile.spotMeasurement: Measurement?
     get() = when (this) {
-        WearMetric.HEART_RATE -> Measurement.HEART_RATE
-        WearMetric.HRV -> Measurement.HRV
+        MetricTile.HEART_RATE -> Measurement.HEART_RATE
+        MetricTile.HRV -> Measurement.HRV
         else -> null
     }

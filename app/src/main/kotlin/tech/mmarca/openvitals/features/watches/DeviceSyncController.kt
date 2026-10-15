@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.update
 import tech.mmarca.openvitals.data.repository.BleDeviceRepository
 import tech.mmarca.openvitals.devices.core.sync.DeviceSyncPhase
 import tech.mmarca.openvitals.devices.core.sync.DeviceSyncPort
+import tech.mmarca.openvitals.core.presentation.ScreenError
 import tech.mmarca.openvitals.devices.core.sync.DeviceSyncResult
 
 /** Where a device sync has got to, for the row that started it. Device-agnostic. */
@@ -28,7 +29,13 @@ data class DeviceSyncUiState(
     val filesDone: Int = 0,
     /** Files downloaded and handed to the importer by the last completed run. */
     val lastFileCount: Int? = null,
-    val errorMessage: String? = null,
+    /** Estimated nights of sleep written by the last completed run. */
+    val lastNightCount: Int? = null,
+    /** Minutes of steps written by the last completed run. */
+    val lastStepMinuteCount: Int? = null,
+    /** The last completed run skipped an estimate for want of the body weight. */
+    val lastMissingBodyWeight: Boolean = false,
+    val error: ScreenError? = null,
 ) {
     val isSyncing: Boolean get() = syncingDeviceId != null
 
@@ -119,12 +126,15 @@ class DeviceSyncController(
                 is DeviceSyncResult.Succeeded -> DeviceSyncUiState(
                     phase = DeviceSyncPhase.COMPLETE,
                     lastFileCount = result.fileCount,
+                    lastNightCount = result.nightCount,
+                    lastStepMinuteCount = result.stepMinuteCount,
+                    lastMissingBodyWeight = result.missingBodyWeight,
                 )
 
                 is DeviceSyncResult.Failed -> if (silent) {
                     DeviceSyncUiState()
                 } else {
-                    DeviceSyncUiState(errorMessage = result.message)
+                    DeviceSyncUiState(error = result.error)
                 }
             }
             result

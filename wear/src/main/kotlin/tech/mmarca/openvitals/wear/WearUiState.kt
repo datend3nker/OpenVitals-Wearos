@@ -10,9 +10,9 @@ data class WearUiState(
      * The metrics this watch has a sensor for. Only these are offered as
      * tiles. Every metric until sensor discovery narrows it.
      */
-    val availableMetrics: Set<WearMetric> = WearMetric.entries.toSet(),
+    val availableMetrics: Set<MetricTile> = MetricTile.entries.toSet(),
     /** A metric without an entry renders as "no reading yet". */
-    val metrics: Map<WearMetric, MetricUiState> = emptyMap(),
+    val metrics: Map<MetricTile, MetricUiState> = emptyMap(),
     val recording: RecordingUiState = RecordingUiState(),
     val settings: SettingsUiState = SettingsUiState(),
     val preferences: WearPreferences = WearPreferences(),
@@ -24,7 +24,7 @@ data class WearUiState(
     val entries: List<LoggedEntry> = emptyList(),
 )
 
-/** One metric's readings, in the base unit documented on [WearMetric]. */
+/** One metric's readings, in the base unit documented on [MetricTile]. */
 data class MetricUiState(
     /** Today's total for a cumulative metric, the latest sample otherwise. */
     val current: Double? = null,

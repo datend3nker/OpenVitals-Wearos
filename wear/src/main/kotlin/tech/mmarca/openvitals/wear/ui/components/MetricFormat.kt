@@ -6,7 +6,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.WearMetric
+import tech.mmarca.openvitals.wear.MetricTile
 
 private const val MetersPerKilometer = 1000.0
 private const val MetersPerMile = 1609.344
@@ -18,25 +18,25 @@ private const val MinutesPerHour = 60
 fun formatCount(value: Int): String = NumberFormat.getIntegerInstance().format(value)
 
 /** [value] is in the metric's base unit. The matching unit label is [metricUnitLabel]. */
-fun formatMetricValue(metric: WearMetric, value: Double, unitSystem: UnitSystem): String =
+fun formatMetricValue(metric: MetricTile, value: Double, unitSystem: UnitSystem): String =
     when (metric) {
-        WearMetric.DISTANCE -> {
+        MetricTile.DISTANCE -> {
             val metersPerUnit = when (unitSystem) {
                 UnitSystem.METRIC -> MetersPerKilometer
                 UnitSystem.IMPERIAL -> MetersPerMile
             }
             String.format(Locale.getDefault(), "%.1f", value / metersPerUnit)
         }
-        WearMetric.ELEVATION -> when (unitSystem) {
+        MetricTile.ELEVATION -> when (unitSystem) {
             UnitSystem.METRIC -> formatCount(value.roundToInt())
             UnitSystem.IMPERIAL -> formatCount((value * FeetPerMeter).roundToInt())
         }
-        WearMetric.SLEEP -> formatHoursMinutes(value)
-        WearMetric.WEIGHT -> when (unitSystem) {
+        MetricTile.SLEEP -> formatHoursMinutes(value)
+        MetricTile.WEIGHT -> when (unitSystem) {
             UnitSystem.METRIC -> formatOneDecimal(value)
             UnitSystem.IMPERIAL -> formatOneDecimal(value * PoundsPerKilogram)
         }
-        WearMetric.HYDRATION -> when (unitSystem) {
+        MetricTile.HYDRATION -> when (unitSystem) {
             UnitSystem.METRIC -> formatCount(value.roundToInt())
             UnitSystem.IMPERIAL -> formatCount((value / MillilitresPerFluidOunce).roundToInt())
         }
@@ -45,7 +45,7 @@ fun formatMetricValue(metric: WearMetric, value: Double, unitSystem: UnitSystem)
 
 /** [kilograms] in the unit system's body weight unit, one decimal. */
 fun formatWeight(kilograms: Double, unitSystem: UnitSystem): String =
-    formatMetricValue(WearMetric.WEIGHT, kilograms, unitSystem)
+    formatMetricValue(MetricTile.WEIGHT, kilograms, unitSystem)
 
 /** "7:05" for 425 minutes. */
 fun formatHoursMinutes(minutes: Double): String {
@@ -56,30 +56,30 @@ fun formatHoursMinutes(minutes: Double): String {
 fun formatOneDecimal(value: Double): String = String.format(Locale.getDefault(), "%.1f", value)
 
 @StringRes
-fun metricUnitLabel(metric: WearMetric, unitSystem: UnitSystem): Int =
+fun metricUnitLabel(metric: MetricTile, unitSystem: UnitSystem): Int =
     when (metric) {
-        WearMetric.STEPS -> R.string.unit_steps
-        WearMetric.HEART_RATE -> R.string.unit_bpm
-        WearMetric.DISTANCE -> when (unitSystem) {
+        MetricTile.STEPS -> R.string.unit_steps
+        MetricTile.HEART_RATE -> R.string.unit_bpm
+        MetricTile.DISTANCE -> when (unitSystem) {
             UnitSystem.METRIC -> R.string.unit_km
             UnitSystem.IMPERIAL -> R.string.unit_mi
         }
-        WearMetric.ACTIVE_CALORIES -> R.string.unit_kcal
-        WearMetric.FLOORS -> R.string.unit_floors
-        WearMetric.ELEVATION -> when (unitSystem) {
+        MetricTile.ACTIVE_CALORIES -> R.string.unit_kcal
+        MetricTile.FLOORS -> R.string.unit_floors
+        MetricTile.ELEVATION -> when (unitSystem) {
             UnitSystem.METRIC -> R.string.unit_m
             UnitSystem.IMPERIAL -> R.string.unit_ft
         }
-        WearMetric.BLOOD_OXYGEN -> R.string.unit_percent
-        WearMetric.VO2_MAX -> R.string.unit_vo2_max
-        WearMetric.RESTING_HEART_RATE -> R.string.unit_bpm
-        WearMetric.HRV -> R.string.unit_ms
-        WearMetric.SLEEP -> R.string.unit_hours
-        WearMetric.HYDRATION -> when (unitSystem) {
+        MetricTile.BLOOD_OXYGEN -> R.string.unit_percent
+        MetricTile.VO2_MAX -> R.string.unit_vo2_max
+        MetricTile.RESTING_HEART_RATE -> R.string.unit_bpm
+        MetricTile.HRV -> R.string.unit_ms
+        MetricTile.SLEEP -> R.string.unit_hours
+        MetricTile.HYDRATION -> when (unitSystem) {
             UnitSystem.METRIC -> R.string.unit_ml
             UnitSystem.IMPERIAL -> R.string.unit_fl_oz
         }
-        WearMetric.WEIGHT -> when (unitSystem) {
+        MetricTile.WEIGHT -> when (unitSystem) {
             UnitSystem.METRIC -> R.string.unit_kg
             UnitSystem.IMPERIAL -> R.string.unit_lb
         }

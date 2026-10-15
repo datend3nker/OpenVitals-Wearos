@@ -36,19 +36,36 @@ when `ANDROID_SERIAL` is set; it is disabled in CI.
 
 ### Wear OS Gate
 
-The watch app in `wear/` has its own gate, separate from `verifyCi`:
+The watch app in `wear/` has its own gate, separate from `verifyCi`. Both gates run the shared link module's tests (`:wearlink:test`), since both apps compile it:
 
 ```bash
 ./gradlew verifyWearCi
 ```
 
-It runs `:wear:testDebugUnitTest`, `:wear:lintDebug`, `:wear:assembleDebug`,
-and `:wear:compileDebugAndroidTestKotlin`. The wear module uses the standard
+It runs `:wearlink:test`, `:wear:testDebugUnitTest`, `:wear:lintDebug`, `:wear:assembleDebug`,
+and `:wear:compileDebugAndroidTestKotlin`. A dependency change in `wearlink/build.gradle.kts`
+needs `./gradlew :wearlink:dependencies --write-locks` for its lockfile, like the other modules. The wear module uses the standard
 `debug` build type; it has no `ci` variant.
+
+The watch's instrumented tests (`wear/src/androidTest`, the metric store against real SQLite)
+are compiled by the gate but run only on a device. Do not use `connectedDebugAndroidTest` on a
+watch you wear: it uninstalls the app afterwards, which deletes the recorded data and the
+trusted phones. Install the two APKs over the app instead and run the runner detached, since
+a watch's Wi-Fi adb tends to drop while the app restarts:
+
+```sh
+./gradlew :wear:assembleDebug :wear:assembleDebugAndroidTest
+adb -s <watch> install -r wear/build/outputs/apk/debug/wear-debug.apk
+adb -s <watch> install -r -t wear/build/outputs/apk/androidTest/debug/wear-debug-androidTest.apk
+adb -s <watch> shell 'nohup am instrument -w tech.mmarca.openvitals.debug.test/androidx.test.runner.AndroidJUnitRunner > /data/local/tmp/ov-inst.txt 2>&1 &'
+adb -s <watch> shell cat /data/local/tmp/ov-inst.txt   # until it ends in OK or FAILURES
+```
+
+The run stops the app; open it on the watch again afterwards so its service restarts.
 
 CI mirrors the split. `.github/workflows/test.yml` runs `verifyCi` and skips
 changes that only touch `wear/`. `.github/workflows/wear-test.yml` runs `verifyWearCi` and
-triggers only on `wear/` and the shared build files it depends on. A change to
+triggers only on `wear/`, `wearlink/` and the shared build files they depend on. A change to
 the root Gradle files runs both.
 
 The watch app shares the phone app's `applicationId`, `tech.mmarca.openvitals`,
@@ -61,6 +78,54 @@ One listing means one versionCode space. The watch owns the range
 reads `OPENVITALS_WEAR_VERSION_CODE` and `OPENVITALS_WEAR_VERSION_NAME` the way
 the phone build reads its own overrides, and fails the build when the code is
 outside the watch range.
+
+#### Installing the watch app without Play
+
+There is no F-Droid client for Wear OS and a watch cannot install an APK by
+itself, so the watch app is sideloaded over adb. A watch has no USB data
+port, and debugging over Bluetooth goes through the vendor's phone app, so
+the only way in is Wireless debugging over Wi-Fi: the watch and the computer
+must be on the same Wi-Fi network. The watch joins Wi-Fi on its own, without
+a phone or a Google account.
+
+On the watch, all in Settings:
+
+1. Connections, Wi-Fi: join the network the computer is on.
+2. Unlock Developer options: About watch, Software, tap the software version
+   five times until the watch says developer mode is on. (On a Pixel Watch:
+   System, About, tap the build number seven times.)
+3. Developer options, at the bottom of Settings: turn on ADB debugging, then
+   Wireless debugging. Wireless debugging shows the address and port to
+   connect to.
+4. Wireless debugging, Pair new device: shows the pairing address, a separate
+   pairing port, and a six-digit code. Leave this screen open while pairing;
+   the code expires with it.
+
+Then, once per computer:
+
+```bash
+adb pair <watch-ip>:<pairing-port> <code>
+adb connect <watch-ip>:<port>          # the port Wireless debugging shows
+./gradlew :wear:assembleDebug
+adb -s <watch-ip>:<port> install -r wear/build/outputs/apk/debug/wear-debug.apk
+```
+
+Both ports change on every boot, and the watch drops Wi-Fi while it sleeps
+off the charger, so wake it before connecting. adb's own mDNS discovery finds nothing
+next to a system Avahi daemon; run adb with `ADB_MDNS_OPENSCREEN=1`, or read
+the address from `avahi-browse -rt _adb-tls-connect._tcp`. The debug watch app
+installs as `tech.mmarca.openvitals.debug`, so it pairs with the debug phone
+app.
+
+Three scripts wrap this: `scripts/wear-pair.sh` (pairing and discovery),
+`scripts/wear-install.sh` (build if needed, install, the permission grants, a
+status check with `--status`), and `scripts/wear-skip-onboarding.sh`, which
+marks a never-onboarded watch as set up so the vendor's phone app is not
+needed at all. They share `scripts/lib/wear-adb.sh`. The last one only works on watches whose welcome screen opens Settings, since
+Wi-Fi adb is behind it; the Galaxy Watch8 does not, so Samsung watches get
+onboarded once with Galaxy Wearable and the app sideloaded afterwards. The
+user-facing walkthrough, with the per-watch table, is
+[docs/how-to/wear-os-sideload.md](../how-to/wear-os-sideload.md).
 
 ### Translation Gate
 
@@ -241,6 +306,16 @@ repository Actions secrets:
 
 The Play production upload runs in the `production` environment. Add required
 reviewers to that environment so a production run waits for approval.
+
+While a release is in Play review, a new upload to any track restarts the
+review. Set the repository Actions variable `OPENVITALS_PLAY_PAUSED=true` to
+hold both Play uploads: the nightly skips its open testing job, and a
+production run still waits for approval, promotes the GitHub release to stable
+and posts to Zulip, but uploads nothing. Tags, GitHub releases and F-Droid,
+which builds from the tag, are unaffected. Delete the variable to resume. A
+version released while paused reaches Play only by hand, from the AAB on its
+GitHub release, or by a production run from its tag after the variable is
+gone; the next release's upload also supersedes it.
 
 ## Release Checklist
 

@@ -47,7 +47,7 @@ import androidx.wear.compose.material3.Text
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.RecordingUiState
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.WearMetric
+import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.features.metric.HeartZoneLabels
 import tech.mmarca.openvitals.wear.features.metric.heartRateZone
 import tech.mmarca.openvitals.wear.features.metric.heartRateZoneProgress
@@ -158,8 +158,8 @@ private fun OverviewPage(
             FieldRow(
                 icon = Icons.Outlined.Straighten,
                 color = DistanceColor,
-                value = state.distanceMeters?.let { formatMetricValue(WearMetric.DISTANCE, it.toDouble(), unitSystem) },
-                unit = stringResource(metricUnitLabel(WearMetric.DISTANCE, unitSystem)),
+                value = state.distanceMeters?.let { formatMetricValue(MetricTile.DISTANCE, it.toDouble(), unitSystem) },
+                unit = stringResource(metricUnitLabel(MetricTile.DISTANCE, unitSystem)),
             )
         }
         if (WorkoutField.CALORIES in fields) {
@@ -227,9 +227,9 @@ private fun PacePage(state: RecordingUiState, fields: Set<WorkoutField>, unitSys
                 icon = Icons.Outlined.Terrain,
                 color = ElevationColor,
                 value = state.elevationGainMeters?.let {
-                    formatMetricValue(WearMetric.ELEVATION, it.toDouble(), unitSystem)
+                    formatMetricValue(MetricTile.ELEVATION, it.toDouble(), unitSystem)
                 },
-                unit = stringResource(metricUnitLabel(WearMetric.ELEVATION, unitSystem)),
+                unit = stringResource(metricUnitLabel(MetricTile.ELEVATION, unitSystem)),
             )
         }
     }

@@ -3,14 +3,30 @@ package tech.mmarca.openvitals.domain.insights
 import java.time.Duration
 import kotlin.math.roundToInt
 import tech.mmarca.openvitals.domain.model.HeartRateSample
+import tech.mmarca.openvitals.domain.preferences.BiologicalSex
 
+/**
+ * WHO 2020: 150 moderate minutes a week. One vigorous minute counts as two.
+ * Bull et al. 2020, doi:10.1136/bjsports-2020-102955.
+ */
 const val DefaultWeeklyIntensityMinutesTarget = 150
 
+/**
+ * Intensity by heart rate reserve (Karvonen 1957, PMID 13470504).
+ * Moderate 40–59 %, vigorous 60–89 %: ACSM, Garber et al. 2011,
+ * doi:10.1249/MSS.0b013e318213fefb, Table 1. Read via Garzon et al. 2017,
+ * doi:10.1016/j.jshs.2015.12.004.
+ */
 private const val ModerateHeartRateReserveThreshold = 0.40
 private const val VigorousHeartRateReserveThreshold = 0.60
 private const val GoodHeartRateCoverageMinutes = 10.0
 private const val GoodHeartRateCoverageRatio = 0.60
 private const val MaxHeartRateSampleGapMinutes = 5.0
+/*
+ * Fallbacks for days without usable heart rate, in order: a workout's active
+ * energy per minute, the day's active energy, cardio load. App heuristic, no
+ * published source.
+ */
 private const val VigorousKcalPerMinute = 8.0
 private const val ModerateKcalPerMinute = 3.0
 private const val DailyActiveCaloriesModerateKcalPerMinute = 5.0
@@ -85,10 +101,11 @@ fun calculateIntensityMinutes(
     cardioLoadScore: Int?,
     ageYears: Int? = null,
     explicitMaxHeartRate: Long? = null,
+    sex: BiologicalSex? = null,
 ): IntensityMinutesEstimate {
     val resting = restingHeartRate ?: baselineRestingHeartRate ?: samples.estimatedRestingHeartRate()
     val maxHeartRate = resting?.let {
-        maxHeartRateContext(observedMaxHeartRate, samples, it, ageYears, explicitMaxHeartRate)
+        maxHeartRateContext(observedMaxHeartRate, samples, it, ageYears, sex, explicitMaxHeartRate)
     }
     if (resting != null && maxHeartRate != null) {
         val heartRateEstimate = calculateHeartRateReserveIntensity(
@@ -258,6 +275,7 @@ private fun maxHeartRateContext(
     samples: List<HeartRateSample>,
     restingHeartRate: Long,
     ageYears: Int?,
+    sex: BiologicalSex?,
     explicitMaxHeartRate: Long? = null,
 ): IntensityMaxHeartRateContext? {
     // A user-stated maximum outranks everything, as in heart-rate recovery.
@@ -270,9 +288,9 @@ private fun maxHeartRateContext(
         ObservedMaxHeartRateMinimumBpm,
         restingHeartRate + ObservedMaxHeartRateRestingDeltaBpm,
     )
-    // As in cardio load: Tanaka beats a quiet fortnight's ceiling.
+    // As in cardio load: the age formula beats a quiet fortnight's ceiling.
     val estimatedMax = maxOf(
-        ageYears?.let { tanakaMaxHeartRate(it) } ?: 0L,
+        ageYears?.let { ageMaxHeartRate(it, sex) } ?: 0L,
         observedMax + 10L,
         restingHeartRate + 70L,
     )

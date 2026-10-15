@@ -40,7 +40,7 @@ import tech.mmarca.openvitals.wear.MetricUiState
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.SleepStage
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.WearMetric
+import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.WearPreferences
 import tech.mmarca.openvitals.wear.ui.components.BarChart
 import tech.mmarca.openvitals.wear.ui.components.BarSegment
@@ -68,7 +68,7 @@ private val SectionPadding = 12.dp
  */
 @Composable
 fun MetricDetailScreen(
-    metric: WearMetric,
+    metric: MetricTile,
     state: MetricUiState,
     unitSystem: UnitSystem,
     maxHeartRate: Int = WearPreferences().maxHeartRate,
@@ -81,7 +81,7 @@ fun MetricDetailScreen(
     val unit = stringResource(metricUnitLabel(metric, unitSystem))
     val stats = remember(metric, state, restingHeartRate) { metricStats(metric, state, restingHeartRate) }
     val zoneShares = remember(metric, state.today, maxHeartRate) {
-        if (metric == WearMetric.HEART_RATE) heartRateZoneShares(state.today, maxHeartRate) else emptyList()
+        if (metric == MetricTile.HEART_RATE) heartRateZoneShares(state.today, maxHeartRate) else emptyList()
     }
 
     ScreenScaffold(scrollState = listState) { contentPadding ->
@@ -100,7 +100,7 @@ fun MetricDetailScreen(
                     )
                 }
             }
-            if (metric == WearMetric.SLEEP && sleepStages.isNotEmpty()) {
+            if (metric == MetricTile.SLEEP && sleepStages.isNotEmpty()) {
                 item { ListSubHeader { Text(stringResource(R.string.detail_sleep_stages)) } }
                 item {
                     BreakdownSection(
@@ -186,7 +186,7 @@ fun MetricDetailScreen(
 
 @Composable
 private fun MetricHero(
-    metric: WearMetric,
+    metric: MetricTile,
     state: MetricUiState,
     unit: String,
     unitSystem: UnitSystem,
@@ -298,9 +298,9 @@ private fun DayLabels(count: Int) {
 private data class MetricStat(@param:StringRes val label: Int, val value: Double)
 
 /** The stats that make sense for the metric's kind, from the data that is there. */
-private fun metricStats(metric: WearMetric, state: MetricUiState, restingHeartRate: Double?): List<MetricStat> =
+private fun metricStats(metric: MetricTile, state: MetricUiState, restingHeartRate: Double?): List<MetricStat> =
     buildList {
-        if (metric == WearMetric.HEART_RATE && restingHeartRate != null) {
+        if (metric == MetricTile.HEART_RATE && restingHeartRate != null) {
             add(MetricStat(R.string.stat_resting, restingHeartRate))
         }
         when (metric.kind) {
@@ -327,7 +327,7 @@ private fun metricStats(metric: WearMetric, state: MetricUiState, restingHeartRa
 private fun MetricDetailScreenGoalPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            MetricDetailScreen(WearMetric.STEPS, SampleData.metrics.getValue(WearMetric.STEPS), UnitSystem.METRIC)
+            MetricDetailScreen(MetricTile.STEPS, SampleData.metrics.getValue(MetricTile.STEPS), UnitSystem.METRIC)
         }
     }
 }
@@ -338,8 +338,8 @@ private fun MetricDetailScreenSampledPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
             MetricDetailScreen(
-                WearMetric.HEART_RATE,
-                SampleData.metrics.getValue(WearMetric.HEART_RATE),
+                MetricTile.HEART_RATE,
+                SampleData.metrics.getValue(MetricTile.HEART_RATE),
                 UnitSystem.METRIC,
                 restingHeartRate = 58.0,
                 onMeasure = {},
@@ -353,7 +353,7 @@ private fun MetricDetailScreenSampledPreview() {
 private fun MetricDetailScreenEmptyPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            MetricDetailScreen(WearMetric.ELEVATION, MetricUiState(), UnitSystem.METRIC)
+            MetricDetailScreen(MetricTile.ELEVATION, MetricUiState(), UnitSystem.METRIC)
         }
     }
 }
@@ -364,8 +364,8 @@ private fun MetricDetailScreenSleepPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
             MetricDetailScreen(
-                WearMetric.SLEEP,
-                SampleData.metrics.getValue(WearMetric.SLEEP),
+                MetricTile.SLEEP,
+                SampleData.metrics.getValue(MetricTile.SLEEP),
                 UnitSystem.METRIC,
                 sleepStages = SampleData.sleepStages,
             )

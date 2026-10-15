@@ -3,6 +3,7 @@ package tech.mmarca.openvitals.features.imports.csv
 import com.google.common.truth.Truth.assertThat
 import java.time.ZoneOffset
 import org.junit.Test
+import tech.mmarca.openvitals.domain.model.NutritionNutrient
 
 private val HeaderRow = listOf("Date", "Weight (kg)", "Fat mass (kg)", "Comments")
 
@@ -140,6 +141,31 @@ class CsvImportReportTest {
     }
 
     @Test
+    fun `a nutrient column names the nutrient and the unit it was read in`() {
+        val mapping = CsvImportMapping(
+            columns = listOf(
+                CsvColumnMapping(columnIndex = 0, role = CsvColumnRole.TIMESTAMP),
+                CsvColumnMapping(columnIndex = 1, role = CsvColumnRole.FOOD_NAME),
+                CsvColumnMapping(
+                    columnIndex = 2,
+                    role = CsvColumnRole.NUTRIENT,
+                    nutrient = NutritionNutrient.VITAMIN_B12,
+                ),
+            ),
+        )
+
+        val report = buildCsvImportReport(
+            fileName = "meals.csv",
+            mapping = mapping,
+            result = runResult(),
+            headerRow = listOf("Date", "Food", "B12"),
+        )
+
+        assertThat(report).contains("[1] Food -> food name")
+        assertThat(report).contains("[2] B12 -> nutrient vitaminB12 (micrograms)")
+    }
+
+    @Test
     fun `a derived body fat says what it was derived from, not just its unit`() {
         // "kilograms" alone on a body-fat column would misdescribe what was written.
         assertThat(report()).contains(
@@ -224,5 +250,14 @@ class CsvImportReportTest {
     fun `a rate-limited run says so rather than reading as a plain stop`() {
         assertThat(report(result = runResult(outcome = CsvImportOutcome.RATE_LIMITED)))
             .contains("Health Connect rate limit")
+    }
+
+    @Test
+    fun `quota pauses appear in the totals only when the run took some`() {
+        val paused = runResult()
+        val result = paused.copy(progress = paused.progress.copy(quotaPauses = 3, quotaWaitMillis = 105_000L))
+
+        assertThat(report(result = result)).contains("Quota pauses:    3 (waited 1 min 45 s)")
+        assertThat(report()).doesNotContain("Quota pauses")
     }
 }

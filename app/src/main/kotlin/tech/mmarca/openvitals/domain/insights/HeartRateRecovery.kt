@@ -3,10 +3,9 @@ package tech.mmarca.openvitals.domain.insights
 import androidx.health.connect.client.records.ExerciseSegment
 import java.time.Duration
 import java.time.Instant
-import kotlin.math.max
-import kotlin.math.roundToInt
 import tech.mmarca.openvitals.domain.model.ExerciseData
 import tech.mmarca.openvitals.domain.model.HeartRateSample
+import tech.mmarca.openvitals.domain.preferences.BiologicalSex
 
 /*
  * Heart-rate recovery: how far the heart rate falls after hard effort stops.
@@ -230,6 +229,7 @@ fun calculateHeartRateRecovery(
     ageYears: Int?,
     observedMaxHeartRateBpm: Int?,
     explicitMaxHeartRateBpm: Int? = null,
+    sex: BiologicalSex? = null,
 ): HeartRateRecoveryReading {
     val ordered = ordered(samples)
     if (ordered.isEmpty()) return HeartRateRecoveryReading.NoData
@@ -277,6 +277,7 @@ fun calculateHeartRateRecovery(
         observedMaxHeartRateBpm = observedMaxHeartRateBpm,
         restingHeartRateBpm = restingHeartRateBpm,
         ageYears = ageYears,
+        sex = sex,
     )
     if (maxContext == null) {
         issues.add(HeartRateRecoveryIssue.UNKNOWN_MAX_HEART_RATE)
@@ -477,6 +478,7 @@ private fun resolveMaxHeartRate(
     observedMaxHeartRateBpm: Int?,
     restingHeartRateBpm: Int?,
     ageYears: Int?,
+    sex: BiologicalSex?,
 ): MaxHeartRate? {
     if (explicitMaxHeartRateBpm != null) {
         return MaxHeartRate(explicitMaxHeartRateBpm, false)
@@ -494,8 +496,7 @@ private fun resolveMaxHeartRate(
 
     val age = ageYears
     if (age != null) {
-        // Tanaka (208 - 0.7*age).
-        return MaxHeartRate(max(1, (208 - 0.7 * age).roundToInt()), true)
+        return MaxHeartRate(ageMaxHeartRate(age, sex).toInt(), true)
     }
 
     return null
