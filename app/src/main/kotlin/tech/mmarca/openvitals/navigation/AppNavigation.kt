@@ -151,6 +151,15 @@ fun AppNavigation(
         navController.popBackStack()
     }
 
+    fun showReplacedActivity(activityId: String) {
+        markDashboardDirty()
+        // The edit saved the session under a new id: the detail screen below it shows a deleted one.
+        navController.popBackStack()
+        navController.navigate(Screen.ActivityDetail.createRoute(activityId)) {
+            popUpTo(Screen.ActivityDetail.route) { inclusive = true }
+        }
+    }
+
     fun navigateToDashboardAfterActivitySave() {
         navController.navigate(Screen.Dashboard.route) {
             popUpTo(Screen.Dashboard.route)
@@ -499,6 +508,7 @@ fun AppNavigation(
                 onEntrySaved = ::markDashboardDirty,
                 onEntrySavedAndPopBack = ::markDashboardDirtyAndPopBack,
                 onActivityEntrySaved = ::finishActivityEntrySave,
+                onActivityEntryReplaced = ::showReplacedActivity,
             )
 
             composable(

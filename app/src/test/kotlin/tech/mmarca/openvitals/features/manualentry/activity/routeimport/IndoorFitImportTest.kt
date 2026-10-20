@@ -50,7 +50,7 @@ class IndoorFitImportTest {
     private fun import(parsed: RouteFileImport): ImportOutcome {
         val clock = Clock.systemDefaultZone()
         val state = ActivityEntryUiState()
-            .withRouteImport(parsed, ActivityEntryUnits.uniform(UnitSystem.METRIC), clock)
+            .withRouteImport(parsed, ActivityEntryUnits.uniform(UnitSystem.METRIC), clock, 70.0)
         return ImportOutcome(
             type = state.selectedActivityType,
             request = buildWriteRequest(state, ActivityEntryUnits.uniform(UnitSystem.METRIC)),
@@ -119,6 +119,7 @@ class IndoorFitImportTest {
                 ),
                 ActivityEntryUnits.uniform(UnitSystem.METRIC),
                 clock,
+                weightKg = 70.0,
             )
 
         assertTrue(state.activeCaloriesText.isNotEmpty())
@@ -175,7 +176,8 @@ class IndoorFitImportTest {
         // (sport, sub_sport) pairs from ActivityWorkoutExport.toFitSport and Garmin's profile.
         val cases = listOf(
             Triple(4, 15, ExerciseSessionRecord.EXERCISE_TYPE_ELLIPTICAL),
-            Triple(4, 16, ExerciseSessionRecord.EXERCISE_TYPE_STAIR_CLIMBING),
+            Triple(4, 16, ExerciseSessionRecord.EXERCISE_TYPE_STAIR_CLIMBING_MACHINE),
+            Triple(48, null, ExerciseSessionRecord.EXERCISE_TYPE_STAIR_CLIMBING),
             Triple(5, 17, ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_POOL),
             Triple(5, 18, ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_OPEN_WATER),
             Triple(10, 19, ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING),

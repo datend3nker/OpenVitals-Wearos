@@ -22,7 +22,7 @@ internal fun DeleteActivityConfirmationDialog(
             Text(
                 stringResource(
                     R.string.dashboard_delete_activity_message,
-                    exerciseTypeLabel(workout.exerciseType),
+                    exerciseTypeLabel(workout),
                 )
             )
         },

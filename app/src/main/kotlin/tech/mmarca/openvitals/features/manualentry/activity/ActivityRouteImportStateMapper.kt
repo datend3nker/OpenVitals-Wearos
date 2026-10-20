@@ -10,6 +10,7 @@ internal fun ActivityEntryUiState.withRouteImport(
     routeImport: RouteFileImport,
     units: ActivityEntryUnits,
     clock: Clock,
+    weightKg: Double?,
 ): ActivityEntryUiState {
     val start = routeImport.startTime.atZone(clock.zone)
     val selectedActivityType = inferActivityType(routeImport, selectedActivityType)
@@ -48,9 +49,12 @@ internal fun ActivityEntryUiState.withRouteImport(
         activityType = selectedActivityType,
         distanceMeters = routeImport.distanceMeters,
         durationMinutesText = routeDurationMinutes,
+        weightKg = weightKg,
     ).takeIf {
         activeCaloriesText.isBlank() && totalCaloriesText.isBlank() && !fileMeasuredCalories
     }
+    val estimateWantsWeight = selectedActivityType.estimatesCalories && weightKg == null &&
+        activeCaloriesText.isBlank() && totalCaloriesText.isBlank() && !fileMeasuredCalories
 
     return copy(
         mode = ActivityEntryMode.ROUTE_IMPORT,
@@ -85,6 +89,7 @@ internal fun ActivityEntryUiState.withRouteImport(
             startTimeText
         },
         durationMinutesText = routeDurationMinutes,
+        calorieEstimateNeedsWeight = estimateWantsWeight,
         isImportingRoute = false,
         entryError = null,
         detailError = null,

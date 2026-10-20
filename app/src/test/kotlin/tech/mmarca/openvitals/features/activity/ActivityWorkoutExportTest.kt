@@ -20,6 +20,8 @@ import tech.mmarca.openvitals.domain.model.ExerciseRoutePoint
 import tech.mmarca.openvitals.domain.model.ExerciseRouteStatus
 import tech.mmarca.openvitals.domain.model.HeartRateSample
 import tech.mmarca.openvitals.domain.model.SpeedSample
+import tech.mmarca.openvitals.features.manualentry.activity.DefaultActivityEntryTypes
+import tech.mmarca.openvitals.features.manualentry.activity.inferActivityType
 import tech.mmarca.openvitals.features.manualentry.activity.routeimport.FitRouteParser
 import tech.mmarca.openvitals.features.manualentry.activity.routeimport.TcxRouteParser
 
@@ -254,7 +256,41 @@ class ActivityWorkoutExportTest {
         assertEquals("treadmill", fitTypeFor(ExerciseSessionRecord.EXERCISE_TYPE_RUNNING_TREADMILL))
         assertEquals("strength training", fitTypeFor(ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING))
         // Outside the FIT vocabulary: generic sport, and generic says nothing.
-        assertEquals(null, fitTypeFor(ExerciseSessionRecord.EXERCISE_TYPE_BADMINTON))
+        assertEquals(null, fitTypeFor(ExerciseSessionRecord.EXERCISE_TYPE_HANDBALL))
+    }
+
+    @Test fun `every session type comes back as itself or is one FIT cannot name`() {
+        // FIT has one sport for each of these pairs; the second comes back as the first.
+        val merged = mapOf(
+            ExerciseSessionRecord.EXERCISE_TYPE_WEIGHTLIFTING to ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING,
+            ExerciseSessionRecord.EXERCISE_TYPE_CALISTHENICS to ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING,
+        )
+        // Not in Garmin's FIT profile: these export as generic, which names nothing.
+        val unnamed = setOf(
+            ExerciseSessionRecord.EXERCISE_TYPE_OTHER_WORKOUT,
+            ExerciseSessionRecord.EXERCISE_TYPE_BOOT_CAMP,
+            ExerciseSessionRecord.EXERCISE_TYPE_EXERCISE_CLASS,
+            ExerciseSessionRecord.EXERCISE_TYPE_FENCING,
+            ExerciseSessionRecord.EXERCISE_TYPE_FOOTBALL_AUSTRALIAN,
+            ExerciseSessionRecord.EXERCISE_TYPE_GYMNASTICS,
+            ExerciseSessionRecord.EXERCISE_TYPE_HANDBALL,
+            ExerciseSessionRecord.EXERCISE_TYPE_ROLLER_HOCKEY,
+            ExerciseSessionRecord.EXERCISE_TYPE_SOFTBALL,
+            ExerciseSessionRecord.EXERCISE_TYPE_WATER_POLO,
+        )
+        val mismatches = DefaultActivityEntryTypes.map { it.exerciseType }.distinct().mapNotNull { exerciseType ->
+            val output = ByteArrayOutputStream()
+            writeActivityWorkoutFit(workout(title = null, exerciseType = exerciseType), ActivityWorkoutSeries(), output)
+            val parsed = FitRouteParser.parse(output.toByteArray())
+            if (parsed.type == null) {
+                return@mapNotNull "$exerciseType -> generic".takeIf { exerciseType !in unnamed }
+            }
+            val imported = inferActivityType(parsed, DefaultActivityEntryTypes.first()).exerciseType
+            "$exerciseType -> ${parsed.type} -> $imported".takeIf { imported != (merged[exerciseType] ?: exerciseType) }
+        }
+
+        assertEquals(emptyList<String>(), mismatches)
+        assertEquals("volleyball", fitTypeFor(ExerciseSessionRecord.EXERCISE_TYPE_VOLLEYBALL))
     }
 
     @Test fun `fit absent metrics come back absent`() {

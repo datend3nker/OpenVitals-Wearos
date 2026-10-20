@@ -79,12 +79,12 @@ internal fun WorkoutSummaryCard(
                     )
                     Column(modifier = Modifier.padding(start = 12.dp)) {
                         Text(
-                            text = workout.title ?: exerciseTypeLabel(workout.exerciseType),
+                            text = workout.title ?: exerciseTypeLabel(workout),
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                         )
                         Text(
-                            text = exerciseTypeLabel(workout.exerciseType),
+                            text = exerciseTypeLabel(workout),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -263,7 +263,7 @@ internal fun SessionDetailsCard(
     val notAvailable = stringResource(R.string.not_available)
 
     DetailSectionCard(title = stringResource(R.string.detail_session_details), modifier = modifier) {
-        DetailRow(stringResource(R.string.detail_type), exerciseTypeLabel(workout.exerciseType))
+        DetailRow(stringResource(R.string.detail_type), exerciseTypeLabel(workout))
         DetailRow(stringResource(R.string.detail_started), formatDateTime(start, dateTimeFormatterProvider))
         DetailRow(stringResource(R.string.detail_ended), formatDateTime(end, dateTimeFormatterProvider))
         DetailRow(stringResource(R.string.detail_start_zone), workout.startZoneOffset?.id ?: notAvailable)

@@ -39,7 +39,7 @@ class TcxRouteParserTest {
     private fun writeRequest(parsed: RouteFileImport): ActivityWriteRequest? {
         val clock = Clock.systemDefaultZone()
         val state = ActivityEntryUiState()
-            .withRouteImport(parsed, ActivityEntryUnits.uniform(UnitSystem.METRIC), clock)
+            .withRouteImport(parsed, ActivityEntryUnits.uniform(UnitSystem.METRIC), clock, 70.0)
         return buildWriteRequest(state, ActivityEntryUnits.uniform(UnitSystem.METRIC))
     }
 

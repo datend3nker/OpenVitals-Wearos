@@ -33,6 +33,8 @@ import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.metadata.Device
 import androidx.health.connect.client.records.metadata.Metadata
 import tech.mmarca.openvitals.R
+import tech.mmarca.openvitals.domain.model.BeachVolleyballVariantId
+import tech.mmarca.openvitals.domain.model.ExerciseData
 
 /** The string resource naming a Health Connect exercise session type. */
 fun exerciseTypeLabelRes(type: Int): Int = when (type) {
@@ -101,6 +103,18 @@ fun exerciseTypeLabelRes(type: Int): Int = when (type) {
 
 @Composable
 internal fun exerciseTypeLabel(type: Int): String = stringResource(exerciseTypeLabelRes(type))
+
+/** A variant Health Connect has no type for names itself: beach volleyball is a volleyball session. */
+fun exerciseTypeLabelRes(type: Int, variantId: String?): Int =
+    if (type == ExerciseSessionRecord.EXERCISE_TYPE_VOLLEYBALL && variantId == BeachVolleyballVariantId) {
+        R.string.exercise_type_beach_volleyball
+    } else {
+        exerciseTypeLabelRes(type)
+    }
+
+@Composable
+internal fun exerciseTypeLabel(workout: ExerciseData): String =
+    stringResource(exerciseTypeLabelRes(workout.exerciseType, workout.variantId))
 
 internal fun exerciseTypeLabel(context: Context, type: Int): String = context.getString(exerciseTypeLabelRes(type))
 

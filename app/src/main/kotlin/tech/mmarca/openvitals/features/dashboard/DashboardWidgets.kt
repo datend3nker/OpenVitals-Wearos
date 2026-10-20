@@ -671,7 +671,7 @@ internal fun WorkoutCard(
             }
             Spacer(Modifier.weight(1f))
             Text(
-                text = exerciseTypeLabel(workout.exerciseType),
+                text = exerciseTypeLabel(workout),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

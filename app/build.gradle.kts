@@ -352,6 +352,9 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
     jvmArgs("-XX:+EnableDynamicAgentLoading")
+    // The JDK words its XML parse errors by locale, and the truncated-zip tests match the
+    // English text; Android's parser always speaks English.
+    jvmArgs("-Duser.language=en", "-Duser.country=US")
     // Test classes spread over a few JVMs. Half the cores, at most four: each fork
     // is about a gigabyte, and lint and the Kotlin compiler run at the same time.
     // A CI job that runs only the tests sets -Popenvitals.testForks to use every core.
