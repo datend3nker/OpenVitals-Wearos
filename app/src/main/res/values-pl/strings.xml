@@ -3889,4 +3889,16 @@
     <string name="settings_scales_delete_body">Jego waga, tętno i skład ciała zostaną usunięte z Health Connect.</string>
     <string name="settings_scales_remove">Usuń wagę</string>
     <string name="settings_scales_remove_body">OpenVitals przestaje nasłuchiwać i zapomina klucz. Zapisane już ważenia zostają.</string>
+    <string name="cycle_hormonal_title">Antykoncepcja hormonalna</string>
+    <string name="cycle_hormonal_body">Metody hormonalne mogą zmieniać cykl i przebieg temperatury. Wymieniono tylko metody wykorzystujące hormony: wkładka miedziana, prezerwatywa i diafragma nie wykorzystują hormonów, więc nie ma ich tutaj. To tylko kontekst dla widoku cyklu, nic więcej.</string>
+    <string name="cycle_hormonal_set_by_pill">Ustawiono na %1$s przez Twój schemat tabletek. Wyłącz schemat, aby wybrać inną metodę.</string>
+    <string name="cycle_hormonal_stopped_on">Odstawiono (opcjonalnie; przyszła data liczy się jako nadal stosowane)</string>
+    <string name="cycle_hormonal_stopped_clear">Wyczyść datę odstawienia</string>
+    <string name="cycle_hormonal_kind_none">Brak</string>
+    <string name="cycle_hormonal_kind_pill">Tabletki</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">Wkładka hormonalna</string>
+    <string name="cycle_hormonal_kind_implant">Implant</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">Pierścień lub plaster</string>
+    <string name="cycle_hormonal_kind_injection">Zastrzyk</string>
+    <string name="cycle_hormonal_kind_other">Inna metoda hormonalna</string>
 </resources>

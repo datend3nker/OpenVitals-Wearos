@@ -3813,4 +3813,16 @@
     <string name="settings_scales_delete_body">Selle kaal, pulss ja keha koostis eemaldatakse Health Connectist.</string>
     <string name="settings_scales_remove">Eemalda kaal</string>
     <string name="settings_scales_remove_body">OpenVitals lõpetab kuulamise ja unustab võtme. Juba salvestatud kaalumised jäävad alles.</string>
+    <string name="cycle_hormonal_title">Hormonaalne rasestumisvastane vahend</string>
+    <string name="cycle_hormonal_body">Hormonaalsed meetodid võivad muuta tsüklit ja temperatuurimustrit. Loetletud on ainult hormoone kasutavad meetodid: vaskspiraal, kondoom ja diafragma hormoone ei kasuta, seega neid siin ei ole. See on vaid taustateave tsüklivaate jaoks, midagi enamat.</string>
+    <string name="cycle_hormonal_set_by_pill">Seatud väärtusele %1$s sinu pillikuuri järgi. Teise meetodi valimiseks lülita kuur välja.</string>
+    <string name="cycle_hormonal_stopped_on">Lõpetatud (valikuline; tulevane kuupäev loetakse jätkuvaks kasutamiseks)</string>
+    <string name="cycle_hormonal_stopped_clear">Kustuta lõpetamise kuupäev</string>
+    <string name="cycle_hormonal_kind_none">Puudub</string>
+    <string name="cycle_hormonal_kind_pill">Pill</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">Hormonaalne emakasisene vahend</string>
+    <string name="cycle_hormonal_kind_implant">Implantaat</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">Rõngas või plaaster</string>
+    <string name="cycle_hormonal_kind_injection">Süst</string>
+    <string name="cycle_hormonal_kind_other">Muu hormonaalne meetod</string>
 </resources>

@@ -3885,4 +3885,16 @@
     <string name="settings_scales_delete_body">体重、心拍数、体組成が Health Connect から削除されます。</string>
     <string name="settings_scales_remove">体重計を削除</string>
     <string name="settings_scales_remove_body">OpenVitals は受信を停止し、キーを消去します。保存済みの測定は残ります。</string>
+    <string name="cycle_hormonal_title">ホルモン避妊</string>
+    <string name="cycle_hormonal_body">ホルモン系の方法は、周期や体温のパターンを変えることがあります。ここにはホルモンを使う方法だけを挙げています。銅付加IUD、コンドーム、ペッサリーはホルモンを使わないため、ここには載せていません。周期表示のための背景情報であり、それ以上のものではありません。</string>
+    <string name="cycle_hormonal_set_by_pill">ピルのスケジュールにより「%1$s」に設定されています。別の方法を選ぶにはスケジュールをオフにしてください。</string>
+    <string name="cycle_hormonal_stopped_on">中止した日（任意。未来の日付は使用中として扱われます）</string>
+    <string name="cycle_hormonal_stopped_clear">中止日を消去</string>
+    <string name="cycle_hormonal_kind_none">なし</string>
+    <string name="cycle_hormonal_kind_pill">ピル</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">ホルモン放出IUD</string>
+    <string name="cycle_hormonal_kind_implant">インプラント</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">リングまたはパッチ</string>
+    <string name="cycle_hormonal_kind_injection">注射</string>
+    <string name="cycle_hormonal_kind_other">その他のホルモン系の方法</string>
 </resources>

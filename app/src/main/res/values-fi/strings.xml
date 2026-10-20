@@ -3813,4 +3813,16 @@
     <string name="settings_scales_delete_body">Sen paino, syke ja kehonkoostumus poistetaan Health Connectista.</string>
     <string name="settings_scales_remove">Poista vaaka</string>
     <string name="settings_scales_remove_body">OpenVitals lopettaa kuuntelun ja unohtaa avaimen. Jo tallennetut punnitukset säilyvät.</string>
+    <string name="cycle_hormonal_title">Hormonaalinen ehkäisy</string>
+    <string name="cycle_hormonal_body">Hormonaaliset menetelmät voivat muuttaa kiertoa ja lämpötilakuviota. Luettelossa on vain hormoneja käyttävät menetelmät: kuparikierukka, kondomi ja pessaari eivät käytä hormoneja, joten niitä ei ole tässä. Tämä on vain taustatietoa kiertonäkymää varten, ei muuta.</string>
+    <string name="cycle_hormonal_set_by_pill">Asetettu arvoon %1$s pillerikaavan perusteella. Poista kaava käytöstä valitaksesi toisen menetelmän.</string>
+    <string name="cycle_hormonal_stopped_on">Lopetettu (valinnainen; tuleva päivämäärä lasketaan edelleen käytössä olevaksi)</string>
+    <string name="cycle_hormonal_stopped_clear">Poista lopetuspäivä</string>
+    <string name="cycle_hormonal_kind_none">Ei mitään</string>
+    <string name="cycle_hormonal_kind_pill">Pilleri</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">Hormonikierukka</string>
+    <string name="cycle_hormonal_kind_implant">Implantti</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">Rengas tai laastari</string>
+    <string name="cycle_hormonal_kind_injection">Injektio</string>
+    <string name="cycle_hormonal_kind_other">Muu hormonaalinen menetelmä</string>
 </resources>

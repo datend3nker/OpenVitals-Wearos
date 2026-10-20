@@ -3889,4 +3889,16 @@
     <string name="settings_scales_delete_body">Jeho hmotnost, srdeční tep a složení těla se odstraní z Health Connect.</string>
     <string name="settings_scales_remove">Odebrat váhu</string>
     <string name="settings_scales_remove_body">OpenVitals přestane poslouchat a zapomene klíč. Už uložená vážení zůstanou.</string>
+    <string name="cycle_hormonal_title">Hormonální antikoncepce</string>
+    <string name="cycle_hormonal_body">Hormonální metody mohou změnit cyklus i průběh teploty. Uvedeny jsou jen metody s hormony: měděné nitroděložní tělísko, kondom a pesar hormony neobsahují, a proto zde nejsou. Slouží jen jako souvislost pro zobrazení cyklu, nic víc.</string>
+    <string name="cycle_hormonal_set_by_pill">Nastaveno na %1$s podle vašeho schématu pilulek. Chcete-li zvolit jinou metodu, schéma vypněte.</string>
+    <string name="cycle_hormonal_stopped_on">Ukončeno dne (volitelné; budoucí datum se počítá jako stále používané)</string>
+    <string name="cycle_hormonal_stopped_clear">Smazat datum ukončení</string>
+    <string name="cycle_hormonal_kind_none">Žádná</string>
+    <string name="cycle_hormonal_kind_pill">Pilulky</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">Hormonální nitroděložní tělísko</string>
+    <string name="cycle_hormonal_kind_implant">Implantát</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">Kroužek nebo náplast</string>
+    <string name="cycle_hormonal_kind_injection">Injekce</string>
+    <string name="cycle_hormonal_kind_other">Jiná hormonální metoda</string>
 </resources>

@@ -3839,4 +3839,16 @@
     <string name="settings_scales_delete_body">O peso, a frequência cardíaca e a composição corporal são removidos do Health Connect.</string>
     <string name="settings_scales_remove">Remover balança</string>
     <string name="settings_scales_remove_body">O OpenVitals deixa de escutar e esquece a chave. As pesagens já guardadas mantêm-se.</string>
+    <string name="cycle_hormonal_title">Contracepção hormonal</string>
+    <string name="cycle_hormonal_body">Os métodos hormonais podem alterar o ciclo e o padrão de temperatura. Só estão listados os métodos com hormonas: o DIU de cobre, o preservativo e o diafragma não usam hormonas, por isso não aparecem aqui. É apenas contexto para a vista do ciclo, nada mais.</string>
+    <string name="cycle_hormonal_set_by_pill">Definido como %1$s pelo seu esquema da pílula. Desligue o esquema para escolher outro método.</string>
+    <string name="cycle_hormonal_stopped_on">Interrompido em (opcional; uma data futura conta como ainda em uso)</string>
+    <string name="cycle_hormonal_stopped_clear">Limpar a data de interrupção</string>
+    <string name="cycle_hormonal_kind_none">Nenhum</string>
+    <string name="cycle_hormonal_kind_pill">Pílula</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">DIU hormonal</string>
+    <string name="cycle_hormonal_kind_implant">Implante</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">Anel ou adesivo</string>
+    <string name="cycle_hormonal_kind_injection">Injeção</string>
+    <string name="cycle_hormonal_kind_other">Outro método hormonal</string>
 </resources>

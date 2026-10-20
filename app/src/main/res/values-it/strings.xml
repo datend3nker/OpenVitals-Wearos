@@ -3842,4 +3842,16 @@
     <string name="settings_scales_delete_body">Peso, frequenza cardiaca e composizione corporea vengono rimossi da Health Connect.</string>
     <string name="settings_scales_remove">Rimuovi bilancia</string>
     <string name="settings_scales_remove_body">OpenVitals smette di ascoltare e dimentica la chiave. Le pesate già salvate restano.</string>
+    <string name="cycle_hormonal_title">Contraccezione ormonale</string>
+    <string name="cycle_hormonal_body">I metodi ormonali possono modificare il ciclo e l’andamento della temperatura. Sono elencati solo i metodi che usano ormoni: la spirale al rame, il preservativo e il diaframma non usano ormoni, quindi non compaiono qui. È solo contesto per la vista del ciclo, nulla di più.</string>
+    <string name="cycle_hormonal_set_by_pill">Impostato su %1$s dal tuo schema della pillola. Disattiva lo schema per scegliere un altro metodo.</string>
+    <string name="cycle_hormonal_stopped_on">Interrotta il (facoltativo; una data futura conta come ancora in uso)</string>
+    <string name="cycle_hormonal_stopped_clear">Cancella la data di interruzione</string>
+    <string name="cycle_hormonal_kind_none">Nessuno</string>
+    <string name="cycle_hormonal_kind_pill">Pillola</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">Spirale ormonale</string>
+    <string name="cycle_hormonal_kind_implant">Impianto</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">Anello o cerotto</string>
+    <string name="cycle_hormonal_kind_injection">Iniezione</string>
+    <string name="cycle_hormonal_kind_other">Altro metodo ormonale</string>
 </resources>

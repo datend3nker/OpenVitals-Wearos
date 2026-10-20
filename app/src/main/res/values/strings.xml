@@ -3880,4 +3880,16 @@
     <string name="settings_scales_delete_body">Its weight, heart rate and body composition are removed from Health Connect.</string>
     <string name="settings_scales_remove">Remove scale</string>
     <string name="settings_scales_remove_body">OpenVitals stops listening and forgets the key. Weigh-ins already saved stay.</string>
+    <string name="cycle_hormonal_title">Hormonal contraception</string>
+    <string name="cycle_hormonal_body">Hormonal methods can change the cycle and the temperature pattern. Only methods that use hormones are listed: copper IUDs, condoms and diaphragms do not use hormones, so they are not listed here. This is context for your cycle view, nothing more.</string>
+    <string name="cycle_hormonal_set_by_pill">Set to %1$s by your pill scheme. Turn the scheme off to choose another method.</string>
+    <string name="cycle_hormonal_stopped_on">Stopped on (optional; a future date counts as still running)</string>
+    <string name="cycle_hormonal_stopped_clear">Clear stop date</string>
+    <string name="cycle_hormonal_kind_none">None</string>
+    <string name="cycle_hormonal_kind_pill">Pill</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">Hormonal IUD (hormone coil)</string>
+    <string name="cycle_hormonal_kind_implant">Implant</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">Ring or patch</string>
+    <string name="cycle_hormonal_kind_injection">Injection</string>
+    <string name="cycle_hormonal_kind_other">Other hormonal method</string>
 </resources>
