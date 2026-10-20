@@ -369,7 +369,7 @@ class HealthConnectManager @Inject constructor(
     suspend fun writeActivityEntries(requests: List<ActivityWriteRequest>): List<String> =
         withSyncEnabled { activityReader.writeActivityEntries(requests) }
 
-    suspend fun updateActivityEntry(id: String, request: ActivityWriteRequest) =
+    suspend fun updateActivityEntry(id: String, request: ActivityWriteRequest): String =
         withSyncEnabled { activityReader.updateActivityEntry(id, request) }
 
     suspend fun readOwnActivityMetrics(id: String) = activityReader.readOwnActivityMetrics(id)

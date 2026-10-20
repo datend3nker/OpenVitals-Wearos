@@ -456,6 +456,9 @@
     <string name="exercise_type_pull_ups">Podciąganie</string>
     <string name="exercise_type_rope_skipping">Skakanka</string>
     <string name="exercise_type_trampoline_jumping">Skoki na trampolinie</string>
+    <string name="exercise_type_beach_volleyball">Siatkówka plażowa</string>
+    <string name="activity_calorie_estimate_needs_weight">Brak szacunku kalorii: Health Connect nie zawiera wagi.</string>
+    <string name="activity_calorie_estimate_needs_weight_permission">Brak szacunku kalorii: dostęp do wagi w Health Connect nie został przyznany.</string>
     <string name="exercise_type_other_workout">Inny trening</string>
     <string name="mindfulness_entry_unavailable">Sesje mindfulness są niedostępne u tego dostawcy Health Connect.</string>
     <string name="mindfulness_entry_timer_title">Minutnik</string>

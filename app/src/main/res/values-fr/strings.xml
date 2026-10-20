@@ -352,6 +352,9 @@
     <string name="exercise_type_pull_ups">Tractions</string>
     <string name="exercise_type_rope_skipping">Corde à sauter</string>
     <string name="exercise_type_trampoline_jumping">Trampoline</string>
+    <string name="exercise_type_beach_volleyball">Beach-volley</string>
+    <string name="activity_calorie_estimate_needs_weight">Pas d’estimation des calories : Health Connect ne contient aucun poids.</string>
+    <string name="activity_calorie_estimate_needs_weight_permission">Pas d’estimation des calories : l’accès au poids dans Health Connect n’est pas autorisé.</string>
     <string name="exercise_type_other_workout">Autre entraînement</string>
     <string name="mindfulness_entry_unavailable">Les séances de pleine conscience ne sont pas disponibles avec ce fournisseur Santé Connect.</string>
     <string name="mindfulness_entry_timer_title">Minuteur</string>

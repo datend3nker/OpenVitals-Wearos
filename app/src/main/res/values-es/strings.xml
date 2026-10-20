@@ -295,6 +295,9 @@
     <string name="exercise_type_strength_training">Entrenamiento de fuerza</string>
     <string name="exercise_type_rope_skipping">Saltar a la cuerda</string>
     <string name="exercise_type_trampoline_jumping">Saltos en trampolín</string>
+    <string name="exercise_type_beach_volleyball">Vóley playa</string>
+    <string name="activity_calorie_estimate_needs_weight">Sin estimación de calorías: Health Connect no tiene ningún peso.</string>
+    <string name="activity_calorie_estimate_needs_weight_permission">Sin estimación de calorías: no se ha concedido acceso al peso en Health Connect.</string>
     <string name="exercise_type_other_workout">Otra actividad</string>
     <string name="mindfulness_entry_unavailable">Las sesiones de mindfulness no están disponibles en este proveedor de Health Connect.</string>
     <string name="mindfulness_entry_timer_title">Temporizador</string>

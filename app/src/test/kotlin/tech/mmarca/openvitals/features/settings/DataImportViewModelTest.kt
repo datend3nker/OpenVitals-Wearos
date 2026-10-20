@@ -393,6 +393,7 @@ class DataImportViewModelTest {
             every { prefs.showOpenVitalsCalculatedCalories = any() } just runs
             every { prefs.favoriteActivityExerciseType = any() } just runs
             every { prefs.lastActivityExerciseType = any() } just runs
+            every { prefs.lastActivityTypeId = any() } just runs
             every { prefs.setBodyEnergyCalibration(any()) } just runs
             // The real repository normalizes on write, so the fake must too.
             every { prefs.setCaffeinePreferences(any()) } answers {

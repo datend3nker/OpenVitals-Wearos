@@ -615,7 +615,8 @@ private fun fitSubSportName(value: Int?): String? =
         6 -> "indoor cycling"
         14 -> "indoor rowing"
         15 -> "elliptical"
-        16 -> "stair climbing"
+        // 16 stair_climbing under fitness_equipment: the machine. Sport 48 is the stairs.
+        16 -> "stair machine"
         17 -> "pool swimming"
         18 -> "open water swimming"
         19 -> "stretching"
@@ -628,6 +629,7 @@ private fun fitSubSportName(value: Int?): String? =
         95 -> "badminton"
         96 -> "racquetball"
         97 -> "table tennis"
+        111 -> "paragliding"
         else -> null
     }
 
@@ -670,6 +672,9 @@ private fun Int.fitPlainSportName(): String? =
         51 -> "softball"
         53 -> "scuba diving"
         62 -> "hiit"
+        // 65 wheelchair_push_walk, 66 wheelchair_push_run.
+        65,
+        66 -> "wheelchair"
         // 69 disc_golf: the nearest Health Connect type.
         69 -> "frisbee"
         71 -> "cricket"

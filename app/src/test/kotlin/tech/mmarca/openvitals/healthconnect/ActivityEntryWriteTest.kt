@@ -31,6 +31,7 @@ import org.junit.Test
 import tech.mmarca.openvitals.core.performance.DispatcherProvider
 import tech.mmarca.openvitals.domain.model.ActivityRecordSource
 import tech.mmarca.openvitals.domain.model.ActivityWriteRequest
+import tech.mmarca.openvitals.domain.model.activityVariantId
 import tech.mmarca.openvitals.domain.model.BleHeartRateSample
 import tech.mmarca.openvitals.domain.model.BleRecordingSampleBuffer
 
@@ -101,6 +102,48 @@ class ActivityEntryWriteTest {
         assertThat(heartRate.samples.map { it.beatsPerMinute }).containsExactly(140L, 150L).inOrder()
         assertThat(client.all(DistanceRecord::class).map { it.distance.inMeters }).containsExactly(5_200.0)
         assertThat(client.all(ExerciseSessionRecord::class).single().title).isEqualTo("Morning run")
+    }
+
+    @Test
+    fun `a variant survives an edit because the edit writes the session again`() = onTheTestClock {
+        val client = client()
+        val reader = reader(client)
+        reader.writeActivityEntry(request(T10_00, T11_00, variantId = "beach_volleyball"))
+        val id = client.sessionIdAt(T10_00)
+
+        val saved = reader.updateActivityEntry(
+            id,
+            request(T10_00, T11_00, title = "Saturday", variantId = "beach_volleyball"),
+        )
+
+        val session = client.all(ExerciseSessionRecord::class).single()
+        assertThat(saved).isEqualTo(session.metadata.id)
+        assertThat(saved).isNotEqualTo(id)
+        assertThat(session.metadata.clientRecordId?.activityVariantId()).isEqualTo("beach_volleyball")
+        assertThat(session.title).isEqualTo("Saturday")
+    }
+
+    @Test
+    fun `an edit that changes the variant replaces the session and keeps what was recorded`() = onTheTestClock {
+        val client = client()
+        val reader = reader(client)
+        reader.writeActivityEntry(
+            request(T10_00, T11_00, distanceMeters = 5_000.0, heartRate = listOf(T10_10 to 140L, T10_40 to 150L)),
+        )
+        val oldId = client.sessionIdAt(T10_00)
+
+        val saved = reader.updateActivityEntry(
+            oldId,
+            request(T10_00, T11_00, distanceMeters = 5_000.0, variantId = "beach_volleyball"),
+        )
+
+        val session = client.all(ExerciseSessionRecord::class).single()
+        assertThat(saved).isEqualTo(session.metadata.id)
+        assertThat(saved).isNotEqualTo(oldId)
+        assertThat(session.metadata.clientRecordId?.activityVariantId()).isEqualTo("beach_volleyball")
+        assertThat(client.all(DistanceRecord::class).map { it.distance.inMeters }).containsExactly(5_000.0)
+        assertThat(client.all(HeartRateRecord::class).single().samples.map { it.beatsPerMinute })
+            .containsExactly(140L, 150L).inOrder()
     }
 
     @Test
@@ -320,8 +363,10 @@ class ActivityEntryWriteTest {
         steps: Long? = null,
         heartRate: List<Pair<Instant, Long>> = emptyList(),
         title: String? = null,
+        variantId: String? = null,
     ) = ActivityWriteRequest(
         exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_RUNNING,
+        variantId = variantId,
         startTime = start,
         endTime = end,
         title = title,

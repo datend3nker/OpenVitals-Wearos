@@ -437,6 +437,9 @@
     <string name="exercise_type_pull_ups">懸垂</string>
     <string name="exercise_type_rope_skipping">縄跳び</string>
     <string name="exercise_type_trampoline_jumping">トランポリン</string>
+    <string name="exercise_type_beach_volleyball">ビーチバレー</string>
+    <string name="activity_calorie_estimate_needs_weight">カロリーを推定できません：Health Connect に体重がありません。</string>
+    <string name="activity_calorie_estimate_needs_weight_permission">カロリーを推定できません：Health Connect の体重へのアクセスが許可されていません。</string>
     <string name="exercise_type_other_workout">その他のワークアウト</string>
     <string name="mindfulness_entry_unavailable">この Health Connect プロバイダではマインドフルネスセッションを利用できません。</string>
     <string name="mindfulness_entry_timer_title">タイマー</string>

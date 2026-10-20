@@ -30,7 +30,6 @@ internal const val MilesToMeters = 1609.344
 internal const val FeetToMeters = 0.3048
 internal const val MaxActivityDurationMinutes = 7 * 24 * 60L
 internal const val MinRecordedRoutePoints = 2
-internal const val DefaultCalorieEstimateWeightKg = 70.0
 internal const val RestingMet = 1.0
 internal const val RunningKcalPerKgKm = 1.0
 internal const val WalkingKcalPerKgKm = 0.55
@@ -141,6 +140,7 @@ internal fun buildWriteRequest(
         startTime = start,
         endTime = end,
         title = state.titleText.trim().takeIf { it.isNotBlank() } ?: state.selectedActivityType.defaultTitle,
+        variantId = state.selectedActivityType.id.takeIf { state.selectedActivityType.recordsVariant },
         notes = state.activitySaveNotes(),
         plannedExerciseSessionId = state.linkedPlan?.id,
         routePoints = routePoints,

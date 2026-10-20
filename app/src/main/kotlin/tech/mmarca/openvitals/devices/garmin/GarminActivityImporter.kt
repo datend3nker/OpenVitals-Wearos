@@ -47,9 +47,16 @@ class GarminActivityImporter @Inject constructor(
         val pending = mutableListOf<Pair<GarminDownloadedFile, ActivityWriteRequest>>()
         val missingPermission = mutableListOf<GarminDownloadedFile>()
         val failedWrites = mutableListOf<GarminDownloadedFile>()
+        val weightKg = try {
+            activityRepository.loadLatestWeightKg()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            null
+        }
         for (file in activityFiles) {
             val request = try {
-                buildRequest(file)
+                buildRequest(file, weightKg)
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
@@ -104,12 +111,13 @@ class GarminActivityImporter @Inject constructor(
         if (written > 0) {
             // The last imported type seeds the next manual entry's default.
             preferencesRepository.lastActivityExerciseType = pending.last().second.exerciseType
+            preferencesRepository.lastActivityTypeId = null
             GarminLog.log("[GARMIN-IMPORT] wrote $written watch activities")
         }
         return GarminActivityImportResult(written, missingPermission, failedWrites)
     }
 
-    private suspend fun buildRequest(file: GarminDownloadedFile): ActivityWriteRequest? {
+    private suspend fun buildRequest(file: GarminDownloadedFile, weightKg: Double?): ActivityWriteRequest? {
         // Indexed, not numbered: several files share the 65535 "unset" number.
         val routeImport = elevationCorrector.correct(
             RouteFileParser.parseFile(
@@ -122,6 +130,7 @@ class GarminActivityImporter @Inject constructor(
         return routeImport.toImportWriteRequest(
             fallbackType = preferredActivityType(requireGpsRoute = routeImport.points.isNotEmpty()),
             source = ActivityRecordSource.WATCH,
+            weightKg = weightKg,
         )
     }
 

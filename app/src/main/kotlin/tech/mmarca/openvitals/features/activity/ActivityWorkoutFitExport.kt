@@ -345,9 +345,8 @@ private fun Int.toFitSport(): Pair<Long, Long> = when (this) {
     ExerciseSessionRecord.EXERCISE_TYPE_CALISTHENICS,
     -> 10L to 20L
     ExerciseSessionRecord.EXERCISE_TYPE_ELLIPTICAL -> 4L to 15L
-    ExerciseSessionRecord.EXERCISE_TYPE_STAIR_CLIMBING,
-    ExerciseSessionRecord.EXERCISE_TYPE_STAIR_CLIMBING_MACHINE,
-    -> 4L to 16L
+    ExerciseSessionRecord.EXERCISE_TYPE_STAIR_CLIMBING -> 48L to 0L
+    ExerciseSessionRecord.EXERCISE_TYPE_STAIR_CLIMBING_MACHINE -> 4L to 16L
     ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING -> 62L to 0L
     ExerciseSessionRecord.EXERCISE_TYPE_BASKETBALL -> 6L to 0L
     ExerciseSessionRecord.EXERCISE_TYPE_SOCCER -> 7L to 0L
@@ -359,12 +358,30 @@ private fun Int.toFitSport(): Pair<Long, Long> = when (this) {
     ExerciseSessionRecord.EXERCISE_TYPE_GOLF -> 25L to 0L
     ExerciseSessionRecord.EXERCISE_TYPE_ROCK_CLIMBING -> 31L to 0L
     ExerciseSessionRecord.EXERCISE_TYPE_SAILING -> 32L to 0L
-    ExerciseSessionRecord.EXERCISE_TYPE_ICE_SKATING,
-    ExerciseSessionRecord.EXERCISE_TYPE_SKATING,
-    -> 33L to 0L
+    ExerciseSessionRecord.EXERCISE_TYPE_ICE_SKATING -> 33L to 0L
+    ExerciseSessionRecord.EXERCISE_TYPE_SKATING -> 30L to 0L
     ExerciseSessionRecord.EXERCISE_TYPE_SNOWSHOEING -> 35L to 0L
     ExerciseSessionRecord.EXERCISE_TYPE_SURFING -> 38L to 0L
     ExerciseSessionRecord.EXERCISE_TYPE_BOXING -> 47L to 0L
+    ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING -> 10L to 19L
+    ExerciseSessionRecord.EXERCISE_TYPE_YOGA -> 10L to 43L
+    ExerciseSessionRecord.EXERCISE_TYPE_PILATES -> 10L to 44L
+    ExerciseSessionRecord.EXERCISE_TYPE_GUIDED_BREATHING -> 10L to 62L
+    ExerciseSessionRecord.EXERCISE_TYPE_PARAGLIDING -> 20L to 111L
+    ExerciseSessionRecord.EXERCISE_TYPE_BASEBALL -> 49L to 0L
+    ExerciseSessionRecord.EXERCISE_TYPE_SCUBA_DIVING -> 53L to 53L
+    ExerciseSessionRecord.EXERCISE_TYPE_SQUASH -> 64L to 94L
+    ExerciseSessionRecord.EXERCISE_TYPE_BADMINTON -> 64L to 95L
+    ExerciseSessionRecord.EXERCISE_TYPE_RACQUETBALL -> 64L to 96L
+    ExerciseSessionRecord.EXERCISE_TYPE_TABLE_TENNIS -> 64L to 97L
+    ExerciseSessionRecord.EXERCISE_TYPE_WHEELCHAIR -> 65L to 0L
+    ExerciseSessionRecord.EXERCISE_TYPE_FRISBEE_DISC -> 69L to 0L
+    ExerciseSessionRecord.EXERCISE_TYPE_CRICKET -> 71L to 0L
+    ExerciseSessionRecord.EXERCISE_TYPE_RUGBY -> 72L to 0L
+    ExerciseSessionRecord.EXERCISE_TYPE_ICE_HOCKEY -> 73L to 91L
+    ExerciseSessionRecord.EXERCISE_TYPE_VOLLEYBALL -> 75L to 0L
+    ExerciseSessionRecord.EXERCISE_TYPE_MARTIAL_ARTS -> 80L to 0L
+    ExerciseSessionRecord.EXERCISE_TYPE_DANCING -> 83L to 0L
     else -> 0L to 0L
 }
 

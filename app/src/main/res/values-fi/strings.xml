@@ -494,6 +494,9 @@
     <string name="exercise_type_pull_ups">Leuanvedot</string>
     <string name="exercise_type_rope_skipping">Naruhyppely</string>
     <string name="exercise_type_trampoline_jumping">Trampoliinihyppely</string>
+    <string name="exercise_type_beach_volleyball">Rantalentopallo</string>
+    <string name="activity_calorie_estimate_needs_weight">Ei kaloriarviota: Health Connectissa ei ole painoa.</string>
+    <string name="activity_calorie_estimate_needs_weight_permission">Ei kaloriarviota: Health Connectin painon käyttöoikeutta ei ole myönnetty.</string>
     <string name="exercise_type_other_workout">Muu treeni</string>
     <string name="mindfulness_entry_unavailable">Mindfulness-harjoitukset eivät ole käytettävissä tässä Health Connect -palvelussa.</string>
     <string name="mindfulness_entry_timer_title">Ajastin</string>

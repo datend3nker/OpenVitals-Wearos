@@ -54,6 +54,7 @@ import tech.mmarca.openvitals.domain.model.ActivityWriteRequest
 import tech.mmarca.openvitals.domain.model.BleRecordingSampleBuffer
 import tech.mmarca.openvitals.domain.model.CoMapsNavigationState
 import tech.mmarca.openvitals.domain.model.CoMapsRoutePolyline
+import tech.mmarca.openvitals.domain.model.BeachVolleyballVariantId
 import tech.mmarca.openvitals.domain.model.ExerciseData
 import tech.mmarca.openvitals.domain.model.ExerciseLapData
 import tech.mmarca.openvitals.domain.model.ExerciseRoutePoint
@@ -668,7 +669,7 @@ class ActivityEntryViewModelTest {
             isOpenVitalsEntry = true,
         )
         val repo = activityRepo(canWrite = true, plannedWorkouts = listOf(plannedPullUpPlan()), workout = workout)
-        coEvery { repo.updateActivityEntry(any(), any()) } returns Unit
+        coEvery { repo.updateActivityEntry(any(), any()) } returns "activity-id"
         val vm = ActivityEntryViewModel(
             repository = repo,
             clock = Clock.fixed(start, ZoneId.of("UTC")),
@@ -1071,6 +1072,48 @@ class ActivityEntryViewModelTest {
         assertEquals("308", vm.uiState.value.activeCaloriesText)
         assertEquals("343", vm.uiState.value.totalCaloriesText)
         assertEquals(ExerciseSessionRecord.EXERCISE_TYPE_RUNNING, prefs.lastActivityExerciseType)
+    }
+
+    @Test fun `a timed beach volleyball session estimates calories from the stored weight, or says it cannot`() = runTest {
+        suspend fun finish(weightKg: Double?, canReadWeight: Boolean = true): ActivityEntryUiState {
+            val start = Instant.parse("2026-05-26T08:30:00Z")
+            val recorder = recorderMock()
+            every { recorder.finishRecording() } returns ActivityRecordingSnapshot(
+                exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_VOLLEYBALL,
+                recordingKind = ActivityRecordingKind.TIMED,
+                points = emptyList(),
+                pauseIntervals = emptyList(),
+                distanceMeters = 0.0,
+                elevationGainedMeters = 0.0,
+                activityTypeId = BeachVolleyballVariantId,
+                startTime = start,
+                endTime = start.plusSeconds(60 * 60),
+            )
+            val vm = ActivityEntryViewModel(
+                repository = activityRepo(canWrite = true, weightKg = weightKg, canReadWeight = canReadWeight),
+                activityRecorder = recorder,
+                recordingPreferences = activityPrefs(),
+                clock = Clock.fixed(start, ZoneId.of("UTC")),
+            )
+            advanceUntilIdle()
+            vm.finishGpsRecording(ActivityEntryUnits.uniform(UnitSystem.METRIC))
+            advanceUntilIdle()
+            return vm.uiState.value
+        }
+
+        val weighed = finish(80.0)
+        assertEquals("560", weighed.activeCaloriesText) // (8.0 - 1.0) * 80 kg * 1 h
+        assertEquals("640", weighed.totalCaloriesText)
+        assertTrue(!weighed.calorieEstimateNeedsWeight)
+
+        val unweighed = finish(null)
+        assertEquals("", unweighed.activeCaloriesText)
+        assertTrue(unweighed.calorieEstimateNeedsWeight)
+        assertTrue(!unweighed.weightReadPermissionMissing)
+
+        val unreadable = finish(null, canReadWeight = false)
+        assertTrue(unreadable.calorieEstimateNeedsWeight)
+        assertTrue(unreadable.weightReadPermissionMissing)
     }
 
     @Test fun `a timed ride fills the review form with the wheel sensor distance`() = runTest {
@@ -1587,7 +1630,7 @@ class ActivityEntryViewModelTest {
             canWrite = true,
             loadWorkoutFailure = NoSuchElementException("Activity not found."),
         )
-        coEvery { repo.updateActivityEntry(any(), any()) } returns Unit
+        coEvery { repo.updateActivityEntry(any(), any()) } returns "activity-id"
         val vm = ActivityEntryViewModel(
             repository = repo,
             clock = MorningClock,
@@ -1619,7 +1662,7 @@ class ActivityEntryViewModelTest {
             isOpenVitalsEntry = true,
         )
         val repo = activityRepo(canWrite = true, workout = workout)
-        coEvery { repo.updateActivityEntry(any(), any()) } returns Unit
+        coEvery { repo.updateActivityEntry(any(), any()) } returns "activity-id"
         val vm = ActivityEntryViewModel(
             repository = repo,
             clock = Clock.fixed(start, ZoneId.of("UTC")),
@@ -1658,7 +1701,7 @@ class ActivityEntryViewModelTest {
             isOpenVitalsEntry = true,
         )
         val repo = activityRepo(canWrite = true, workout = workout)
-        coEvery { repo.updateActivityEntry(any(), any()) } returns Unit
+        coEvery { repo.updateActivityEntry(any(), any()) } returns "activity-id"
         val units = ActivityEntryUnits.uniform(UnitSystem.METRIC)
         val vm = ActivityEntryViewModel(
             repository = repo,
@@ -1716,7 +1759,7 @@ class ActivityEntryViewModelTest {
             isOpenVitalsEntry = true,
         )
         val repo = activityRepo(canWrite = true, workout = workout)
-        coEvery { repo.updateActivityEntry(any(), any()) } returns Unit
+        coEvery { repo.updateActivityEntry(any(), any()) } returns "activity-id"
         val vm = ActivityEntryViewModel(
             repository = repo,
             // The save reads the form's times in the system zone, so the form must be filled in it too.
@@ -2070,8 +2113,12 @@ class ActivityEntryViewModelTest {
         permissionFailure: Throwable? = null,
         writeFailure: Throwable? = null,
         loadWorkoutFailure: Throwable? = null,
+        weightKg: Double? = 70.0,
+        canReadWeight: Boolean = true,
     ): ActivityRepository =
         mockk<ActivityRepository>().also { repo ->
+            coEvery { repo.loadLatestWeightKg() } returns weightKg
+            coEvery { repo.hasWeightReadPermission() } returns canReadWeight
             every { repo.activityWritePermissions() } returns ActivityWritePermissions
             every { repo.activityWritePermissions(any(), any(), any(), any(), any()) } returns ActivityWritePermissions
             every { repo.activityWritePermissions(any<ActivityWriteRequest>()) } returns ActivityWritePermissions

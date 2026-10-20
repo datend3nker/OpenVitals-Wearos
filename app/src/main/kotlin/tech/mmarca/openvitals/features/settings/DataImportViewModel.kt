@@ -513,6 +513,7 @@ class DataImportViewModel @Inject constructor(
                 activityRepository.writeActivityEntries(batch)
                 importedFiles += batch.size
                 recordingPreferences.lastActivityExerciseType = batch.last().exerciseType
+                recordingPreferences.lastActivityTypeId = null
                 return
             } catch (error: Throwable) {
                 if (error is kotlinx.coroutines.CancellationException) throw error
@@ -531,6 +532,7 @@ class DataImportViewModel @Inject constructor(
                     activityRepository.writeActivityEntry(request)
                     importedFiles += 1
                     recordingPreferences.lastActivityExerciseType = request.exerciseType
+                    recordingPreferences.lastActivityTypeId = null
                 } catch (error: Throwable) {
                     if (error is kotlinx.coroutines.CancellationException) throw error
                     if (HealthConnectRateLimitBackoff.isRateLimitFailure(error)) {
@@ -546,6 +548,8 @@ class DataImportViewModel @Inject constructor(
             }
         }
 
+        // Read once: a file that measured no calories is estimated with it, or left without.
+        val weightKg = runCatching { activityRepository.loadLatestWeightKg() }.getOrNull()
         for ((index, uri) in uris.withIndex()) {
             if (rateLimited) break
             _uiState.value = _uiState.value.copy(
@@ -562,8 +566,8 @@ class DataImportViewModel @Inject constructor(
                 val preferredType = preferredActivityType(requireGpsRoute = routeImport.points.isNotEmpty())
                 // Straight from the file: exact times, and a client id that is a function of
                 // the file, so picking the same folder twice does not store each workout twice.
-                val request = routeImport.toImportWriteRequest(preferredType, ActivityRecordSource.FILE)
-                    ?: formWriteRequest(routeImport, preferredType)
+                val request = routeImport.toImportWriteRequest(preferredType, ActivityRecordSource.FILE, weightKg)
+                    ?: formWriteRequest(routeImport, preferredType, weightKg)
                     ?: throw IllegalArgumentException("Imported route could not be converted into an activity.")
                 val hasPermission = activityRepository.hasActivityWritePermission(request)
                 if (!hasPermission) {
@@ -608,7 +612,11 @@ class DataImportViewModel @Inject constructor(
     }
 
     /** A route with no timestamps has no time of its own. The entry form's defaults supply one, as before. */
-    private fun formWriteRequest(routeImport: RouteFileImport, preferredType: ActivityEntryType): ActivityWriteRequest? {
+    private fun formWriteRequest(
+        routeImport: RouteFileImport,
+        preferredType: ActivityEntryType,
+        weightKg: Double?,
+    ): ActivityWriteRequest? {
         // Any consistent unit pair works: nobody reads the text.
         val importUnits = ActivityEntryUnits.uniform(unitPreferences.unitSystem)
         val routeState = initialActivityEntryState(
@@ -619,6 +627,7 @@ class DataImportViewModel @Inject constructor(
             routeImport = routeImport,
             units = importUnits,
             clock = clock,
+            weightKg = weightKg,
         )
         return buildWriteRequest(routeState, importUnits)
     }

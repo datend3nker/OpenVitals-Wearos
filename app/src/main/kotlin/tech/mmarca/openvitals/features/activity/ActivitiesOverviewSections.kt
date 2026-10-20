@@ -530,7 +530,7 @@ internal fun ActivityOverviewWorkoutRowContent(
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             AutoResizeText(
-                text = workout.title ?: exerciseTypeLabel(workout.exerciseType),
+                text = workout.title ?: exerciseTypeLabel(workout),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,

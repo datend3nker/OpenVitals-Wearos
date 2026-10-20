@@ -425,6 +425,9 @@
     <string name="exercise_type_pull_ups">Подтягивания</string>
     <string name="exercise_type_rope_skipping">Прыжки через скакалку</string>
     <string name="exercise_type_trampoline_jumping">Прыжки на батуте</string>
+    <string name="exercise_type_beach_volleyball">Пляжный волейбол</string>
+    <string name="activity_calorie_estimate_needs_weight">Оценка калорий недоступна: в Health Connect нет данных о весе.</string>
+    <string name="activity_calorie_estimate_needs_weight_permission">Оценка калорий недоступна: доступ к весу в Health Connect не разрешён.</string>
     <string name="exercise_type_other_workout">Другая тренировка</string>
     <string name="mindfulness_entry_unavailable">Сеансы осознанности недоступны в этом поставщике Health Connect.</string>
     <string name="mindfulness_entry_timer_title">Таймер</string>

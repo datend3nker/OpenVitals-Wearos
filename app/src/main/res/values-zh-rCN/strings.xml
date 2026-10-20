@@ -352,6 +352,9 @@
     <string name="exercise_type_pull_ups">引体向上</string>
     <string name="exercise_type_rope_skipping">跳绳</string>
     <string name="exercise_type_trampoline_jumping">蹦床跳跃</string>
+    <string name="exercise_type_beach_volleyball">沙滩排球</string>
+    <string name="activity_calorie_estimate_needs_weight">无法估算卡路里：Health Connect 中没有体重数据。</string>
+    <string name="activity_calorie_estimate_needs_weight_permission">无法估算卡路里：未授予 Health Connect 体重访问权限。</string>
     <string name="exercise_type_other_workout">其他运动</string>
     <string name="mindfulness_entry_unavailable">此 Health Connect 提供程序不支持正念会话。</string>
     <string name="mindfulness_entry_timer_title">计时器</string>

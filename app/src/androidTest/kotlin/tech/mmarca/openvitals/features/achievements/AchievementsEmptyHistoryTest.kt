@@ -145,10 +145,14 @@ class AchievementsEmptyHistoryTest {
             requests: List<ActivityWriteRequest>,
         ): List<String> = error("unused")
 
-        override suspend fun updateActivityEntry(id: String, request: ActivityWriteRequest) =
+        override suspend fun updateActivityEntry(id: String, request: ActivityWriteRequest): String =
             error("unused")
 
         override suspend fun deleteActivityEntry(id: String) = error("unused")
+
+        override suspend fun loadLatestWeightKg(): Double? = null
+
+        override suspend fun hasWeightReadPermission(): Boolean = true
     }
 
     private companion object {

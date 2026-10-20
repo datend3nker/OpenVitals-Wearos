@@ -51,7 +51,7 @@ internal fun AppleHealthImportConverter.convertWorkouts(
             endTime = interval.end.instant,
             endZoneOffset = interval.end.offset,
             metadata = appleMetadata("ExerciseSessionRecord", fingerprint),
-            exerciseType = workout.workoutActivityType.toExerciseType(),
+            exerciseType = workout.workoutActivityType.toExerciseType(workout.metadata),
             title = workout.workoutActivityType.removePrefix("HKWorkoutActivityType").ifBlank { "Apple Health workout" },
             exerciseRoute = exerciseRoute,
         )

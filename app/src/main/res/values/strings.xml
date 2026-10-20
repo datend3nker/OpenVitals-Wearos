@@ -454,6 +454,9 @@
     <string name="exercise_type_pull_ups">Pull-ups</string>
     <string name="exercise_type_rope_skipping">Rope skipping</string>
     <string name="exercise_type_trampoline_jumping">Trampoline jumping</string>
+    <string name="exercise_type_beach_volleyball">Beach volleyball</string>
+    <string name="activity_calorie_estimate_needs_weight">No calorie estimate: Health Connect holds no weight.</string>
+    <string name="activity_calorie_estimate_needs_weight_permission">No calorie estimate: Health Connect access to weight is not granted.</string>
     <string name="exercise_type_other_workout">Other workout</string>
     <string name="mindfulness_entry_unavailable">Mindfulness sessions are unavailable in this Health Connect provider.</string>
     <string name="mindfulness_entry_timer_title">Timer</string>

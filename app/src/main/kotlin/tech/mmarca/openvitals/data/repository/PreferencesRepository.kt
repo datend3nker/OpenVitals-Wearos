@@ -387,6 +387,10 @@ class PreferencesRepository @Inject constructor(
             prefs.edit { putBoolean(KEY_APP_LOCK_ENABLED, value) }
         }
 
+    override var lastActivityTypeId: String?
+        get() = prefs.getString(KEY_LAST_ACTIVITY_TYPE_ID, null)
+        set(value) { prefs.edit { putString(KEY_LAST_ACTIVITY_TYPE_ID, value) } }
+
     override var lastActivityExerciseType: Int?
         get() = prefs.getInt(KEY_LAST_ACTIVITY_EXERCISE_TYPE, MISSING_EXERCISE_TYPE)
             .takeIf { it != MISSING_EXERCISE_TYPE }
@@ -1344,6 +1348,7 @@ class PreferencesRepository @Inject constructor(
          */
         const val CURRENT_PRIVACY_POLICY_VERSION = "2026-10-06"
         private const val KEY_LAST_ACTIVITY_EXERCISE_TYPE = "last_activity_exercise_type"
+        private const val KEY_LAST_ACTIVITY_TYPE_ID = "last_activity_type_id"
         private const val KEY_FAVORITE_ACTIVITY_EXERCISE_TYPE = "favorite_activity_exercise_type"
         private const val KEY_DASHBOARD_WIDGET_ORDER = "dashboard_widget_order"
         private const val KEY_DASHBOARD_KNOWN_WIDGETS = "dashboard_known_widget_ids"

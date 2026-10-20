@@ -351,6 +351,9 @@
     <string name="exercise_type_pull_ups">Shyby</string>
     <string name="exercise_type_rope_skipping">Švihadlo</string>
     <string name="exercise_type_trampoline_jumping">Skákání na trampolíně</string>
+    <string name="exercise_type_beach_volleyball">Plážový volejbal</string>
+    <string name="activity_calorie_estimate_needs_weight">Žádný odhad kalorií: Health Connect neobsahuje žádnou hmotnost.</string>
+    <string name="activity_calorie_estimate_needs_weight_permission">Žádný odhad kalorií: přístup k hmotnosti v Health Connect není povolen.</string>
     <string name="exercise_type_other_workout">Jiný trénink</string>
     <string name="mindfulness_entry_unavailable">Relace všímavosti nejsou v tomto poskytovateli Health Connect dostupné.</string>
     <string name="mindfulness_entry_timer_title">Časovač</string>

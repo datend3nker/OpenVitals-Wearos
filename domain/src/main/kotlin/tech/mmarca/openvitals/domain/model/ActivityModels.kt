@@ -45,7 +45,25 @@ data class ExerciseData(
     },
 ) {
     val durationMinutes: Long get() = durationMs / 60_000
+
+    /** The variant of [exerciseType] the entry form recorded, or null. See [ActivityVariantMarker]. */
+    val variantId: String? get() = clientRecordId?.activityVariantId()
 }
+
+/** Ends a session's client record id: `<id>_variant_<variant id>`. */
+const val ActivityVariantMarker = "_variant_"
+
+/** Health Connect has no beach volleyball: a volleyball session carries this variant. */
+const val BeachVolleyballVariantId = "beach_volleyball"
+
+/** The variant a session's client record id names, or null. */
+fun String.activityVariantId(): String? =
+    takeIf { it.startsWith(OpenVitalsActivityIdPrefix) }
+        ?.substringAfterLast(ActivityVariantMarker, missingDelimiterValue = "")
+        ?.takeIf { it.isNotEmpty() }
+
+/** Starts the client record id of every session the entry form writes. Another app's id never does. */
+const val OpenVitalsActivityIdPrefix = "openvitals_activity_"
 
 data class ExerciseDeviceData(
     val type: Int,
@@ -186,6 +204,11 @@ data class ActivityWriteRequest(
      * total in this request is a decision, as for a new entry.
      */
     val editedMetrics: Set<ActivityFormMetric>? = null,
+    /**
+     * A variant of [exerciseType] Health Connect cannot name. It is written into the session's
+     * client record id, where it survives a renamed title, a language change and a backup.
+     */
+    val variantId: String? = null,
 ) {
     /** This request with every total the user did not change taken from [own]. */
     fun keepingUntouchedMetrics(own: OwnActivityMetrics): ActivityWriteRequest {

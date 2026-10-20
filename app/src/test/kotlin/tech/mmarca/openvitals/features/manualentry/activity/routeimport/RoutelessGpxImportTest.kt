@@ -45,7 +45,7 @@ class RoutelessGpxImportTest {
     private fun import(parsed: RouteFileImport): ImportOutcome {
         val clock = Clock.systemDefaultZone()
         val state = ActivityEntryUiState()
-            .withRouteImport(parsed, ActivityEntryUnits.uniform(UnitSystem.METRIC), clock)
+            .withRouteImport(parsed, ActivityEntryUnits.uniform(UnitSystem.METRIC), clock, 70.0)
         return ImportOutcome(
             type = state.selectedActivityType,
             request = buildWriteRequest(state, ActivityEntryUnits.uniform(UnitSystem.METRIC)),

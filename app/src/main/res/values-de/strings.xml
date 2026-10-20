@@ -296,6 +296,9 @@
     <string name="exercise_type_strength_training">Krafttraining</string>
     <string name="exercise_type_rope_skipping">Seilspringen</string>
     <string name="exercise_type_trampoline_jumping">Trampolinspringen</string>
+    <string name="exercise_type_beach_volleyball">Beachvolleyball</string>
+    <string name="activity_calorie_estimate_needs_weight">Keine Kalorienschätzung: Health Connect enthält kein Gewicht.</string>
+    <string name="activity_calorie_estimate_needs_weight_permission">Keine Kalorienschätzung: Der Zugriff auf das Gewicht in Health Connect ist nicht erlaubt.</string>
     <string name="exercise_type_other_workout">Anderes Training</string>
     <string name="mindfulness_entry_unavailable">Achtsamkeitssitzungen sind bei diesem Health-Connect-Anbieter nicht verfügbar.</string>
     <string name="mindfulness_entry_timer_title">Timer</string>

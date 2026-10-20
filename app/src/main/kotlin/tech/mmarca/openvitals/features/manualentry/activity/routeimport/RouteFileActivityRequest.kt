@@ -26,6 +26,7 @@ import tech.mmarca.openvitals.features.manualentry.activity.inferActivityType
 internal fun RouteFileImport.toImportWriteRequest(
     fallbackType: ActivityEntryType,
     source: ActivityRecordSource,
+    weightKg: Double?,
 ): ActivityWriteRequest? {
     if (!hasImportedTimeRange) return null
     val key = contentKey ?: return null
@@ -53,6 +54,7 @@ internal fun RouteFileImport.toImportWriteRequest(
             activityType = type,
             distanceMeters = distanceMeters,
             durationMinutesText = minutes.coerceAtLeast(1).toString(),
+            weightKg = weightKg,
         )
     } else {
         null

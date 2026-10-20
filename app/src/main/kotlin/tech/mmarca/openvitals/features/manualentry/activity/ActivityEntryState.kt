@@ -163,6 +163,10 @@ data class ActivityEntryUiState(
     val elevationText: String = "",
     val activeCaloriesText: String = "",
     val totalCaloriesText: String = "",
+    /** The type could be estimated, but Health Connect holds no weight to estimate with. */
+    val calorieEstimateNeedsWeight: Boolean = false,
+    /** With [calorieEstimateNeedsWeight]: the weight is unreadable because access was not granted, not because none is stored. */
+    val weightReadPermissionMissing: Boolean = false,
     val repetitionMode: ActivityRepetitionEntryMode = ActivityRepetitionEntryMode.TOTAL,
     val repetitionTotalText: String = "",
     val repetitionSets: List<ActivityRepetitionSetInput> = listOf(ActivityRepetitionSetInput()),
@@ -204,6 +208,8 @@ data class ActivityEntryUiState(
     /** A file import waits for the user: it would replace a recording that is not saved yet. */
     val confirmRouteImportOverRecording: Boolean = false,
     val saveCompleted: Boolean = false,
+    /** Set when an edit saved the session under a new id; the old one no longer exists. */
+    val replacedActivityId: String? = null,
     val recordedBleSamples: BleRecordingSampleBuffer = BleRecordingSampleBuffer(),
     /** CoMaps guidance banked during the recording. App-local only. */
     val recordedCoMapsSamples: List<CoMapsNavigationSnapshot> = emptyList(),

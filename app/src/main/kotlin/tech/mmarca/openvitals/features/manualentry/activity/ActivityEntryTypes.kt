@@ -15,6 +15,7 @@ import androidx.annotation.StringRes
 import androidx.health.connect.client.records.ExerciseSegment
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import tech.mmarca.openvitals.R
+import tech.mmarca.openvitals.domain.model.BeachVolleyballVariantId
 import tech.mmarca.openvitals.domain.model.PlannedExerciseCompletion
 import tech.mmarca.openvitals.domain.model.PlannedExerciseData
 import tech.mmarca.openvitals.domain.model.activeSteps
@@ -48,6 +49,8 @@ data class ActivityEntryType(
     val segmentType: Int? = null,
     val defaultTitle: String? = null,
     val repetitionUnit: ActivityRepetitionUnit? = null,
+    /** Stored with the session (see [ActivityWriteRequest.variantId]) because Health Connect has no type for it. */
+    val recordsVariant: Boolean = false,
 )
 
 val ActivityEntryType.supportsLiveRecording: Boolean
@@ -281,6 +284,11 @@ val DefaultActivityEntryTypes: List<ActivityEntryType> = listOf(
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_TABLE_TENNIS, R.string.hc_exercise_type_table_tennis),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_TENNIS, R.string.hc_exercise_type_tennis),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_VOLLEYBALL, R.string.hc_exercise_type_volleyball),
+    // No standard has beach volleyball (Health Connect, FIT, Apple Health): a volleyball
+    // session that carries its variant. After plain volleyball, which a lookup by
+    // exercise type must find first.
+    timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_VOLLEYBALL, R.string.exercise_type_beach_volleyball)
+        .copy(id = BeachVolleyballVariantId, recordsVariant = true),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_WATER_POLO, R.string.hc_exercise_type_water_polo),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_WEIGHTLIFTING, R.string.hc_exercise_type_weightlifting),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_YOGA, R.string.hc_exercise_type_yoga),

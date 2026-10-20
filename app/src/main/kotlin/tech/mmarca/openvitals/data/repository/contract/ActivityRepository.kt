@@ -105,7 +105,14 @@ interface ActivityRepository {
     /** Writes many activities in one atomic call: one quota unit per batch. */
     suspend fun writeActivityEntries(requests: List<ActivityWriteRequest>): List<String>
 
-    suspend fun updateActivityEntry(id: String, request: ActivityWriteRequest)
+    /** The id of the saved session: [id], or a new one when the edit changed the session's variant. */
+    suspend fun updateActivityEntry(id: String, request: ActivityWriteRequest): String
 
     suspend fun deleteActivityEntry(id: String)
+
+    /** The newest weight Health Connect holds, or null when none is stored or reading it is not allowed. */
+    suspend fun loadLatestWeightKg(): Double?
+
+    /** Whether Health Connect read access to weight is granted: tells "no weight stored" from "cannot look". */
+    suspend fun hasWeightReadPermission(): Boolean
 }

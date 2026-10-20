@@ -297,6 +297,9 @@
     <string name="exercise_type_pull_ups">Tõmbed</string>
     <string name="exercise_type_rope_skipping">Nööri hüppamine</string>
     <string name="exercise_type_trampoline_jumping">Trampoliinihüpped</string>
+    <string name="exercise_type_beach_volleyball">Rannavõrkpall</string>
+    <string name="activity_calorie_estimate_needs_weight">Kalorihinnangut pole: Health Connectis puudub kaal.</string>
+    <string name="activity_calorie_estimate_needs_weight_permission">Kalorihinnangut pole: juurdepääs kaalule Health Connectis pole lubatud.</string>
     <string name="exercise_type_other_workout">Muu treening</string>
     <string name="mindfulness_entry_unavailable">Teadveloleku seansid ei ole selles Health Connecti pakkujas saadaval.</string>
     <string name="mindfulness_entry_timer_title">Taimer</string>
