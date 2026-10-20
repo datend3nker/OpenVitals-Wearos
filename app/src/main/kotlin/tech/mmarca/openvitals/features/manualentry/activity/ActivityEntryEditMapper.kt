@@ -21,6 +21,7 @@ import kotlin.math.ceil
 import kotlin.math.roundToInt
 import tech.mmarca.openvitals.domain.preferences.UnitSystem
 import tech.mmarca.openvitals.domain.model.ActivityPauseInterval
+import tech.mmarca.openvitals.domain.model.BeachVolleyballVariantId
 import tech.mmarca.openvitals.domain.model.ExerciseData
 import tech.mmarca.openvitals.domain.model.ExerciseLapData
 import tech.mmarca.openvitals.domain.model.ExerciseRoutePoint
@@ -140,6 +141,9 @@ internal fun ExerciseData.inferStoredActivityType(): ActivityEntryType {
         }
         exerciseType == ExerciseSessionRecord.EXERCISE_TYPE_GYMNASTICS && titleText.contains("trampoline") -> {
             DefaultActivityEntryTypes.first { it.id == "trampoline_jumping" }
+        }
+        variantId != null && DefaultActivityEntryTypes.any { it.id == variantId && it.exerciseType == exerciseType } -> {
+            DefaultActivityEntryTypes.first { it.id == variantId }
         }
         else -> DefaultActivityEntryTypes
             .firstOrNull { it.exerciseType == exerciseType && !it.isRepetitionLike }
@@ -339,7 +343,7 @@ private fun matchExerciseType(sourceText: String): Int? =
         sourceText.containsAny("walk", "walking") -> ExerciseSessionRecord.EXERCISE_TYPE_WALKING
         sourceText.containsAny("wheelchair") -> ExerciseSessionRecord.EXERCISE_TYPE_WHEELCHAIR
         sourceText.containsAny("row", "rowing") -> ExerciseSessionRecord.EXERCISE_TYPE_ROWING
-        sourceText.containsAny("paddle", "kayak", "canoe") -> ExerciseSessionRecord.EXERCISE_TYPE_PADDLING
+        sourceText.containsAny("paddle", "paddling", "kayak", "canoe") -> ExerciseSessionRecord.EXERCISE_TYPE_PADDLING
         sourceText.containsAny("skate", "skating") -> ExerciseSessionRecord.EXERCISE_TYPE_SKATING
         sourceText.containsAny("sail", "sailing") -> ExerciseSessionRecord.EXERCISE_TYPE_SAILING
         sourceText.containsAny("surf", "surfing") -> ExerciseSessionRecord.EXERCISE_TYPE_SURFING
@@ -362,19 +366,21 @@ internal fun activityCalorieEstimate(
     activityType: ActivityEntryType,
     distanceMeters: Double?,
     durationMinutesText: String,
+    weightKg: Double?,
 ): ActivityCalorieEstimate? {
-    if (!activityType.supportsGpsRoute) return null
+    val weight = weightKg?.takeIf { it > 0.0 } ?: return null
     val durationMinutes = durationMinutesText.trim().toLongOrNull()
         ?.takeIf { it in 1..MaxActivityDurationMinutes }
         ?: return null
     val hours = durationMinutes / 60.0
-    val met = activityMet(activityType.exerciseType) ?: return null
-    val restingCalories = DefaultCalorieEstimateWeightKg * hours * RestingMet
+    val met = activityMet(activityType.exerciseType, activityType.id) ?: return null
+    val restingCalories = weight * hours * RestingMet
     val activeByMet = (met - RestingMet)
-        .coerceAtLeast(0.0) * DefaultCalorieEstimateWeightKg * hours
+        .coerceAtLeast(0.0) * weight * hours
     val activeByDistance = distanceBasedActiveCalories(
         exerciseType = activityType.exerciseType,
         distanceMeters = distanceMeters,
+        weightKg = weight,
     ) ?: 0.0
     val activeCalories = maxOf(activeByMet, activeByDistance).takeIf { it > 0.0 } ?: return null
 
@@ -384,8 +390,18 @@ internal fun activityCalorieEstimate(
     )
 }
 
-internal fun activityMet(exerciseType: Int): Double? =
+/** Whether the form can estimate this type's calories, given a body weight. */
+internal val ActivityEntryType.estimatesCalories: Boolean
+    get() = activityMet(exerciseType, id) != null
+
+/**
+ * MET per 2024 Adult Compendium of Physical Activities (pacompendium.com/sports):
+ * 15710 "volleyball" 4.0, 15725 "volleyball, beach, in sand" 8.0.
+ */
+internal fun activityMet(exerciseType: Int, typeId: String? = null): Double? =
     when (exerciseType) {
+        ExerciseSessionRecord.EXERCISE_TYPE_VOLLEYBALL ->
+            if (typeId == BeachVolleyballVariantId) 8.0 else 4.0
         ExerciseSessionRecord.EXERCISE_TYPE_RUNNING -> 9.8
         ExerciseSessionRecord.EXERCISE_TYPE_BIKING -> 7.5
         ExerciseSessionRecord.EXERCISE_TYPE_WALKING -> 3.5
@@ -409,6 +425,7 @@ internal fun activityMet(exerciseType: Int): Double? =
 internal fun distanceBasedActiveCalories(
     exerciseType: Int,
     distanceMeters: Double?,
+    weightKg: Double,
 ): Double? {
     val distanceKm = distanceMeters?.takeIf { it > 0.0 }?.div(1000.0) ?: return null
     val kcalPerKgKm = when (exerciseType) {
@@ -419,7 +436,7 @@ internal fun distanceBasedActiveCalories(
         ExerciseSessionRecord.EXERCISE_TYPE_WHEELCHAIR -> WalkingKcalPerKgKm
         else -> return null
     }
-    return DefaultCalorieEstimateWeightKg * distanceKm * kcalPerKgKm
+    return weightKg * distanceKm * kcalPerKgKm
 }
 
 internal fun parseDistanceMeters(text: String, unitSystem: UnitSystem): Double? {

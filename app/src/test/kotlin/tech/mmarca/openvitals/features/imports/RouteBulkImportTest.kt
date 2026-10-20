@@ -569,6 +569,7 @@ class RouteBulkImportTest {
             every { prefs.favoriteActivityExerciseType } returns null
             every { prefs.lastActivityExerciseType } returns null
             every { prefs.lastActivityExerciseType = any() } just runs
+            every { prefs.lastActivityTypeId = any() } just runs
             every { prefs.bodyEnergyCalibration() } returns BodyEnergyCalibration.Automatic
             every { prefs.caffeinePreferences() } returns CaffeinePreferences()
             every { prefs.bodyProfile() } returns BodyProfile()

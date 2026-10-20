@@ -40,6 +40,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import tech.mmarca.openvitals.domain.model.ActivityExerciseSegmentWrite
+import tech.mmarca.openvitals.domain.model.ActivityVariantMarker
+import tech.mmarca.openvitals.domain.model.OpenVitalsActivityIdPrefix
+import tech.mmarca.openvitals.domain.model.activityVariantId
 import tech.mmarca.openvitals.domain.model.ActivityPauseInterval
 import tech.mmarca.openvitals.domain.model.ActivityProgressPoint
 import tech.mmarca.openvitals.domain.model.ActivityCadenceKind
@@ -733,7 +736,7 @@ internal class ActivityHealthReader(
         clientRecordIds
     }
 
-    suspend fun updateActivityEntry(id: String, request: ActivityWriteRequest) = withContext(Dispatchers.IO) {
+    suspend fun updateActivityEntry(id: String, request: ActivityWriteRequest): String = withContext(Dispatchers.IO) {
         validateActivityWriteRequest(request)
 
         val existing = support.client().readRecord(ExerciseSessionRecord::class, id).record
@@ -742,11 +745,23 @@ internal class ActivityHealthReader(
         val zone = ZoneId.systemDefault()
         val exerciseSegments = request.toExerciseSegments()
         val exerciseLaps = request.toExerciseLaps()
+        // An update cannot set a client record id, so it cannot carry a variant or change it.
+        // A session with a variant before or after the edit is a new session beside the old,
+        // which is deleted last.
+        val replacesSession = request.variantId != null ||
+            existing.metadata.clientRecordId?.activityVariantId() != null
         val session = request.toExerciseSessionRecord(
-            metadata = Metadata.manualEntryWithId(
-                id = id,
-                device = existing.metadata.device ?: Device(type = Device.TYPE_PHONE),
-            ),
+            metadata = if (replacesSession) {
+                Metadata.manualEntry(
+                    clientRecordId = request.sessionClientRecordId(),
+                    device = existing.metadata.device ?: Device(type = Device.TYPE_PHONE),
+                )
+            } else {
+                Metadata.manualEntryWithId(
+                    id = id,
+                    device = existing.metadata.device ?: Device(type = Device.TYPE_PHONE),
+                )
+            },
             exerciseSegments = exerciseSegments,
             zone = zone,
         )
@@ -795,8 +810,15 @@ internal class ActivityHealthReader(
             if (inserts.isNotEmpty()) {
                 support.client().insertRecords(inserts)
             }
-            updateShrinkingRoutes(listOf(session))
+            val savedId = if (replacesSession) {
+                insertShrinkingRoutes(listOf(session)).first()
+            } else {
+                updateShrinkingRoutes(listOf(session))
+                id
+            }
             staleRecordIds.forEach { (recordType, ids) -> deleteRecordsById(recordType, ids) }
+            if (replacesSession) deleteRecordsById(ExerciseSessionRecord::class, listOf(id))
+            savedId
         }
     }
 
@@ -1176,7 +1198,8 @@ internal class ActivityHealthReader(
 
     /** Random for an entry, a function of the file for an import: see [ActivityWriteRequest.importKey]. */
     private fun ActivityWriteRequest.sessionClientRecordId(): String =
-        "openvitals_activity_${startTime.toEpochMilli()}_${importKey ?: UUID.randomUUID()}"
+        "$OpenVitalsActivityIdPrefix${startTime.toEpochMilli()}_${importKey ?: UUID.randomUUID()}" +
+            variantId?.let { "$ActivityVariantMarker$it" }.orEmpty()
 
     private fun ActivityWriteRequest.metricMetadata(kind: String, startTime: Instant): Metadata =
         recordMetadata(manualActivityMetricIdPrefix(kind, startTime) + (importKey ?: UUID.randomUUID()))

@@ -394,7 +394,17 @@ internal fun ActivityMetricInputs(
             singleLine = true,
             label = { Text(stringResource(R.string.metric_active_calories)) },
             isError = activeCaloriesError != null,
-            supportingText = activeCaloriesError?.let { { Text(it) } },
+            supportingText = (
+                activeCaloriesError
+                    ?: stringResource(
+                        if (state.weightReadPermissionMissing) {
+                            R.string.activity_calorie_estimate_needs_weight_permission
+                        } else {
+                            R.string.activity_calorie_estimate_needs_weight
+                        },
+                    )
+                        .takeIf { state.calorieEstimateNeedsWeight && state.activeCaloriesText.isBlank() }
+                )?.let { { Text(it) } },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.weight(1f),
         )

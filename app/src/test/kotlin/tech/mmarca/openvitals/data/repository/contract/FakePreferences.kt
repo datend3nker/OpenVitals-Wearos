@@ -219,6 +219,8 @@ class FakePreferences(
 
     override var lastActivityExerciseType: Int? = initialLastExerciseType
 
+    override var lastActivityTypeId: String? = null
+
     override var favoriteActivityExerciseType: Int? = initialFavoriteExerciseType
 
     private val unitOverrides = mutableMapOf<UnitQuantity, UnitSystem>()

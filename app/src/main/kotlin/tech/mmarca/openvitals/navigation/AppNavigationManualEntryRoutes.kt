@@ -46,6 +46,7 @@ internal fun NavGraphBuilder.manualEntryRoutes(
     onEntrySaved: () -> Unit,
     onEntrySavedAndPopBack: () -> Unit,
     onActivityEntrySaved: () -> Unit,
+    onActivityEntryReplaced: (String) -> Unit,
 ) {
     composable(Screen.ManualEntry.route) {
         val manualEntryViewModel = hiltViewModel<ManualEntryViewModel>()
@@ -247,7 +248,11 @@ internal fun NavGraphBuilder.manualEntryRoutes(
             onOpenWorkoutPlanBuilder = { planId ->
                 navController.navigate(Screen.WorkoutPlanBuilder.createRoute(planId))
             },
-            onEntrySaved = onEntrySavedAndPopBack,
+            onEntrySaved = {
+                activityEntryViewModel.uiState.value.replacedActivityId
+                    ?.let(onActivityEntryReplaced)
+                    ?: onEntrySavedAndPopBack()
+            },
             appThemeMode = appThemeMode,
         )
     }

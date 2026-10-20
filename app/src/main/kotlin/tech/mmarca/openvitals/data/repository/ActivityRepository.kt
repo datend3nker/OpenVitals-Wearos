@@ -16,6 +16,7 @@ import androidx.health.connect.client.records.SpeedRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.StepsCadenceRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
+import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.records.WheelchairPushesRecord
 import tech.mmarca.openvitals.domain.model.ActivityCadenceKind
 import tech.mmarca.openvitals.domain.model.ActivityCadenceSample
@@ -63,6 +64,7 @@ class ActivityRepositoryImpl @Inject constructor(
 
     private val readStepsPermission = HealthPermission.getReadPermission(StepsRecord::class)
     private val readDistancePermission = HealthPermission.getReadPermission(DistanceRecord::class)
+    private val readWeightPermission = HealthPermission.getReadPermission(WeightRecord::class)
     private val readExercisePermission = HealthPermission.getReadPermission(ExerciseSessionRecord::class)
     private val readCaloriesPermission = HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class)
     private val readFloorsPermission = HealthPermission.getReadPermission(FloorsClimbedRecord::class)
@@ -603,13 +605,19 @@ class ActivityRepositoryImpl @Inject constructor(
         return hc.writeActivityEntries(requests)
     }
 
-    override suspend fun updateActivityEntry(id: String, request: ActivityWriteRequest) {
+    override suspend fun hasWeightReadPermission(): Boolean =
+        readWeightPermission in grantedPermissionsIfAvailable()
+
+    override suspend fun loadLatestWeightKg(): Double? =
+        if (readWeightPermission in grantedPermissionsIfAvailable()) hc.readLatestWeight()?.weightKg else null
+
+    override suspend fun updateActivityEntry(id: String, request: ActivityWriteRequest): String {
         val missingPermissions = activityWritePermissions(request) - grantedPermissionsIfAvailable()
         if (missingPermissions.isNotEmpty()) {
             Log.w(TAG, "Skipping updateActivityEntry missingCount=${missingPermissions.size}")
             throw SecurityException("Missing Health Connect activity write permission.")
         }
-        hc.updateActivityEntry(id, request)
+        return hc.updateActivityEntry(id, request)
     }
 
     override suspend fun deleteActivityEntry(id: String) {
