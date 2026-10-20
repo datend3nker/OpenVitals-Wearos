@@ -3810,4 +3810,16 @@
     <string name="settings_scales_delete_body">其体重、心率和身体成分将从 Health Connect 中移除。</string>
     <string name="settings_scales_remove">移除体重秤</string>
     <string name="settings_scales_remove_body">OpenVitals 将停止接收并忘记密钥。已保存的称重记录会保留。</string>
+    <string name="cycle_hormonal_title">激素避孕</string>
+    <string name="cycle_hormonal_body">激素类方法可能改变周期和体温模式。这里只列出使用激素的方法：铜制宫内节育器、避孕套和子宫帽不使用激素，因此不在此列。这只是周期视图的背景信息，仅此而已。</string>
+    <string name="cycle_hormonal_set_by_pill">已由你的服药方案设为“%1$s”。关闭该方案即可选择其他方法。</string>
+    <string name="cycle_hormonal_stopped_on">停用日期（可选；未来的日期按仍在使用计算）</string>
+    <string name="cycle_hormonal_stopped_clear">清除停用日期</string>
+    <string name="cycle_hormonal_kind_none">无</string>
+    <string name="cycle_hormonal_kind_pill">口服避孕药</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">含激素宫内节育器</string>
+    <string name="cycle_hormonal_kind_implant">植入剂</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">阴道环或贴片</string>
+    <string name="cycle_hormonal_kind_injection">注射</string>
+    <string name="cycle_hormonal_kind_other">其他激素类方法</string>
 </resources>

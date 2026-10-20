@@ -3881,4 +3881,16 @@
     <string name="settings_scales_delete_body">Его вес, пульс и состав тела будут удалены из Health Connect.</string>
     <string name="settings_scales_remove">Удалить весы</string>
     <string name="settings_scales_remove_body">OpenVitals перестанет слушать и забудет ключ. Уже сохранённые взвешивания останутся.</string>
+    <string name="cycle_hormonal_title">Гормональная контрацепция</string>
+    <string name="cycle_hormonal_body">Гормональные методы могут менять цикл и температурную кривую. Перечислены только методы с гормонами: медная спираль, презерватив и диафрагма гормоны не используют, поэтому их здесь нет. Это лишь контекст для отображения цикла, не более.</string>
+    <string name="cycle_hormonal_set_by_pill">Установлено на «%1$s» вашей схемой приёма таблеток. Выключите схему, чтобы выбрать другой метод.</string>
+    <string name="cycle_hormonal_stopped_on">Прекращено (необязательно; дата в будущем считается как продолжающийся приём)</string>
+    <string name="cycle_hormonal_stopped_clear">Очистить дату прекращения</string>
+    <string name="cycle_hormonal_kind_none">Нет</string>
+    <string name="cycle_hormonal_kind_pill">Таблетки</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">Гормональная спираль</string>
+    <string name="cycle_hormonal_kind_implant">Имплант</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">Кольцо или пластырь</string>
+    <string name="cycle_hormonal_kind_injection">Инъекции</string>
+    <string name="cycle_hormonal_kind_other">Другой гормональный метод</string>
 </resources>

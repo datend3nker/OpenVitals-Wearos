@@ -87,6 +87,7 @@ Settings → Cycle holds:
 - **Tracking contexts**: PMS, PMDD, endometriosis (add symptom suggestions to the day log); PCOS, perimenopause, thyroid (widen the estimate).
 - **Age band**: picks the variability prior. A birth year in the body profile sets it; the picker is the fallback when there is none.
 - **Reminders**: see [Reminders](reminders.md).
+- **Hormonal contraception**: a declared context, none by default: pill, hormonal IUD (hormone coil), implant, ring or patch, injection or another hormonal method, with an optional day it was stopped. Only methods that use hormones are listed; copper IUDs, condoms and diaphragms do not use hormones, so they are not listed here. The card says in one plain line that hormonal methods can change the cycle and the temperature pattern, with no numbers and no claim about contraception or fertility. An enabled pill scheme means the pill: the effective method is derived as pill whenever the scheme is enabled (also for schemes saved before this field existed), the card says so, and the picker returns when the scheme is turned off. A stop date in the future counts as still running, and the card says so. `HormonalContraception.isInfluencing(today)` (in `:domain`, `domain.cycle`, part of `CycleTrackingProfile`) is true while a hormonal kind is set with no stop date and for 60 days after the stop date. That window follows the exclusion criterion of Wang 2025 (Hum Reprod, 10.1093/humrep/deaf005), not a measured washout. No cycle card reads it yet.
 - **Contraceptive pill**: days taking and days pausing (21 and 7 by default), the first day of a pack, and a daily reminder at a chosen time on taking days, quiet once today is marked as taken. The scheme lives in the cycle preferences; the taken days in `pill_intakes`.
 - **Delete cycle journal**: wipes the journal, the exclusions and every cycle setting on the device after a confirmation. Health Connect records stay.
 
@@ -98,7 +99,7 @@ The health report offers a Cycle tracking section: the cycle-day chart, the leng
 
 A history kept in the drip cycle tracker comes in through the CSV importer, which recognises drip's export and writes its bleeding, temperatures, mucus and sex to Health Connect and its pain, mood, cervix, desire and notes to the journal; see [CSV import](csv-import.md#drip-export).
 
-Settings → Cycle exports the journal as a JSON file (day logs, excluded cycles, contexts and age band) and imports one back. An import merges: a day both sides hold keeps the newer edit, exclusions are added, and the contexts and age band fill a phone that declared none. Health Connect records are not in the file; Health Connect has its own export.
+Settings → Cycle exports the journal as a JSON file (day logs, excluded cycles, contexts, age band and hormonal method) and imports one back. An import merges: a day both sides hold keeps the newer edit, exclusions are added, and each of the contexts, age band and hormonal method fills in a phone that has not declared it. Health Connect records are not in the file; Health Connect has its own export.
 
 ## Dashboard tile and widget
 
@@ -110,4 +111,4 @@ Cycle permissions are managed as their own Health Connect category. The screen a
 
 ## Privacy
 
-Cycle data stays in Health Connect and in the app's local database on the device. The journal, the exclusions, the declared contexts and age band, the pill scheme and the taken days move with the cycle category of phone-to-phone sync, like Health Connect records do; see [Sync with another phone](device-sync.md). Reminder settings stay on the phone whose alarms they are. Notifications default to a neutral text. OpenVitals has no internet permission.
+Cycle data stays in Health Connect and in the app's local database on the device. The journal, the exclusions, the declared contexts, age band and hormonal method, the pill scheme and the taken days move with the cycle category of phone-to-phone sync, like Health Connect records do; see [Sync with another phone](device-sync.md). Reminder settings stay on the phone whose alarms they are. Notifications default to a neutral text. OpenVitals has no internet permission.

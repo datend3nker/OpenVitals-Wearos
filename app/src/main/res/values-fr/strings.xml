@@ -3842,4 +3842,16 @@
     <string name="settings_scales_delete_body">Son poids, sa fréquence cardiaque et sa composition corporelle sont supprimés de Santé Connect.</string>
     <string name="settings_scales_remove">Retirer la balance</string>
     <string name="settings_scales_remove_body">OpenVitals cesse d’écouter et oublie la clé. Les pesées déjà enregistrées sont conservées.</string>
+    <string name="cycle_hormonal_title">Contraception hormonale</string>
+    <string name="cycle_hormonal_body">Les méthodes hormonales peuvent modifier le cycle et la courbe de température. Seules les méthodes qui utilisent des hormones sont listées : le stérilet au cuivre, le préservatif et le diaphragme n’utilisent pas d’hormones, ils ne figurent donc pas ici. C’est un simple contexte pour l’affichage du cycle, rien de plus.</string>
+    <string name="cycle_hormonal_set_by_pill">Défini sur %1$s par votre schéma de pilule. Désactivez le schéma pour choisir une autre méthode.</string>
+    <string name="cycle_hormonal_stopped_on">Arrêtée le (facultatif ; une date future compte comme toujours en cours)</string>
+    <string name="cycle_hormonal_stopped_clear">Effacer la date d’arrêt</string>
+    <string name="cycle_hormonal_kind_none">Aucune</string>
+    <string name="cycle_hormonal_kind_pill">Pilule</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">Stérilet hormonal</string>
+    <string name="cycle_hormonal_kind_implant">Implant</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">Anneau ou patch</string>
+    <string name="cycle_hormonal_kind_injection">Injection</string>
+    <string name="cycle_hormonal_kind_other">Autre méthode hormonale</string>
 </resources>

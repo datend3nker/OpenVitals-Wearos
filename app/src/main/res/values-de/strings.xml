@@ -3804,4 +3804,16 @@
     <string name="settings_scales_delete_body">Gewicht, Herzfrequenz und Körperzusammensetzung werden aus Health Connect entfernt.</string>
     <string name="settings_scales_remove">Waage entfernen</string>
     <string name="settings_scales_remove_body">OpenVitals lauscht nicht mehr und vergisst den Schlüssel. Bereits gespeicherte Messungen bleiben.</string>
+    <string name="cycle_hormonal_title">Hormonelle Verhütung</string>
+    <string name="cycle_hormonal_body">Hormonelle Methoden können den Zyklus und den Temperaturverlauf verändern. Aufgeführt sind nur Methoden mit Hormonen: Kupferspirale, Kondom und Diaphragma enthalten keine Hormone und stehen deshalb nicht hier. Das ist nur Kontext für die Zyklusansicht, nichts weiter.</string>
+    <string name="cycle_hormonal_set_by_pill">Durch dein Pillenschema auf %1$s gesetzt. Schalte das Schema aus, um eine andere Methode zu wählen.</string>
+    <string name="cycle_hormonal_stopped_on">Beendet am (optional; ein Datum in der Zukunft gilt als weiter angewendet)</string>
+    <string name="cycle_hormonal_stopped_clear">Enddatum löschen</string>
+    <string name="cycle_hormonal_kind_none">Keine</string>
+    <string name="cycle_hormonal_kind_pill">Pille</string>
+    <string name="cycle_hormonal_kind_hormonal_iud">Hormonspirale</string>
+    <string name="cycle_hormonal_kind_implant">Implantat</string>
+    <string name="cycle_hormonal_kind_ring_or_patch">Ring oder Pflaster</string>
+    <string name="cycle_hormonal_kind_injection">Spritze</string>
+    <string name="cycle_hormonal_kind_other">Andere hormonelle Methode</string>
 </resources>
