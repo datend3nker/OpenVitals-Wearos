@@ -795,7 +795,7 @@ class ActivityEntryViewModel(
             )
             runCatching { importer.import(uri) }
                 .onSuccess { routeImport ->
-                    applyRouteImport(routeImport, units)
+                    applyRouteImport(routeImport, units, latestWeightKg())
                 }
                 .onScreenError(
                     logTag = TAG,
@@ -832,7 +832,13 @@ class ActivityEntryViewModel(
         }
         val title = current.titleText.trim().ifEmpty {
             current.selectedActivityType.defaultTitle
-                ?: appContext?.let { exerciseTypeLabel(it, current.selectedActivityType.exerciseType) }
+                ?: appContext?.let { context ->
+                    if (current.selectedActivityType.recordsVariant) {
+                        context.getString(current.selectedActivityType.labelRes)
+                    } else {
+                        exerciseTypeLabel(context, current.selectedActivityType.exerciseType)
+                    }
+                }
                 ?: ""
         }
         val request = planRequestFromRows(
@@ -1162,7 +1168,7 @@ class ActivityEntryViewModel(
             )
             return
         }
-        applyFinishedRecording(snapshot, units)
+        viewModelScope.launch { applyFinishedRecording(snapshot, units, latestWeightKg()) }
     }
 
     /** The in-memory draft and the finished recording kept on disk go together. */
@@ -1180,17 +1186,29 @@ class ActivityEntryViewModel(
         if (editActivityId != null || _uiState.value.isRecordingDraft) return
         val snapshot = activityRecorder?.finishedRecording() ?: return
         val unitSystem = unitPreferences?.unitSystem ?: UnitSystem.METRIC
-        applyFinishedRecording(
-            snapshot,
-            ActivityEntryUnits(
-                distance = unitPreferences?.unitOverride(UnitQuantity.DISTANCE) ?: unitSystem,
-                elevation = unitPreferences?.unitOverride(UnitQuantity.ELEVATION) ?: unitSystem,
-            ),
+        val units = ActivityEntryUnits(
+            distance = unitPreferences?.unitOverride(UnitQuantity.DISTANCE) ?: unitSystem,
+            elevation = unitPreferences?.unitOverride(UnitQuantity.ELEVATION) ?: unitSystem,
         )
+        viewModelScope.launch {
+            val weightKg = latestWeightKg()
+            // A launch intent may have cleared or replaced the form while the weight loaded.
+            if (_uiState.value.isRecordingDraft || activityRecorder?.finishedRecording() == null) return@launch
+            applyFinishedRecording(snapshot, units, weightKg)
+        }
     }
 
-    private fun applyFinishedRecording(snapshot: ActivityRecordingSnapshot, units: ActivityEntryUnits) {
-        rememberLastActivityType(snapshot.exerciseType)
+    /** Health Connect's newest weight; null when there is none or it cannot be read. A calorie estimate needs it. */
+    private suspend fun latestWeightKg(): Double? {
+        val weightKg = runCatching { repository.loadLatestWeightKg() }.getOrNull()
+        val permissionMissing = weightKg == null &&
+            !runCatching { repository.hasWeightReadPermission() }.getOrDefault(true)
+        _uiState.value = _uiState.value.copy(weightReadPermissionMissing = permissionMissing)
+        return weightKg
+    }
+
+    private fun applyFinishedRecording(snapshot: ActivityRecordingSnapshot, units: ActivityEntryUnits, weightKg: Double?) {
+        rememberLastActivityType(snapshot.exerciseType, snapshot.activityTypeId)
 
         if (snapshot.recordingKind == ActivityRecordingKind.GPS_ROUTE && snapshot.points.size >= MinRecordedRoutePoints) {
             val recordedRoute = RouteFileImport(
@@ -1204,7 +1222,7 @@ class ActivityEntryViewModel(
                 hasImportedTimeRange = true,
             )
             // Same DEM rule as an imported file: the phone's sensors drift too.
-            applyRouteImport(elevationCorrector?.correct(recordedRoute) ?: recordedRoute, units)
+            applyRouteImport(elevationCorrector?.correct(recordedRoute) ?: recordedRoute, units, weightKg)
             _uiState.value = _uiState.value.copy(
                 recordedPauseIntervals = snapshot.pauseIntervals,
                 recordedLaps = snapshot.manualLaps.map { it.toExerciseLapData() },
@@ -1218,7 +1236,7 @@ class ActivityEntryViewModel(
                 recordedCoMapsSamples = snapshot.coMapsNavigationSamples,
             )
         } else {
-            applyRecordingWithoutRoute(snapshot, units)
+            applyRecordingWithoutRoute(snapshot, units, weightKg)
         }
         recordingDraftStore?.store(_uiState.value)
     }
@@ -1306,6 +1324,7 @@ class ActivityEntryViewModel(
         }
         val editRecordId = _uiState.value.editRecordId
         val wasRecordingDraft = _uiState.value.isRecordingDraft
+        val selectedTypeId = _uiState.value.selectedActivityType.id
         val markersToSave = _uiState.value.recordedMarkers
         val coMapsSamplesToSave = _uiState.value.recordedCoMapsSamples
             .takeIf { _uiState.value.selectedActivityType.supportsGpsRoute }
@@ -1337,16 +1356,26 @@ class ActivityEntryViewModel(
                     repository.writeActivityEntry(request)
                 } else {
                     repository.updateActivityEntry(editRecordId, request)
-                    editRecordId
                 }
             }.onSuccess { savedActivityId ->
                 markerRepository?.setMarkersForActivity(savedActivityId, markersToSave)
                 if (coMapsSamplesToSave.isNotEmpty()) {
                     coMapsNavigationRepository?.saveSamples(savedActivityId, coMapsSamplesToSave)
                 }
+                if (editRecordId != null && savedActivityId != editRecordId) {
+                    // The edit replaced the session: what hung on the old id goes with it.
+                    markerRepository?.deleteMarkersForActivity(editRecordId)
+                    if (coMapsSamplesToSave.isEmpty()) {
+                        // The edit form does not load them; carry them over to the new id.
+                        coMapsNavigationRepository?.loadSamples(editRecordId)
+                            ?.takeIf { it.isNotEmpty() }
+                            ?.let { coMapsNavigationRepository.saveSamples(savedActivityId, it) }
+                    }
+                    coMapsNavigationRepository?.deleteSamples(editRecordId)
+                }
                 clearRecordingDraft()
                 if (wasRecordingDraft) {
-                    rememberLastActivityType(request.exerciseType)
+                    rememberLastActivityType(request.exerciseType, selectedTypeId)
                 }
                 if (editRecordId == null) {
                     _uiState.value = clearedAfterSaveState(clock, repository, preferredActivityType())
@@ -1356,6 +1385,7 @@ class ActivityEntryViewModel(
                     _uiState.value = _uiState.value.copy(
                         isSavingEntry = false,
                         saveCompleted = true,
+                        replacedActivityId = savedActivityId.takeIf { editRecordId != null && it != editRecordId },
                         entryError = null,
                         detailError = null,
                         validationErrors = emptySet(),
@@ -1376,8 +1406,8 @@ class ActivityEntryViewModel(
         _uiState.value = _uiState.value.copy(saveCompleted = false)
     }
 
-    private fun applyRouteImport(routeImport: RouteFileImport, units: ActivityEntryUnits) {
-        _uiState.value = _uiState.value.withRouteImport(routeImport, units, clock)
+    private fun applyRouteImport(routeImport: RouteFileImport, units: ActivityEntryUnits, weightKg: Double?) {
+        _uiState.value = _uiState.value.withRouteImport(routeImport, units, clock, weightKg)
         refreshPermission()
     }
 
@@ -1401,7 +1431,7 @@ class ActivityEntryViewModel(
         )
     }
 
-    private fun applyRecordingWithoutRoute(snapshot: ActivityRecordingSnapshot, units: ActivityEntryUnits) {
+    private fun applyRecordingWithoutRoute(snapshot: ActivityRecordingSnapshot, units: ActivityEntryUnits, weightKg: Double?) {
         val currentState = _uiState.value
         val start = snapshot.startTime.atZone(clock.zone)
         val durationMinutes = ceil(
@@ -1419,6 +1449,7 @@ class ActivityEntryViewModel(
             activityType = selectedActivityType,
             distanceMeters = sensorDistanceMeters,
             durationMinutesText = durationMinutes.toString(),
+            weightKg = weightKg,
         ).takeIf {
             currentState.activeCaloriesText.isBlank() && currentState.totalCaloriesText.isBlank()
         }
@@ -1465,6 +1496,8 @@ class ActivityEntryViewModel(
             },
             activeCaloriesText = calorieEstimate?.activeCaloriesText ?: currentState.activeCaloriesText,
             totalCaloriesText = calorieEstimate?.totalCaloriesText ?: currentState.totalCaloriesText,
+            calorieEstimateNeedsWeight = selectedActivityType.estimatesCalories && weightKg == null &&
+                currentState.activeCaloriesText.isBlank() && currentState.totalCaloriesText.isBlank(),
             repetitionMode = if (recordedSets.isNotEmpty()) {
                 ActivityRepetitionEntryMode.SETS
             } else {
@@ -1513,18 +1546,25 @@ class ActivityEntryViewModel(
         val activityTypes = DefaultActivityEntryTypes
             .filter { (!requireGpsRoute || it.supportsGpsRoute) && (!requireLiveRecording || it.supportsLiveRecording) }
             .ifEmpty { DefaultActivityEntryTypes }
-        val preferredExerciseType = recordingPreferences
+        val favoriteExerciseType = recordingPreferences
             ?.favoriteActivityExerciseType
             ?.takeIf { exerciseType -> activityTypes.any { it.exerciseType == exerciseType } }
-            ?: recordingPreferences
-                ?.lastActivityExerciseType
-                ?.takeIf { exerciseType -> activityTypes.any { it.exerciseType == exerciseType } }
-        return activityTypes.firstOrNull { it.exerciseType == preferredExerciseType }
+        val lastExerciseType = recordingPreferences
+            ?.lastActivityExerciseType
+            ?.takeIf { exerciseType -> activityTypes.any { it.exerciseType == exerciseType } }
+        // The last entry type tells a variant (beach volleyball) from its exercise type.
+        val lastType = activityTypes.firstOrNull {
+            it.id == recordingPreferences?.lastActivityTypeId && it.exerciseType == lastExerciseType
+        }
+        val preferredExerciseType = favoriteExerciseType ?: lastExerciseType
+        return (if (favoriteExerciseType == null) lastType else null)
+            ?: activityTypes.firstOrNull { it.exerciseType == preferredExerciseType }
             ?: activityTypes.first()
     }
 
-    private fun rememberLastActivityType(exerciseType: Int) {
+    private fun rememberLastActivityType(exerciseType: Int, typeId: String?) {
         recordingPreferences?.lastActivityExerciseType = exerciseType
+        recordingPreferences?.lastActivityTypeId = typeId
     }
 }
 
