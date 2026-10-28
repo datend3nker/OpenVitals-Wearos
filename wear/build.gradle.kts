@@ -90,6 +90,8 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.wear.compose.material3)
+    // Same icon set as the phone app, so a metric keeps its glyph on the watch.
+    implementation(libs.androidx.compose.material.icons.extended)
     testImplementation(libs.junit4)
     // Real org.json for local tests (the android.jar copy is a throwing stub): the feature vector is JSON.
     testImplementation(libs.org.json)
