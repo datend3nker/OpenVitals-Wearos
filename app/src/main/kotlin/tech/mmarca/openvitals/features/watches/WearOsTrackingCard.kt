@@ -102,7 +102,8 @@ internal fun WearOsTrackingCard(
                 label = stringResource(R.string.settings_watch_wearos_sleep_recording),
                 body = stringResource(R.string.settings_watch_wearos_sleep_recording_body),
                 checked = state.wearOsSleepRecording,
-                enabled = enabled,
+                // Sleep needs heart rate: with heart rate off the switch is locked off.
+                enabled = enabled && tracking.heartRate,
                 onCheckedChange = { onSettingChange(WearOsWatchSetting.SLEEP_RECORDING, it) },
             )
             Text(

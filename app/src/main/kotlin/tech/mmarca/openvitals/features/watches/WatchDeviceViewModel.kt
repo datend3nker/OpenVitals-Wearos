@@ -305,12 +305,26 @@ class WatchDeviceViewModel @Inject constructor(
      */
     fun setWearOsSetting(setting: WearOsWatchSetting, enabled: Boolean) {
         pushWearOsSetting { device ->
-            wearOsCompanionManager.setWatchSetting(
+            val applied = wearOsCompanionManager.setWatchSetting(
                 targetAddress = device.address,
                 targetName = device.bluetoothName,
                 setting = setting,
                 enabled = enabled,
             )
+            // Sleep is read from heart rate, so with heart rate off there is no sleep to record: sleep goes off too.
+            val sleepOff = applied && setting == WearOsWatchSetting.HEART_RATE && !enabled &&
+                localState.value.wearOsSleepRecording
+            if (sleepOff) {
+                localState.update { it.copy(wearOsSleepRecording = false) }
+                wearOsCompanionManager.setWatchSetting(
+                    targetAddress = device.address,
+                    targetName = device.bluetoothName,
+                    setting = WearOsWatchSetting.SLEEP_RECORDING,
+                    enabled = false,
+                )
+            } else {
+                applied
+            }
         }
     }
 
