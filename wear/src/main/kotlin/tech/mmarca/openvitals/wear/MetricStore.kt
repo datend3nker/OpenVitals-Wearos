@@ -79,13 +79,21 @@ class MetricStore(context: Context, name: String? = DB_NAME) : SQLiteOpenHelper(
         readableDatabase.query(STATE_TABLE, arrayOf(COL_VALUE), "$COL_KEY = ?", arrayOf(key), null, null, null)
             .use { cursor -> if (cursor.moveToFirst()) cursor.getString(0) else null }
 
-    /** Up to [limit] values newer than [epochMillis], oldest first. Rows this build cannot read are skipped. */
-    fun <T> since(metric: WearMetric<T>, epochMillis: Long, limit: Int): List<T> =
+    /**
+     * Up to [limit] values newer than [epochMillis] and, when given, older than
+     * [untilEpochMillis], oldest first. Rows this build cannot read are skipped.
+     */
+    fun <T> since(
+        metric: WearMetric<T>,
+        epochMillis: Long,
+        limit: Int,
+        untilEpochMillis: Long = Long.MAX_VALUE,
+    ): List<T> =
         readableDatabase.query(
             TABLE,
             arrayOf(COL_LINE),
-            "$COL_METRIC = ? AND $COL_TIME > ?",
-            arrayOf(metric.key, epochMillis.toString()),
+            "$COL_METRIC = ? AND $COL_TIME > ? AND $COL_TIME < ?",
+            arrayOf(metric.key, epochMillis.toString(), untilEpochMillis.toString()),
             null,
             null,
             "$COL_TIME ASC",
