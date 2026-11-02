@@ -40,6 +40,9 @@ class PpgRawLogger(private val context: Context) : SensorEventListener {
     private var thread: HandlerThread? = null
     private var writer: BufferedWriter? = null
     private var file: File? = null
+    // Research: the accelerometer, logged on the same clock, for offline motion/quality gating.
+    private var accelWriter: BufferedWriter? = null
+    private var accelFile: File? = null
     private var bytes = 0L
     private var events = 0L
     private var startedAt = 0L
@@ -63,7 +66,8 @@ class PpgRawLogger(private val context: Context) : SensorEventListener {
         if (!isAvailable) return false
         val sensor = sensor() ?: return false
         val dir = File(context.filesDir, "ppg_raw").apply { mkdirs() }
-        val target = File(dir, "ppg_raw_${SimpleDateFormat("yyyyMMdd-HHmm", Locale.ROOT).format(Date())}.csv")
+        val stamp = SimpleDateFormat("yyyyMMdd-HHmm", Locale.ROOT).format(Date())
+        val target = File(dir, "ppg_raw_$stamp.csv")
         val out = try {
             BufferedWriter(FileWriter(target), 1 shl 16)
         } catch (e: Exception) {
@@ -71,8 +75,9 @@ class PpgRawLogger(private val context: Context) : SensorEventListener {
             return false
         }
         val worker = HandlerThread("PpgRawLogger").apply { start() }
+        val handler = Handler(worker.looper)
         val registered = try {
-            sensorManager.registerListener(this, sensor, sensor.minDelay.coerceAtLeast(1), MAX_REPORT_LATENCY_MICROS, Handler(worker.looper))
+            sensorManager.registerListener(this, sensor, sensor.minDelay.coerceAtLeast(1), MAX_REPORT_LATENCY_MICROS, handler)
         } catch (e: SecurityException) {
             Log.e(TAG, "Raw PPG refused", e)
             false
@@ -88,12 +93,24 @@ class PpgRawLogger(private val context: Context) : SensorEventListener {
         out.newLine()
         writer = out
         file = target
+        // Research: log the accelerometer on the same clock (same handler + wake lock) so motion
+        // artefacts can be gated offline against the PPG. PPG logs on alone when absent.
+        accelWriter = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.let { accel ->
+            runCatching {
+                val af = File(dir, "accel_$stamp.csv")
+                val aout = BufferedWriter(FileWriter(af), 1 shl 15)
+                aout.write("elapsedNanos,epochMillis,accuracy,ax,ay,az"); aout.newLine()
+                sensorManager.registerListener(this, accel, ACCEL_PERIOD_MICROS, MAX_REPORT_LATENCY_MICROS, handler)
+                accelFile = af
+                aout
+            }.getOrNull()
+        }
         bytes = 0
         events = 0
         startedAt = System.currentTimeMillis()
         thread = worker
         wakeLock.acquire(MAX_DURATION_MILLIS)
-        Log.i(TAG, "Logging ${sensor.name} (${sensor.stringType}, ${sensor.minDelay} µs, fifo ${sensor.fifoMaxEventCount}) to ${target.name}")
+        Log.i(TAG, "Logging ${sensor.name} (${sensor.stringType}, ${sensor.minDelay} µs, fifo ${sensor.fifoMaxEventCount}) to ${target.name}${if (accelFile != null) " + accel" else ""}")
         return true
     }
 
@@ -103,7 +120,9 @@ class PpgRawLogger(private val context: Context) : SensorEventListener {
         sensorManager.unregisterListener(this)
         Handler(worker.looper).post {
             runCatching { writer?.flush(); writer?.close() }
+            runCatching { accelWriter?.flush(); accelWriter?.close() }
             writer = null
+            accelWriter = null
             worker.quitSafely()
         }
         thread = null
@@ -111,26 +130,36 @@ class PpgRawLogger(private val context: Context) : SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        val out = writer ?: return
-        val line = StringBuilder(160)
-        line.append(event.timestamp).append(',').append(SensorTime.epochMillisOf(event.timestamp)).append(',').append(event.accuracy)
-        for (index in 0 until MAX_VALUES) {
-            line.append(',')
-            if (index < event.values.size) line.append(event.values[index])
-        }
-        try {
-            out.write(line.toString())
-            out.newLine()
-        } catch (e: Exception) {
-            Log.e(TAG, "Write failed", e)
-            stop()
+        if (event.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
+            writeRow(accelWriter ?: return, event, 3)
             return
         }
-        bytes += line.length + 1
+        val out = writer ?: return
+        if (!writeRow(out, event, MAX_VALUES)) return
         events++
         if (bytes >= MAX_BYTES || System.currentTimeMillis() - startedAt >= MAX_DURATION_MILLIS) {
             Log.i(TAG, "Cap reached")
             stop()
+        }
+    }
+
+    /** Writes one sensor row (same `elapsedNanos,epochMillis,accuracy,values…` shape); false stops on failure. */
+    private fun writeRow(out: BufferedWriter, event: SensorEvent, nValues: Int): Boolean {
+        val line = StringBuilder(160)
+        line.append(event.timestamp).append(',').append(SensorTime.epochMillisOf(event.timestamp)).append(',').append(event.accuracy)
+        for (index in 0 until nValues) {
+            line.append(',')
+            if (index < event.values.size) line.append(event.values[index])
+        }
+        return try {
+            out.write(line.toString())
+            out.newLine()
+            bytes += line.length + 1
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Write failed", e)
+            stop()
+            false
         }
     }
 
@@ -143,5 +172,6 @@ class PpgRawLogger(private val context: Context) : SensorEventListener {
         private const val MAX_BYTES = 200L * 1024 * 1024
         private const val MAX_DURATION_MILLIS = 8L * 60 * 60 * 1000
         private const val MAX_REPORT_LATENCY_MICROS = 0 // research: no batching, each sample delivered at once for clean IBI timing
+        private const val ACCEL_PERIOD_MICROS = 40_000 // ~25 Hz, matches the PPG grid for easy alignment
     }
 }
