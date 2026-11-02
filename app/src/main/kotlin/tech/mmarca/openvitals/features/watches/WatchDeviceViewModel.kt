@@ -42,6 +42,7 @@ import tech.mmarca.openvitals.devices.wearos.WearOsCompanionManager
 import tech.mmarca.openvitals.devices.wearos.WearOsCompanionStatus
 import tech.mmarca.openvitals.devices.wearos.WearOsLinkSnapshot
 import tech.mmarca.openvitals.devices.wearos.WearOsLinkStore
+import tech.mmarca.openvitals.devices.wearos.WearOsWatchSetting
 import tech.mmarca.openvitals.domain.model.BleSensorDevice
 import tech.mmarca.openvitals.navigation.WATCH_DEVICE_ID_ARG
 import tech.mmarca.openvitals.sensors.ble.BleSensorCoordinator
