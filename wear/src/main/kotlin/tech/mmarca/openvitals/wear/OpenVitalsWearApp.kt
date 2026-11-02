@@ -97,7 +97,6 @@ fun OpenVitalsWearApp(
                         onMeasure = { navController.navigate(WearRoutes.MEASURE) },
                         onQuickLog = { navController.navigate(WearRoutes.QUICK_LOG) },
                         onEditTiles = { navController.navigate(WearRoutes.TILE_EDITOR) },
-                        onStartActivity = { navController.navigate(WearRoutes.ACTIVITY_PICKER) },
                         onOpenSettings = { navController.navigate(WearRoutes.SETTINGS) },
                     )
                 }
