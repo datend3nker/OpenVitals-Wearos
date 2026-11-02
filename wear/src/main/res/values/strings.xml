@@ -80,6 +80,8 @@
     <string name="tiles_reset_default">Reset default</string>
     <string name="tiles_reorder_hint">Long-press a tile and drag it to reorder. Tap to remove.</string>
     <string name="tile_open">Open</string>
+    <string name="tile_today_summary">%1$s · %2$s</string>
+    <string name="tile_value">%1$s %2$s</string>
     <string name="tile_main_vitals_label">OpenVitals Today</string>
     <string name="tile_main_vitals_description">Quick view of today\'s vitals and metrics.</string>
     <string name="tile_quick_log_label">OpenVitals Quick log</string>
