@@ -8,6 +8,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Handler
 import android.os.HandlerThread
+import android.os.PowerManager
 import android.util.Log
 import java.io.BufferedWriter
 import java.io.File
@@ -31,6 +32,11 @@ import java.util.Locale
 class PpgRawLogger(private val context: Context) : SensorEventListener {
 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    // Research: the dozing CPU drops the non-wakeup PPG stream (periodic ~0.7s gaps), so beat timing is lost.
+    // Hold the processor awake while logging, as the sleep recorder does, to test whether the gaps are the doze.
+    private val wakeLock = (context.getSystemService(Context.POWER_SERVICE) as PowerManager)
+        .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "OpenVitals:PpgRawLogger")
+        .apply { setReferenceCounted(false) }
     private var thread: HandlerThread? = null
     private var writer: BufferedWriter? = null
     private var file: File? = null
@@ -86,12 +92,14 @@ class PpgRawLogger(private val context: Context) : SensorEventListener {
         events = 0
         startedAt = System.currentTimeMillis()
         thread = worker
+        wakeLock.acquire(MAX_DURATION_MILLIS)
         Log.i(TAG, "Logging ${sensor.name} (${sensor.stringType}, ${sensor.minDelay} µs, fifo ${sensor.fifoMaxEventCount}) to ${target.name}")
         return true
     }
 
     fun stop() {
         val worker = thread ?: return
+        if (wakeLock.isHeld) wakeLock.release()
         sensorManager.unregisterListener(this)
         Handler(worker.looper).post {
             runCatching { writer?.flush(); writer?.close() }
@@ -134,6 +142,6 @@ class PpgRawLogger(private val context: Context) : SensorEventListener {
         private const val MAX_VALUES = 16
         private const val MAX_BYTES = 200L * 1024 * 1024
         private const val MAX_DURATION_MILLIS = 8L * 60 * 60 * 1000
-        private const val MAX_REPORT_LATENCY_MICROS = 20 * 1_000_000
+        private const val MAX_REPORT_LATENCY_MICROS = 0 // research: no batching, each sample delivered at once for clean IBI timing
     }
 }
