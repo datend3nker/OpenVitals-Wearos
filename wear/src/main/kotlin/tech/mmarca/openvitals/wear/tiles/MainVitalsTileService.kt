@@ -93,7 +93,7 @@ class MainVitalsTileService : TileService() {
 
         val chip = CompactChip.Builder(
             context,
-            context.getString(R.string.dashboard_start_activity),
+            context.getString(R.string.tile_open),
             clickable,
             deviceParameters,
         )
