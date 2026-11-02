@@ -1,6 +1,10 @@
 package tech.mmarca.openvitals.wear.features.quicklog
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Air
+import androidx.compose.material.icons.outlined.Bloodtype
+import androidx.compose.material.icons.outlined.Opacity
+import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Insights
 import androidx.compose.material.icons.outlined.MonitorWeight
@@ -18,6 +22,7 @@ import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.ui.components.formatCount
 import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
 import tech.mmarca.openvitals.wear.ui.components.metricUnitLabel
+import tech.mmarca.openvitals.wear.ui.theme.ActiveCaloriesColor
 import tech.mmarca.openvitals.wear.ui.theme.HeartColor
 import tech.mmarca.openvitals.wear.ui.theme.HydrationColor
 import tech.mmarca.openvitals.wear.ui.theme.MindfulnessColor
@@ -32,6 +37,11 @@ val EntryType.icon: ImageVector
         EntryType.MINDFULNESS -> Icons.Outlined.SelfImprovement
         EntryType.HEART_RATE -> Icons.Outlined.Favorite
         EntryType.HRV -> Icons.Outlined.Insights
+        EntryType.BODY_FAT -> Icons.Outlined.MonitorWeight
+        EntryType.BLOOD_OXYGEN -> Icons.Outlined.Bloodtype
+        EntryType.RESPIRATORY_RATE -> Icons.Outlined.Air
+        EntryType.BODY_TEMPERATURE -> Icons.Outlined.Thermostat
+        EntryType.BLOOD_GLUCOSE -> Icons.Outlined.Opacity
     }
 
 val EntryType.color: Color
@@ -42,6 +52,11 @@ val EntryType.color: Color
         EntryType.MINDFULNESS -> MindfulnessColor
         EntryType.HEART_RATE -> HeartColor
         EntryType.HRV -> VitalsColor
+        EntryType.BODY_FAT -> WeightColor
+        EntryType.BLOOD_OXYGEN -> VitalsColor
+        EntryType.RESPIRATORY_RATE -> VitalsColor
+        EntryType.BODY_TEMPERATURE -> ActiveCaloriesColor
+        EntryType.BLOOD_GLUCOSE -> ActiveCaloriesColor
     }
 
 /** The entry's value with its unit, e.g. "72.4 kg" or "121/79 mmHg". */
@@ -57,6 +72,15 @@ fun formatEntry(entry: LoggedEntry, unitSystem: UnitSystem): String = when (entr
         formatCount(entry.value.roundToInt()),
         formatCount(entry.value2?.roundToInt() ?: 0),
     )
+    EntryType.BODY_FAT,
+    EntryType.BLOOD_OXYGEN,
+    EntryType.RESPIRATORY_RATE,
+    EntryType.BODY_TEMPERATURE,
+    EntryType.BLOOD_GLUCOSE,
+    -> LogValueSpecs.getValue(entry.type).let { spec ->
+        val display = spec.toDisplay(entry.value, imperial = unitSystem == UnitSystem.IMPERIAL)
+        "${spec.format(display)} ${stringResource(spec.unit(unitSystem))}"
+    }
 }
 
 @Composable
