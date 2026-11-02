@@ -4044,6 +4044,17 @@ Podes desactivalo cando queiras e revogar o acceso ás notificacións desde os a
     <string name="settings_watch_wearos_checking">Comprobando a app de Wear OS…</string>
     <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
     <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_tracking_title">Rexistro no reloxo</string>
+    <string name="settings_watch_wearos_heart_rate">Rexistrar a frecuencia cardíaca no reloxo</string>
+    <string name="settings_watch_wearos_steps">Contar os pasos no reloxo</string>
+    <string name="settings_watch_wearos_ascent">Rexistrar a altura subida no reloxo</string>
+    <string name="settings_watch_wearos_interval_day">Frecuencia cardíaca de día</string>
+    <string name="settings_watch_wearos_interval_night">Frecuencia cardíaca de noite</string>
+    <string name="settings_watch_wearos_interval_body">A noite é o modo de hora de durmir do reloxo. Mentres se rexistra o sono, a noite mantense cada 10 segundos, porque a detección do sono necesita cada medición.</string>
+    <string name="settings_watch_wearos_interval_off">Desactivado</string>
+    <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
+    <string name="settings_watch_wearos_interval_minute">1 min</string>
+    <string name="settings_watch_wearos_tracking_body">Desactivar detén a medición no reloxo. Os datos xa rexistrados quedan onde están.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Sincronización do reloxo</string>
     <string name="settings_watch_wearos_sync_body">A app OpenVitals do reloxo rexistra a frecuencia cardíaca e o necesario para estimar o sono, e garda unha semana. A sincronización copia a frecuencia cardíaca nova en Health Connect e escribe unha sesión de sono estimada por noite.</string>

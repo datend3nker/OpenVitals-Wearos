@@ -32,7 +32,7 @@ The UUID and the protocol words come from the shared `:wearlink` module on both 
 
 ### Watch Sync
 
-The watch app records heart rate on its own, from the moment it is granted heart rate access, with the screen off and the app closed: the same foreground service that answers the phone keeps the sensor on, batched so the watch wakes once every few minutes rather than once per beat. It keeps one sample every ten seconds and a week of history, pruning older samples itself.
+The watch app records heart rate on its own, from the moment it is granted heart rate access, with the screen off and the app closed: the same foreground service that answers the phone keeps the sensor on, batched so the watch wakes once every few minutes rather than once per beat. It keeps one sample every ten seconds by default and a week of history, pruning older samples itself. The phone can set the interval by day and at night, or switch heart rate off; see [Tracking on the watch](#tracking-on-the-watch).
 
 It counts steps the same way, from the watch's own step counter, once it is granted physical activity access: one count per clock minute, a week of history. Steps taken while the watch app was not running, for example after a restart of the watch, are spread evenly over the minutes in between. The watch's screen shows whether step counting is on and offers the grant if it is not. A watch without a step counter simply records none.
 
@@ -43,6 +43,18 @@ It measures the height climbed from the barometer, which needs no permission: a 
 On the phone, the Watch Sync card on the watch's device screen has a Sync watch button. A sync first asks the watch for every heart rate sample newer than the last one already written, one page of up to 2000 samples at a time, writes each page to Health Connect as one heart rate record per clock hour before asking for the next, and remembers how far it got after each page. A sync interrupted half-way therefore resumes where it stopped, and a page written twice updates rather than duplicates. Then the step minutes, written as one steps record per minute; each pull takes the last minute again, because the watch keeps adding late steps to it, and a minute that grew replaces its record. If OpenVitals may not write steps to Health Connect, the steps and floors stay on the watch and the rest of the sync goes on. Each minute is also written as a cadence (steps per minute) and, once your weight is known from Health Connect or the body profile, as an estimate of the calories walking cost above rest. That estimate uses the cadence equation of Moore and colleagues (Med Sci Sports Exerc 2021), which holds for level walking: the extra cost of hills and stairs is not counted, so it tends to come in low. A minute inside a workout that Health Connect holds, a run or a ride, gets no estimate. A run that no app recorded is not recognised, though: its minutes are estimated as fast walking, beyond the range the equation was fitted on. An estimate, once written, stays: a weight entered later, or a workout saved to Health Connect after the sync, does not change the minutes already estimated. Without a weight it is skipped, and the card says what is missing. If you withheld Health Connect access for one of these estimates, the sync writes the rest. The estimate covers the minutes synced once the weight is known and the access given; minutes synced before stay without one. An automatic sync with the app closed and no background access to Health Connect cannot see other apps' weights and workouts, so it writes no estimate for its minutes. Then the ascent minutes, pulled the same way and written as one floors record per minute that had the steps, and the same metres again as elevation gained. Distance is not sent by the watch: the opt-in "distance from steps" setting under Activities turns the watch's steps into distance like any other steps in Health Connect. Then the sleep minutes follow, as the Sleep section describes. The card reports how many heart rate samples and minutes of steps the run brought and how many nights of sleep it estimated, or that there was nothing new. A sync is refused while an activity is being recorded, as for Garmin.
 
 On Android 16 the heart rate sensor sits behind the Health Connect `READ_HEART_RATE` permission rather than `BODY_SENSORS`; the watch app asks for the right one, then for the background grant, on first launch. Without the grant the link still answers, and the watch screen says heart rate access is off.
+
+### Tracking on the watch
+
+The phone's Watches screen sets what the watch records. The switches go over the same settings channel as the sleep switch, and the watch keeps each value, so it applies them without the phone and after a restart:
+
+- **Heart rate** on or off. Off, the sensor stays off and the watch no longer offers heart rate to the phone.
+- **Heart rate by day**: off, every 10 seconds (the default), or every minute.
+- **Heart rate at night**: the same three choices. Night is bedtime mode on the watch, the same mode the sleep recorder follows. While sleep is recorded the night stays every 10 seconds whatever this says, because sleep detection reads every sample; the night setting then applies only with sleep recording off.
+- **Steps** and **height climbed**: off stops that recorder and the watch stops offering it. Data already on the watch stays there.
+- **Sleep**: as in the Sleep section.
+
+An interval of every minute switches the sensor off between readings: the watch registers it for at most 20 seconds at the start of each minute and takes it off at the first usable reading. This is not only thinner storage. The readings are not batched, because a batch could not be delivered before the sensor is switched off without a race. How long the sensor takes to give a first reading on a real watch is not measured yet. Not yet tried on a watch.
 
 ### Sleep
 
@@ -379,7 +391,7 @@ See [Privacy](../app/privacy.md) and [Permissions](../app/permissions.md) for th
 - Older single-link transport watches cannot sync.
 - There is no background sync. Every sync is one the user asked for.
 - The Connected and Not connected labels reflect whether the watch is switched on in OpenVitals, not whether a Bluetooth link is open right now.
-- WearOS watches sync heart rate and an estimated sleep session per night, by hand or on the automatic schedule. Steps and other series, notification forwarding, watch settings, find and sending a point are Garmin-only.
+- WearOS watches sync heart rate and an estimated sleep session per night, by hand or on the automatic schedule. Steps and other series, notification forwarding, the settings tree, find and sending a point are Garmin-only. The Wear OS watch's own switches and heart rate intervals are set from the phone (see Tracking on the watch).
 - Music controls are confirmed on one Garmin model. A volume change made on the phone reaches the watch only with the next player change.
 - Sending the alarm list has not yet been confirmed on a watch. Whether an empty list clears the watch's alarms is unknown.
 - Sending a point has not yet been confirmed on a watch. Only one point is sent at a time, and points already on the watch cannot be listed, edited, or removed from the phone.

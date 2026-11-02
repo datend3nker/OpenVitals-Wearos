@@ -8,6 +8,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import tech.mmarca.openvitals.wearlink.HeartRateInterval
 
 private class FakeWearOsNodePort : WearOsNodePort {
     var statusToReturn = WearOsCompanionStatus()
@@ -52,6 +53,21 @@ private class FakeWearOsNodePort : WearOsNodePort {
     ): Boolean = true
 
     override fun watchSetting(targetAddress: String?, setting: WearOsWatchSetting): Boolean = setting.defaultOn
+
+    val pushedIntervals = mutableListOf<Pair<WearOsHeartRatePeriod, HeartRateInterval>>()
+
+    override suspend fun setHeartRateInterval(
+        targetAddress: String?,
+        targetName: String?,
+        period: WearOsHeartRatePeriod,
+        interval: HeartRateInterval,
+    ): Boolean {
+        pushedIntervals += period to interval
+        return true
+    }
+
+    override fun heartRateInterval(targetAddress: String?, period: WearOsHeartRatePeriod): HeartRateInterval =
+        HeartRateInterval.EVERY_10_SECONDS
 }
 
 class WearOsCompanionManagerTest {

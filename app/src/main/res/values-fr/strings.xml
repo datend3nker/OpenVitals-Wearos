@@ -4005,6 +4005,17 @@
     <string name="settings_watch_wearos_checking">Vérification de l\'appli Wear OS…</string>
     <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
     <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_tracking_title">Suivi sur la montre</string>
+    <string name="settings_watch_wearos_heart_rate">Enregistrer la fréquence cardiaque sur la montre</string>
+    <string name="settings_watch_wearos_steps">Compter les pas sur la montre</string>
+    <string name="settings_watch_wearos_ascent">Enregistrer le dénivelé sur la montre</string>
+    <string name="settings_watch_wearos_interval_day">Fréquence cardiaque le jour</string>
+    <string name="settings_watch_wearos_interval_night">Fréquence cardiaque la nuit</string>
+    <string name="settings_watch_wearos_interval_body">La nuit correspond au mode coucher de la montre. Tant que le sommeil est enregistré, la nuit reste à toutes les 10 secondes, car la détection du sommeil a besoin de chaque mesure.</string>
+    <string name="settings_watch_wearos_interval_off">Désactivé</string>
+    <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
+    <string name="settings_watch_wearos_interval_minute">1 min</string>
+    <string name="settings_watch_wearos_tracking_body">Désactiver empêche la montre de mesurer cela. Les données déjà enregistrées restent sur la montre.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Synchronisation de la montre</string>
     <string name="settings_watch_wearos_sync_body">L’app OpenVitals de la montre enregistre la fréquence cardiaque et ce qu’il faut pour estimer le sommeil, et en garde une semaine. La synchronisation copie la nouvelle fréquence cardiaque dans Health Connect et écrit une session de sommeil estimée par nuit.</string>

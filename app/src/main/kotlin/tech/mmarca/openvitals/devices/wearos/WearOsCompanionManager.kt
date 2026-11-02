@@ -6,6 +6,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import tech.mmarca.openvitals.wearlink.HeartRateInterval
 
 /**
  * High-level manager to query whether a Wear OS watch is paired and whether
@@ -24,6 +25,18 @@ class WearOsCompanionManager @Inject constructor(
     /** The value the phone last pushed for [setting] to the watch registered under [targetAddress]. */
     fun watchSetting(targetAddress: String?, setting: WearOsWatchSetting): Boolean =
         nodePort.watchSetting(targetAddress, setting)
+
+    /** The heart rate interval the phone last pushed for [period] to the watch registered under [targetAddress]. */
+    fun heartRateInterval(targetAddress: String?, period: WearOsHeartRatePeriod): HeartRateInterval =
+        nodePort.heartRateInterval(targetAddress, period)
+
+    /** Pushes the heart rate interval for [period]; the same contract as [setWatchSetting]. */
+    suspend fun setHeartRateInterval(
+        targetAddress: String?,
+        targetName: String?,
+        period: WearOsHeartRatePeriod,
+        interval: HeartRateInterval,
+    ): Boolean = nodePort.setHeartRateInterval(targetAddress, targetName, period, interval)
 
     /**
      * Pushes [setting] to the watch. True when applied; false when the watch

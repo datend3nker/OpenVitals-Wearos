@@ -17,7 +17,6 @@ import androidx.compose.material.icons.outlined.Sync
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -176,48 +175,6 @@ internal fun WearOsStatusCard(
                     Text(stringResource(R.string.settings_watch_wearos_check_app))
                 }
             }
-        }
-    }
-}
-
-/**
- * The Wear OS watch's settings, set from the phone because the watch is a
- * companion that only shows its state. One toggle for now: whether the watch
- * records sleep. The push needs the watch in reach; the row is disabled
- * while one is in flight, and a push to a watch too old for settings or out
- * of range surfaces through [WearOsStatusCard]'s error line.
- */
-@Composable
-internal fun WearOsSettingsCard(
-    state: WatchDeviceUiState,
-    onSleepRecordingChange: (Boolean) -> Unit,
-) {
-    // The watch has to be reachable for a setting to reach it.
-    if (!state.wearOsStatus.isAppRunning) return
-    OpenVitalsCard {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(R.string.settings_watch_wearos_sleep_recording),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = state.wearOsSleepRecording,
-                    onCheckedChange = onSleepRecordingChange,
-                    enabled = !state.isPushingWearOsSetting,
-                )
-            }
-            Text(
-                text = stringResource(R.string.settings_watch_wearos_sleep_recording_body),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

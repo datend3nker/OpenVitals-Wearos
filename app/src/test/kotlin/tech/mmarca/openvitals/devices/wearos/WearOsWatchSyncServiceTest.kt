@@ -16,6 +16,7 @@ import org.junit.Test
 import tech.mmarca.openvitals.R
 import tech.mmarca.openvitals.core.presentation.ScreenError
 import tech.mmarca.openvitals.devices.FakeSharedPreferences
+import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 import tech.mmarca.openvitals.data.repository.AppleHealthImportRepository
 import tech.mmarca.openvitals.data.repository.BleDeviceRepository
@@ -124,6 +125,16 @@ class WearOsWatchSyncServiceTest {
         ): Boolean = true
 
         override fun watchSetting(targetAddress: String?, setting: WearOsWatchSetting): Boolean = setting.defaultOn
+
+        override suspend fun setHeartRateInterval(
+            targetAddress: String?,
+            targetName: String?,
+            period: WearOsHeartRatePeriod,
+            interval: HeartRateInterval,
+        ): Boolean = true
+
+        override fun heartRateInterval(targetAddress: String?, period: WearOsHeartRatePeriod): HeartRateInterval =
+            HeartRateInterval.EVERY_10_SECONDS
     }
 
     /**

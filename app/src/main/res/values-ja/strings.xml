@@ -4041,6 +4041,17 @@
     <string name="settings_watch_wearos_checking">Wear OS アプリを確認中…</string>
     <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
     <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_tracking_title">時計での記録</string>
+    <string name="settings_watch_wearos_heart_rate">時計で心拍を記録</string>
+    <string name="settings_watch_wearos_steps">時計で歩数を数える</string>
+    <string name="settings_watch_wearos_ascent">時計で上った高さを記録</string>
+    <string name="settings_watch_wearos_interval_day">日中の心拍</string>
+    <string name="settings_watch_wearos_interval_night">夜間の心拍</string>
+    <string name="settings_watch_wearos_interval_body">夜は時計の就寝モードのことです。睡眠を記録している間、夜は10秒ごとのままです。睡眠の判定には全ての測定が必要だからです。</string>
+    <string name="settings_watch_wearos_interval_off">オフ</string>
+    <string name="settings_watch_wearos_interval_10_seconds">10秒</string>
+    <string name="settings_watch_wearos_interval_minute">1分</string>
+    <string name="settings_watch_wearos_tracking_body">オフにすると時計はその測定をしなくなります。すでに記録されたデータは時計に残ります。</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">ウォッチの同期</string>
     <string name="settings_watch_wearos_sync_body">ウォッチの OpenVitals アプリは心拍数と睡眠推定に必要なデータを記録し、1 週間分を保持します。同期すると新しい心拍数を Health Connect にコピーし、一晩ごとに推定した睡眠セッションを書き込みます。</string>
