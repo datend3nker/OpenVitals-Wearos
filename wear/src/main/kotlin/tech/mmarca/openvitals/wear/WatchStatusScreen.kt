@@ -1,5 +1,9 @@
 package tech.mmarca.openvitals.wear
 
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlin.math.roundToInt
+import java.util.Locale
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -49,12 +53,14 @@ internal fun WatchStatusScreen(
     onAllow: (PendingPhone) -> Unit,
     onBlock: (PendingPhone) -> Unit,
     onOpenBluetoothSettings: () -> Unit,
+    readDiagnostics: () -> DiagnosticSummary?,
 ) {
     var latest by remember { mutableStateOf<WearLinkProtocol.HeartRateSample?>(null) }
     var count by remember { mutableStateOf(0L) }
     var minuteCount by remember { mutableStateOf(0L) }
     var stepMinuteCount by remember { mutableStateOf(0L) }
     val link by WearLinkState.state.collectAsState()
+    var diagnostics by remember { mutableStateOf<DiagnosticSummary?>(null) }
     val heartRateGranted = remember(permissionsVersion) { hasHeartRate() }
     val bluetoothGranted = remember(permissionsVersion) { hasBluetooth() }
     val stepsGranted = remember(permissionsVersion) { hasSteps() }
@@ -66,6 +72,7 @@ internal fun WatchStatusScreen(
             count = readCount()
             minuteCount = readMinuteCount()
             stepMinuteCount = readStepMinuteCount()
+            diagnostics = withContext(Dispatchers.IO) { readDiagnostics() }
             WearLinkState.expirePending(System.currentTimeMillis())
             delay(3_000)
         }
@@ -133,6 +140,16 @@ internal fun WatchStatusScreen(
         }
         PhoneCards(link, onAllow, onBlock, onOpenBluetoothSettings)
         if (link.ppgLogging) Line(stringResource(R.string.status_ppg_logging))
+        diagnostics?.let { summary ->
+            Line(stringResource(R.string.diag_title), title = true)
+            Line(stringResource(R.string.diag_span, summary.samples, String.format(Locale.getDefault(), "%.1f", summary.spanHours)))
+            summary.drainPercentPerHour?.let {
+                Line(stringResource(R.string.diag_drain, String.format(Locale.getDefault(), "%.1f", it)))
+            }
+            summary.heartRateShare?.let {
+                Line(stringResource(R.string.diag_heart_rate_share, (it * 100).roundToInt()))
+            }
+        }
     }
 }
 

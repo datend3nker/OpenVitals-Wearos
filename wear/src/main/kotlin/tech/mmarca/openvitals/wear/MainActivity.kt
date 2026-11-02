@@ -30,6 +30,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: WearAppViewModel by viewModels()
     private val store by lazy { MetricStore(this) }
     private val trust by lazy { WearTrustStore(this) }
+    private val diagnosticLog by lazy { DiagnosticLog(java.io.File(filesDir, DiagnosticLog.FILE_NAME)) }
 
     private var permissionsVersion by mutableStateOf(0)
 
@@ -110,6 +111,7 @@ class MainActivity : ComponentActivity() {
                 WearPhoneRequests.cancel(this)
             },
             onOpenBluetoothSettings = ::openBluetoothSettings,
+            readDiagnostics = { summarizeDiagnostics(diagnosticLog.samples()) },
         )
     }
 

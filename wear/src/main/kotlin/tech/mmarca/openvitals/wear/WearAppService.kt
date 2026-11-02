@@ -5,6 +5,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import java.io.File
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -47,6 +48,7 @@ class WearAppService : Service() {
     private lateinit var wornMonitor: WornMonitor
     private lateinit var ppgLogger: PpgRawLogger
     private lateinit var trust: WearTrustStore
+    private lateinit var diagnostics: DiagnosticsSampler
     private lateinit var link: WearLinkServerHost
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -129,6 +131,20 @@ class WearAppService : Service() {
         if (preferences.sleepRecording) minuteRecorder.start()
         ascentRecorder.start()
         wornMonitor.start()
+        diagnostics = DiagnosticsSampler(DiagnosticLog(File(filesDir, DiagnosticLog.FILE_NAME))) { takeDiagnosticSample() }
+        diagnostics.start()
+    }
+
+    private fun takeDiagnosticSample(): DiagnosticSample {
+        val (percent, charging) = batteryReading(this)
+        return DiagnosticSample(
+            epochMillis = System.currentTimeMillis(),
+            batteryPercent = percent,
+            charging = charging,
+            heartRateOn = recorder.isRunning,
+            stepsOn = stepRecorder.isRunning,
+            bedtime = WearLinkState.state.value.bedtimeHold,
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -224,6 +240,7 @@ class WearAppService : Service() {
     }
 
     override fun onDestroy() {
+        if (::diagnostics.isInitialized) diagnostics.stop()
         if (isForeground) {
             unregisterReceiver(bluetoothReceiver)
             wornMonitor.stop()

@@ -195,5 +195,9 @@
     <string name="settings_units_metric">Metrisch</string>
     <string name="settings_units_imperial">Imperial</string>
     <string name="status_phone_refused">%1$s wurde abgelehnt: der Schlüssel hat sich geändert</string>
+    <string name="diag_title">Messprotokoll</string>
+    <string name="diag_span">%1$d Proben über %2$s Std.</string>
+    <string name="diag_drain">Akku −%1$s %% pro Stunde</string>
+    <string name="diag_heart_rate_share">Herzfrequenz an: %1$d %% der Zeit</string>
     <string name="action_forget_phone">Telefon vergessen</string>
 </resources>
