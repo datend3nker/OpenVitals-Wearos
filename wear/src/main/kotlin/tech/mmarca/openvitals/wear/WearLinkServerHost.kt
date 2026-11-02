@@ -115,10 +115,18 @@ class WearLinkServerHost(
     ) : WearLinkRequestHandler {
         override fun localName(): String = localName.invoke()
 
-        override fun capabilities(): Set<String> = WearMetrics.ALL.mapTo(LinkedHashSet()) { it.key }.apply {
-            // Sleep recording off: stop offering the minutes, so the phone does not ask.
-            if (!preferences.sleepRecording) remove(WearLinkProtocol.CAP_SLEEP_MINUTES)
-            if (live.hasSensor) add(WearLinkProtocol.CAP_LIVE_HEART_RATE)
+        /**
+         * Only what the wearer tracks is offered, so the phone does not ask for
+         * the rest. A switch off withdraws its capability; the stored rows stay.
+         */
+        override fun capabilities(): Set<String> = LinkedHashSet<String>().apply {
+            if (HeartRateSchedule.offered(preferences.heartRate, preferences.sleepRecording, preferences.heartRateDay, preferences.heartRateNight)) {
+                add(WearLinkProtocol.CAP_HEART_RATE)
+            }
+            if (preferences.sleepRecording) add(WearLinkProtocol.CAP_SLEEP_MINUTES)
+            if (preferences.steps) add(WearLinkProtocol.CAP_STEPS)
+            if (preferences.ascent) add(WearLinkProtocol.CAP_ASCENT)
+            if (preferences.heartRate && live.hasSensor) add(WearLinkProtocol.CAP_LIVE_HEART_RATE)
             add(WearLinkProtocol.CAP_PREFERENCES)
         }
 
