@@ -63,4 +63,11 @@ interface WearLinkRequestHandler {
      * once when the watch is off the wrist or cannot measure.
      */
     fun liveHeartRate(seconds: Int, emit: (WearLinkProtocol.HeartRateSample) -> Unit): Int
+
+    /**
+     * Apply a preference the phone pushed. Returns false for a key or value
+     * this watch does not know, which the phone sees as `ERROR bad_request`.
+     * Only called when the watch advertised [WearLinkProtocol.CAP_PREFERENCES].
+     */
+    fun setPreference(key: String, value: String): Boolean
 }

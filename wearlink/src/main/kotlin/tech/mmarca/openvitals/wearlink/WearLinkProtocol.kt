@@ -83,6 +83,8 @@ object WearLinkProtocol {
     const val ASCENT_SINCE: String = "AS_SINCE"
     const val ASCENT_MINUTE: String = "AS"
     const val HEART_RATE_LIVE: String = "HR_LIVE"
+    const val SET_PREFERENCE: String = "SET_PREF"
+    const val PREFERENCE_OK: String = "PREF_OK"
     const val END: String = "END"
 
     /** Longer than this a line is a protocol violation; the reader closes rather than buffers. */
@@ -96,7 +98,26 @@ object WearLinkProtocol {
     const val CAP_STEPS: String = "st"
     const val CAP_ASCENT: String = "as"
     const val CAP_LIVE_HEART_RATE: String = "hl"
+
+    /** The watch accepts `SET_PREF`: the phone is its settings screen. */
+    const val CAP_PREFERENCES: String = "pref"
     const val NO_CAPABILITIES: String = "-"
+
+    /**
+     * Preference keys the phone may push with `SET_PREF`. Opaque strings on
+     * the wire, like capabilities; the watch decides what an unknown key or
+     * value does (it refuses with `ERROR bad_request`).
+     */
+    object Preferences {
+        /** Whether the watch records sleep minutes. Values [OFF] / [ON]. */
+        const val SLEEP_RECORDING: String = "sleep"
+        const val OFF: String = "0"
+        const val ON: String = "1"
+    }
+
+    /** A preference key or value: the capability charset, so one line parses the same way. */
+    private fun isPreferenceToken(token: String): Boolean =
+        token.isNotEmpty() && token.all { it.isLetterOrDigit() || it == '_' }
 
     /** The phone's opening line. */
     data class Hello(val version: Int, val capabilities: Set<String>, val token: String, val name: String)
@@ -140,6 +161,7 @@ object WearLinkProtocol {
         data class StepsSince(val sinceEpochMillis: Long, val limit: Int) : Request()
         data class AscentSince(val sinceEpochMillis: Long, val limit: Int) : Request()
         data class LiveHeartRate(val seconds: Int) : Request()
+        data class SetPreference(val key: String, val value: String) : Request()
     }
 
     fun formatHello(hello: Hello): String =
@@ -197,6 +219,7 @@ object WearLinkProtocol {
         is Request.StepsSince -> formatStepsRequest(request.sinceEpochMillis, request.limit)
         is Request.AscentSince -> formatAscentRequest(request.sinceEpochMillis, request.limit)
         is Request.LiveHeartRate -> "$HEART_RATE_LIVE ${request.seconds.coerceIn(1, MAX_LIVE_SECONDS)}"
+        is Request.SetPreference -> "$SET_PREFERENCE ${request.key} ${request.value}"
     }
 
     /** Null unless [line] is a well-formed request. */
@@ -211,7 +234,15 @@ object WearLinkProtocol {
             return Request.AscentSince(since, limit)
         }
         parseLiveRequest(line)?.let { return Request.LiveHeartRate(it) }
+        parsePreferenceRequest(line)?.let { return it }
         return null
+    }
+
+    private fun parsePreferenceRequest(line: String): Request.SetPreference? {
+        val fields = fields(line)
+        if (fields.size != 3 || fields[0] != SET_PREFERENCE) return null
+        if (!isPreferenceToken(fields[1]) || !isPreferenceToken(fields[2])) return null
+        return Request.SetPreference(fields[1], fields[2])
     }
 
     private fun parseLiveRequest(line: String): Int? {

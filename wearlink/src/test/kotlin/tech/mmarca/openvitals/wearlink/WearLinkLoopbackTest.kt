@@ -22,13 +22,33 @@ class WearLinkLoopbackTest {
 
         val session = (WearLinkClient.hello(link.clientConnection, hello()) as WearLinkOutcome.Ok).value
         assertEquals("Galaxy Watch8 (89FZ)", session.peer.name)
-        assertEquals(setOf("as", "hr", "sm", "st"), session.peer.capabilities)
+        assertEquals(setOf("as", "hr", "pref", "sm", "st"), session.peer.capabilities)
         assertEquals(WearLinkOutcome.Ok(Unit), session.ping())
         assertFalse(link.serverReturned())
         session.close()
 
         assertEquals(WearLinkServer.Outcome.SERVED, link.serverOutcome())
         assertEquals(0, loopback.server.activeClients)
+    }
+
+    @Test
+    fun `the phone pushes a preference the watch applies, and an unknown key is refused`() {
+        val loopback = trusted()
+        val link = loopback.connect()
+
+        val session = (WearLinkClient.hello(link.clientConnection, hello()) as WearLinkOutcome.Ok).value
+        assertEquals(
+            WearLinkOutcome.Ok(Unit),
+            session.setPreference(WearLinkProtocol.Preferences.SLEEP_RECORDING, WearLinkProtocol.Preferences.OFF),
+        )
+        assertEquals(
+            WearLinkOutcome.Refused(WearLinkProtocol.ErrorCode.BAD_REQUEST),
+            session.setPreference("unknown_key", "1"),
+        )
+        session.close()
+
+        assertEquals(WearLinkServer.Outcome.SERVED, link.serverOutcome())
+        assertEquals(listOf(WearLinkProtocol.Preferences.SLEEP_RECORDING to WearLinkProtocol.Preferences.OFF), loopback.handler.preferences)
     }
 
     @Test

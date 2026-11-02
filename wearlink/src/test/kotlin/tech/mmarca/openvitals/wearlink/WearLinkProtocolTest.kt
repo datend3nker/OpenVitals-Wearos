@@ -38,6 +38,20 @@ class WearLinkProtocolTest {
     }
 
     @Test
+    fun `a set-preference request round-trips, and a malformed one parses to null`() {
+        val request = WearLinkProtocol.Request.SetPreference(
+            WearLinkProtocol.Preferences.SLEEP_RECORDING,
+            WearLinkProtocol.Preferences.OFF,
+        )
+        assertEquals(request, WearLinkProtocol.parseRequest(WearLinkProtocol.formatRequest(request)))
+
+        assertNull(WearLinkProtocol.parseRequest("SET_PREF sleep"))
+        assertNull(WearLinkProtocol.parseRequest("SET_PREF sleep 0 extra"))
+        assertNull(WearLinkProtocol.parseRequest("SET_PREF sl.eep 0"))
+        assertNull(WearLinkProtocol.parseRequest("SET_PREF sleep bad-value"))
+    }
+
+    @Test
     fun `a sleep minutes request round-trips and clamps its limit`() {
         val line = WearLinkProtocol.formatSleepMinutesRequest(1_700_000_000_000L, 99_999)
 

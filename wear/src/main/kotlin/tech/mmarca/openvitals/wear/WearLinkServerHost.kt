@@ -24,10 +24,11 @@ class WearLinkServerHost(
     trust: WearTrustStore,
     store: MetricStore,
     live: LiveHeartRate,
+    preferences: WearPreferences,
     private val localName: () -> String,
     private val state: WearLinkState = WearLinkState,
 ) {
-    private val server = WearLinkServer(trust, Handler(store, live, localName))
+    private val server = WearLinkServer(trust, Handler(store, live, preferences, localName))
 
     @Volatile
     private var serverSocket: BluetoothServerSocket? = null
@@ -109,13 +110,19 @@ class WearLinkServerHost(
     private class Handler(
         private val store: MetricStore,
         private val live: LiveHeartRate,
+        private val preferences: WearPreferences,
         private val localName: () -> String,
     ) : WearLinkRequestHandler {
         override fun localName(): String = localName.invoke()
 
         override fun capabilities(): Set<String> = WearMetrics.ALL.mapTo(LinkedHashSet()) { it.key }.apply {
+            // Sleep recording off: stop offering the minutes, so the phone does not ask.
+            if (!preferences.sleepRecording) remove(WearLinkProtocol.CAP_SLEEP_MINUTES)
             if (live.hasSensor) add(WearLinkProtocol.CAP_LIVE_HEART_RATE)
+            add(WearLinkProtocol.CAP_PREFERENCES)
         }
+
+        override fun setPreference(key: String, value: String): Boolean = preferences.applyPreference(key, value)
 
         override fun heartRateSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.HeartRateSample> =
             page(WearMetrics.HEART_RATE, sinceEpochMillis, limit)

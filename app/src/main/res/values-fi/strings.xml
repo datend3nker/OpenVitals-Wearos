@@ -3904,6 +3904,9 @@
     <string name="settings_watch_wearos_fail_generic">Kelloa ei voitu synkronoida. Yritä uudelleen.</string>
     <string name="settings_watch_wearos_check_app">Tarkista Wear OS -sovellus</string>
     <string name="settings_watch_wearos_checking">Tarkistetaan Wear OS -sovellusta…</string>
+    <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
+    <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Kellon synkronointi</string>
     <string name="settings_watch_wearos_sync_body">Kellon OpenVitals-sovellus tallentaa sykkeen ja unen arvioon tarvittavat tiedot ja säilyttää niitä viikon. Synkronointi kopioi uuden sykkeen Health Connectiin ja kirjoittaa yhden arvioidun unijakson yötä kohden.</string>
     <string name="settings_watch_wearos_sync_now">Synkronoi kello</string>

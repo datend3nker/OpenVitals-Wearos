@@ -43,6 +43,7 @@ class WearAppService : Service() {
     private lateinit var stepRecorder: StepRecorder
     private lateinit var ascentRecorder: AscentRecorder
     private lateinit var minuteRecorder: SleepMinuteRecorder
+    private lateinit var preferences: WearPreferences
     private lateinit var wornMonitor: WornMonitor
     private lateinit var ppgLogger: PpgRawLogger
     private lateinit var trust: WearTrustStore
@@ -94,11 +95,15 @@ class WearAppService : Service() {
         stepRecorder = StepRecorder(this, store)
         ascentRecorder = AscentRecorder(this, store)
         trust = WearTrustStore(this).also { it.onPending = { pending -> WearPhoneRequests.notify(this, pending) } }
+        preferences = WearPreferences(this).also {
+            it.onSleepRecordingChange = { on -> mainHandler.post { if (on) minuteRecorder.start() else minuteRecorder.stop() } }
+        }
         link = WearLinkServerHost(
             adapter = { getSystemService(BluetoothManager::class.java)?.adapter },
             trust = trust,
             store = store,
             live = LiveHeartRate(this, isRecording = { recorder.isRunning }),
+            preferences = preferences,
             localName = ::localName,
         )
         isForeground = startInForeground()
@@ -119,8 +124,9 @@ class WearAppService : Service() {
         link.start()
         refreshBondLost()
         startRecordingIfPermitted()
+        preferences.publish()
         // Need no grant: the accelerometer and the barometer are open to every app.
-        minuteRecorder.start()
+        if (preferences.sleepRecording) minuteRecorder.start()
         ascentRecorder.start()
         wornMonitor.start()
     }

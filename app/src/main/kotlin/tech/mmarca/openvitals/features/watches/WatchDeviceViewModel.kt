@@ -100,6 +100,10 @@ data class WatchDeviceUiState(
     val isCheckingWearOsStatus: Boolean = false,
     /** Why the last Wear OS check failed. [ScreenError.PermissionDenied] gets a grant affordance. */
     val wearOsError: ScreenError? = null,
+    /** Whether the watch records sleep, as the phone last set it. The phone is the watch's settings screen. */
+    val wearOsSleepRecording: Boolean = true,
+    /** True while a Wear OS setting is being pushed to the watch. */
+    val isPushingWearOsSetting: Boolean = false,
 ) {
     /** Whether the watch declared [capability]. Unknown means show: a never-synced watch has no list. */
     fun supports(capability: GarminCapability): Boolean =
@@ -177,6 +181,11 @@ class WatchDeviceViewModel @Inject constructor(
             coMapsPermissionMissing = stateStore.navigationOnWatch(deviceId) &&
                 !coMapsNavigationRepository.hasPermission(),
             liveHeartRateBpm = live.freshHeartRate(),
+            wearOsSleepRecording = if (device?.isWearosWatch == true) {
+                wearOsCompanionManager.watchSetting(device.address, WearOsWatchSetting.SLEEP_RECORDING)
+            } else {
+                true
+            },
         )
     }
         .combine(agpsStore.agps) { state, agps -> state.copy(agps = agps) }
@@ -262,6 +271,33 @@ class WatchDeviceViewModel @Inject constructor(
                 localState.update { it.copy(wearOsError = error) }
             } finally {
                 localState.update { it.copy(isCheckingWearOsStatus = false) }
+            }
+        }
+    }
+
+    /**
+     * Pushes the sleep-recording setting to the Wear OS watch. The phone is
+     * the watch's settings screen; on success the store keeps the value and
+     * the status row reflects it. A watch too old to accept settings, or one
+     * that cannot be reached, surfaces as a Wear OS error.
+     */
+    fun setWearOsSleepRecording(enabled: Boolean) {
+        val device = uiState.value.device ?: return
+        if (!device.isWearosWatch || localState.value.isPushingWearOsSetting) return
+        localState.update { it.copy(isPushingWearOsSetting = true, wearOsError = null) }
+        viewModelScope.launch {
+            try {
+                val applied = wearOsCompanionManager.setWatchSetting(
+                    targetAddress = device.address,
+                    targetName = device.bluetoothName,
+                    setting = WearOsWatchSetting.SLEEP_RECORDING,
+                    enabled = enabled,
+                )
+                if (!applied) localState.update { it.copy(wearOsError = ScreenError.Text(R.string.settings_watch_wearos_setting_unsupported)) }
+            } catch (e: Exception) {
+                localState.update { it.copy(wearOsError = e.toScreenError(logTag = TAG, logMessage = "Wear OS setting push failed")) }
+            } finally {
+                localState.update { it.copy(isPushingWearOsSetting = false) }
             }
         }
     }

@@ -43,6 +43,15 @@ private class FakeWearOsNodePort : WearOsNodePort {
         readings.forEach { onSample(WearOsHeartRateSample(Instant.EPOCH, it)) }
         return supported
     }
+
+    override suspend fun setWatchSetting(
+        targetAddress: String?,
+        targetName: String?,
+        setting: WearOsWatchSetting,
+        enabled: Boolean,
+    ): Boolean = true
+
+    override fun watchSetting(targetAddress: String?, setting: WearOsWatchSetting): Boolean = setting.defaultOn
 }
 
 class WearOsCompanionManagerTest {

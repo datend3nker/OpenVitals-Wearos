@@ -14,6 +14,7 @@
     <string name="status_bedtime_holding">Bedtime: recording every minute</string>
     <string name="status_bedtime_paused_off_wrist">Bedtime: paused while off the wrist</string>
     <string name="status_bedtime_paused_charging">Bedtime: paused while charging</string>
+    <string name="status_sleep_recording_off">Sleep recording off (turn on in the phone app)</string>
     <string name="status_link_listening">Phone link on</string>
     <string name="status_link_not_granted">Phone link needs Nearby devices</string>
     <string name="action_grant">Allow</string>

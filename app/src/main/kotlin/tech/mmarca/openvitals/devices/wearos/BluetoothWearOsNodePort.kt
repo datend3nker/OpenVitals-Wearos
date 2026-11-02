@@ -154,6 +154,27 @@ class BluetoothWearOsNodePort @Inject constructor(
         }
     }
 
+    override suspend fun setWatchSetting(
+        targetAddress: String?,
+        targetName: String?,
+        setting: WearOsWatchSetting,
+        enabled: Boolean,
+    ): Boolean = withContext(Dispatchers.IO) {
+        val match = bondedWatchOrNull(targetAddress, targetName) ?: return@withContext false
+        val applied = withSession(match, targetAddress, PING_TIMEOUT_MS) { session ->
+            // An older watch app has no settings channel; the caller tells the wearer to update.
+            if (WearLinkProtocol.CAP_PREFERENCES !in session.peer.capabilities) return@withSession false
+            val value = if (enabled) WearLinkProtocol.Preferences.ON else WearLinkProtocol.Preferences.OFF
+            unwrap(session.setPreference(setting.protocolKey, value))
+            true
+        }
+        if (applied) linkStore.setWatchSetting(targetAddress, setting.protocolKey, enabled)
+        applied
+    }
+
+    override fun watchSetting(targetAddress: String?, setting: WearOsWatchSetting): Boolean =
+        linkStore.watchSetting(targetAddress, setting.protocolKey, default = setting.defaultOn)
+
     /** The name the watch gave in its last `OK`, for the status card. */
     @Volatile
     private var lastWatchName: String? = null

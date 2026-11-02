@@ -84,10 +84,15 @@ class MemoryHandler(
     /** What one `HR_LIVE` window hands out; empty is a watch off the wrist. */
     var live: List<WearLinkProtocol.HeartRateSample> = emptyList(),
     var name: String = "Galaxy Watch8 (89FZ)",
+    /** Keys this fake watch accepts; a pushed key outside it is refused. */
+    var preferenceKeys: Set<String> = setOf(WearLinkProtocol.Preferences.SLEEP_RECORDING),
 ) : WearLinkRequestHandler {
+    /** Preferences the phone pushed, in the order they arrived. */
+    val preferences = mutableListOf<Pair<String, String>>()
+
     override fun localName(): String = name
     override fun capabilities(): Set<String> =
-        setOf(WearLinkProtocol.CAP_HEART_RATE, WearLinkProtocol.CAP_SLEEP_MINUTES, WearLinkProtocol.CAP_STEPS, WearLinkProtocol.CAP_ASCENT)
+        setOf(WearLinkProtocol.CAP_HEART_RATE, WearLinkProtocol.CAP_SLEEP_MINUTES, WearLinkProtocol.CAP_STEPS, WearLinkProtocol.CAP_ASCENT, WearLinkProtocol.CAP_PREFERENCES)
     override fun heartRateSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.HeartRateSample> {
         val newer = heartRate.filter { it.epochMillis > sinceEpochMillis }
         return Page(newer.take(limit), newer.size > limit)
@@ -107,5 +112,10 @@ class MemoryHandler(
     override fun liveHeartRate(seconds: Int, emit: (WearLinkProtocol.HeartRateSample) -> Unit): Int {
         live.forEach(emit)
         return live.size
+    }
+    override fun setPreference(key: String, value: String): Boolean {
+        if (key !in preferenceKeys) return false
+        preferences += key to value
+        return true
     }
 }

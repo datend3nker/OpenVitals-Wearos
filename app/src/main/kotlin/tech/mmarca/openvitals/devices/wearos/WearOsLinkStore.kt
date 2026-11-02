@@ -76,12 +76,29 @@ class WearOsLinkStore(private val prefs: SharedPreferences) {
         snapshotsFlow.update { it + (deviceId to snapshot) }
     }
 
+    /**
+     * The value the phone last pushed for [settingKey] to the watch added
+     * under [registeredAddress], or [default] when never set. The phone is
+     * the watch's settings screen, so this is what the toggle shows.
+     */
+    fun watchSetting(registeredAddress: String?, settingKey: String, default: Boolean): Boolean {
+        val address = registeredAddress?.takeIf { it.isNotBlank() } ?: return default
+        return prefs.getBoolean(settingKey(address, settingKey), default)
+    }
+
+    fun setWatchSetting(registeredAddress: String?, settingKey: String, enabled: Boolean) {
+        val address = registeredAddress?.takeIf { it.isNotBlank() } ?: return
+        prefs.edit { putBoolean(settingKey(address, settingKey), enabled) }
+    }
+
     /** Forgets a removed watch: adding it again presents a new token, which the watch asks the wearer about. */
     fun clear(deviceId: String, registeredAddress: String?) {
-        registeredAddress?.let {
+        registeredAddress?.takeIf { it.isNotBlank() }?.let { address ->
+            val suffix = "_${address.uppercase()}"
             prefs.edit {
-                remove(linkKey(it))
-                remove(tokenKey(it))
+                remove(linkKey(address))
+                remove(tokenKey(address))
+                prefs.all.keys.filter { it.startsWith(SETTING_PREFIX) && it.endsWith(suffix) }.forEach(::remove)
             }
         }
         snapshotsFlow.update { it - deviceId }
@@ -93,7 +110,10 @@ class WearOsLinkStore(private val prefs: SharedPreferences) {
 
     private fun linkKey(registeredAddress: String) = "link_address_${registeredAddress.uppercase()}"
 
+    private fun settingKey(registeredAddress: String, settingKey: String) = "$SETTING_PREFIX${settingKey}_${registeredAddress.uppercase()}"
+
     private companion object {
         const val PREFS = "wearos_link"
+        const val SETTING_PREFIX = "watch_setting_"
     }
 }

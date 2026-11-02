@@ -2,6 +2,7 @@ package tech.mmarca.openvitals.devices.wearos
 
 import java.time.Instant
 import tech.mmarca.openvitals.domain.model.WearSleepMinute
+import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 
 /**
  * What the phone can tell about the OpenVitals Wear OS app on a watch.
@@ -93,6 +94,12 @@ data class WearOsAscentPage(
     val hasMore: Boolean,
 )
 
+/** A setting the phone pushes to the watch app; the phone is the watch's settings screen. */
+enum class WearOsWatchSetting(val protocolKey: String, val defaultOn: Boolean) {
+    /** Whether the watch records sleep at all. On by default, so an added watch keeps recording. */
+    SLEEP_RECORDING(WearLinkProtocol.Preferences.SLEEP_RECORDING, defaultOn = true),
+}
+
 /**
  * Port for talking to the OpenVitals app on a Wear OS watch.
  *
@@ -168,4 +175,20 @@ interface WearOsNodePort {
         targetName: String?,
         onSample: (WearOsHeartRateSample) -> Unit,
     ): Boolean
+
+    /**
+     * Pushes [setting] to the watch and stores it so later syncs re-apply it.
+     * True when the watch applied it. False when the watch app is too old to
+     * accept settings, or no bonded watch matches. Any other failure throws
+     * [WearOsLinkFailure].
+     */
+    suspend fun setWatchSetting(
+        targetAddress: String?,
+        targetName: String?,
+        setting: WearOsWatchSetting,
+        enabled: Boolean,
+    ): Boolean
+
+    /** The last value the phone stored for [setting] on the registered watch; the default when never set. */
+    fun watchSetting(targetAddress: String?, setting: WearOsWatchSetting): Boolean
 }
