@@ -28,6 +28,21 @@ enum class EntryType {
 
     /** Milliseconds RMSSD from a spot measurement. */
     HRV,
+
+    /** Percent of body mass. */
+    BODY_FAT,
+
+    /** Percent of haemoglobin carrying oxygen. */
+    BLOOD_OXYGEN,
+
+    /** Breaths per minute. */
+    RESPIRATORY_RATE,
+
+    /** Degrees Celsius; shown in Fahrenheit with the imperial units. */
+    BODY_TEMPERATURE,
+
+    /** Millimoles per litre; shown in mg/dL with the imperial units. */
+    BLOOD_GLUCOSE,
 }
 
 data class LoggedEntry(
