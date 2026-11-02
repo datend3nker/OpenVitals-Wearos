@@ -65,29 +65,52 @@ With clean timing the remaining blockers are signal-level, not sampling:
   impossible (resting is ~20–80 ms). The autocorrelation periodicity
   strength is ~0.45 (1.0 = perfectly periodic), i.e. the beat shape/timing
   is too noisy for millisecond-accurate intervals.
-- **Hard ceiling:** the sensor's `minDelay` is 40000 µs, so **25 Hz is the
-  hardware maximum** for `hr_raw`. At 25 Hz the inter-beat interval is
-  quantized to 40 ms steps, which is coarse relative to a 20–80 ms RMSSD
-  even with sub-sample peak interpolation.
+- **Sample rate:** the sensor's `minDelay` is 40000 µs, so 25 Hz is the
+  hardware maximum for `hr_raw`. A first naive peak detector quantized the
+  IBI to 40 ms steps and looked like a wall for a 20–80 ms RMSSD.
 
-Root causes of the HRV failure are now (a) a weak pulsatile AC riding on
-baseline wander in the raw (un-AGC'd) signal and (b) the 25 Hz / 40 ms
-quantization — not the CPU-doze gaps that Finding 1 removed.
+Root cause of this first failure: a naive detector on a weak pulsatile AC
+riding on baseline wander, at a signal that also has genuinely poor stretches.
+
+## Update (2026-11-02) — matching the SDK is an algorithm problem, not a rate wall
+
+Two findings reframe the pessimism above:
+
+- **The Samsung Health Sensor SDK uses the same 25 Hz PPG.** Its docs list
+  PPG green as a 25 Hz tracker; its heart-rate tracker derives an `IBI_LIST`
+  with per-interval `IBI_STATUS_LIST` quality flags from that same 25 Hz
+  stream. So SDK-grade HRV at 25 Hz is possible — the SDK's advantage is
+  processing (and perhaps a cleaner, AGC'd signal), not a higher rate.
+- **A proper pipeline closes most of the gap.** On the gap-free 262 s
+  capture, `v5`, with: bandpass 0.5–4 Hz → **FFT up-sampling to 200 Hz**
+  (defeats the 40 ms quantization) → **matched-filter / template beat
+  detection** with a correlation quality gate → **Kubios-style IBI artifact
+  correction** (drop intervals >25 % off the local median; RMSSD over
+  successive normal-normal pairs only), RMSSD fell from ~336 ms (naive) to
+  ~110 ms (whole capture) to **~85 ms on the cleanest 60 s window** (20 %
+  artifacts there). Borderline, not yet SDK-grade, but the trend proves the
+  method.
+
+**Remaining gap to SDK quality:** even the best window still rejects ~20 % of
+beats. To close it: (a) capture the **accelerometer** alongside PPG for
+motion/quality gating (the logger does not yet log it); (b) take **cleaner
+captures** (snug fit, fully still); (c) **validate** against the Samsung
+`HeartRateVariabilityRmssdRecord` in Health Connect for the same window as a
+read-only ground truth; (d) improve detection (fuse `v1`+`v5`, better
+template, reject low-SNR windows up front).
 
 ## What this means for integration
 
 - The wake-lock change is a genuine, self-contained improvement to the raw
   capture and could be lifted into the debug logger independently.
-- A FOSS, on-device **RMSSD** feature from `hr_raw` is **not demonstrated**
-  and may be out of reach at 25 Hz. Options, roughly in order of promise:
-  1. Accept that HRV needs the Samsung IBI path (SDK / Health Connect) and
+- A FOSS, on-device **RMSSD** from `hr_raw` is **not yet demonstrated** but no
+  longer looks blocked by the 25 Hz rate. Options, roughly in order of promise:
+  1. Finish the raw-PPG pipeline above (accelerometer gating + cleaner
+     captures + ground-truth validation) and ship it FOSS if it reaches SDK
+     parity on clean rest.
+  2. Accept that HRV needs the Samsung IBI path (SDK / Health Connect) and
      keep HRV as a Play-only / SDK-gated feature on the watch, while the
      phone app and public repo stay SDK-free.
-  2. Push the raw-PPG pipeline harder before giving up: template-matching /
-     matched-filter beat detection, baseline-wander removal, and motion /
-     quality gating (using `v0` status and/or the accelerometer) to drop bad
-     windows. This improves HR confidence but the 25 Hz quantization ceiling
-     on RMSSD remains.
   3. Report only coarser, quantization-tolerant metrics (resting HR, HR
      trends, maybe SDNN over long windows) rather than RMSSD.
 
