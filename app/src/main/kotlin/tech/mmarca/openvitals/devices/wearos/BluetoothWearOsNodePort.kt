@@ -91,6 +91,8 @@ class BluetoothWearOsNodePort @Inject constructor(
     ): WearOsSleepMinutePage? = withContext(Dispatchers.IO) {
         val match = bondedWatchOrNull(targetAddress, targetName) ?: return@withContext null
         withSession(match, targetAddress, PULL_TIMEOUT_MS) { session ->
+            // A watch with sleep recording switched off no longer offers the capability.
+            if (WearLinkProtocol.CAP_SLEEP_MINUTES !in session.peer.capabilities) return@withSession WearOsSleepMinutePage(emptyList(), false)
             val page = unwrap(session.pullSleepMinutes(since.toEpochMilli(), WearLinkProtocol.MAX_MINUTES_PER_REQUEST))
             WearOsSleepMinutePage(minutes = page.items.map(WearOsSleepMinuteMapping::toDomain), hasMore = page.more)
         }
