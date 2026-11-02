@@ -131,6 +131,28 @@ class WearLinkLoopbackTest {
     }
 
     @Test
+    fun `logged entries come back newer than the cursor, oldest first, and a page says when more remain`() {
+        val loopback = trusted()
+        val t = 1_700_000_000_000L
+        loopback.handler.logEntries = listOf(
+            WearLinkProtocol.LogEntry(t + 120_000L, WearLinkProtocol.LogKind.WEIGHT, 72.4, null),
+            WearLinkProtocol.LogEntry(t, WearLinkProtocol.LogKind.WATER, 250.0, null),
+            WearLinkProtocol.LogEntry(t + 60_000L, WearLinkProtocol.LogKind.HEIGHT, 178.0, null),
+        )
+        val link = loopback.connect()
+        val session = (WearLinkClient.hello(link.clientConnection, hello()) as WearLinkOutcome.Ok).value
+
+        val all = (session.pullLogEntries(0, 2) as WearLinkOutcome.Ok).value
+        assertEquals(loopback.handler.logEntries.sortedBy { it.epochMillis }.take(2), all.items)
+        assertTrue(all.more)
+        val rest = (session.pullLogEntries(all.items.last().epochMillis, 2) as WearLinkOutcome.Ok).value
+        assertEquals(listOf(loopback.handler.logEntries.maxBy { it.epochMillis }), rest.items)
+        assertFalse(rest.more)
+        session.close()
+        assertEquals(WearLinkServer.Outcome.SERVED, link.serverOutcome())
+    }
+
+    @Test
     fun `live windows hand out each reading and can repeat on one connection`() {
         val loopback = trusted()
         val readings = List(3) { WearLinkProtocol.HeartRateSample(1_700_000_000_000L + it * 1000L, 70 + it) }

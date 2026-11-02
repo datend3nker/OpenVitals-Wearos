@@ -20,6 +20,7 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import tech.mmarca.openvitals.wearlink.HeartRateInterval
+import tech.mmarca.openvitals.wear.features.quicklog.EntryLog
 
 /**
  * The watch's end of the phone link, and the host of the heart rate, step,
@@ -113,6 +114,7 @@ class WearAppService : Service() {
             store = store,
             live = LiveHeartRate(this, isRecording = { recorder.isRunning }),
             preferences = preferences,
+            logEntries = { EntryLog(this).load() },
             localName = ::localName,
         )
         isForeground = startInForeground()

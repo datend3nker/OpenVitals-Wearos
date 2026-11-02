@@ -213,6 +213,39 @@ either of the above: the live reading is the wrist's current number, and the
 minutes since the watch last closed a monitoring file have not been handed over
 yet. They arrive on the next sync.
 
+### Logged Entries
+
+What the wearer logs on the watch (water, weight, blood pressure, a breathing
+session, a spot heart rate or HRV reading, body fat, blood oxygen, respiratory
+rate, body temperature, blood glucose, height) is kept on the watch and pulled
+with the rest of a sync. Each kind is written as its own Health Connect record:
+
+| Watch kind | Health Connect record |
+|---|---|
+| Water | `HydrationRecord`, millilitres, one second long |
+| Weight | `WeightRecord`, kilograms |
+| Blood pressure | `BloodPressureRecord`, systolic and diastolic |
+| Breathing session | `MindfulnessSessionRecord`, ending when logged, as long as its minutes |
+| HRV | `HeartRateVariabilityRmssdRecord` |
+| Body fat | `BodyFatRecord` |
+| Blood oxygen | `OxygenSaturationRecord` |
+| Respiratory rate | `RespiratoryRateRecord` |
+| Body temperature | `BodyTemperatureRecord` |
+| Blood glucose | `BloodGlucoseRecord`, in mmol/L |
+| Height | `HeightRecord`, stored in centimetres on the watch |
+
+A spot heart rate is not written: the watch's own heart rate samples already
+reach Health Connect, and a spot reading would be a second sample of the same
+moment. The watch shows height in inches with the imperial units and stores
+whole centimetres, because the watch's stepper holds one number and feet and
+inches would need two.
+
+A record's id is its kind, time and value, so a second sync writes nothing
+twice. If the user has not given the grant to write a kind, that kind is not
+written and stays on the watch: the sync says which grant is missing, and the
+next sync after the grant writes the held entries. Mindfulness is skipped on a
+device whose Health Connect has no mindfulness record type.
+
 ## Watch Data Screen
 
 The Data action on a Garmin watch opens the watch-only measurements: the things the watch makes that Health Connect has no place for. Everything else goes to Health Connect and is not repeated here.

@@ -201,6 +201,39 @@ class WearLinkProtocolTest {
     }
 
     @Test
+    fun `a logged entry round-trips with its kind, value and optional second value`() {
+        val bp = WearLinkProtocol.LogEntry(1_700_000_000_000L, WearLinkProtocol.LogKind.BLOOD_PRESSURE, 121.0, 79.0)
+        val water = WearLinkProtocol.LogEntry(1_700_000_060_000L, WearLinkProtocol.LogKind.WATER, 250.0, null)
+
+        assertEquals("LG 1700000000000 BLOOD_PRESSURE 121.0 79.0", WearLinkProtocol.formatLogEntry(bp))
+        assertEquals("LG 1700000060000 WATER 250.0 -", WearLinkProtocol.formatLogEntry(water))
+        assertEquals(bp, WearLinkProtocol.parseLogEntry(WearLinkProtocol.formatLogEntry(bp)))
+        assertEquals(water, WearLinkProtocol.parseLogEntry(WearLinkProtocol.formatLogEntry(water)))
+    }
+
+    @Test
+    fun `a fractional value comes back as the same double`() {
+        val entry = WearLinkProtocol.LogEntry(1_700_000_000_000L, WearLinkProtocol.LogKind.BLOOD_GLUCOSE, 5.5, null)
+
+        assertEquals(entry, WearLinkProtocol.parseLogEntry(WearLinkProtocol.formatLogEntry(entry)))
+    }
+
+    @Test
+    fun `a log line of an unknown kind, a bad time or a non-finite value is skipped`() {
+        assertNull(WearLinkProtocol.parseLogEntry("LG 1700000000000 SLEEP_NAP 3.0 -"))
+        assertNull(WearLinkProtocol.parseLogEntry("LG 0 WATER 250.0 -"))
+        assertNull(WearLinkProtocol.parseLogEntry("LG 1700000000000 WATER NaN -"))
+        assertNull(WearLinkProtocol.parseLogEntry("LG 1700000000000 WATER 250.0"))
+    }
+
+    @Test
+    fun `a log request round-trips and clamps its limit`() {
+        val line = WearLinkProtocol.formatLogRequest(1_700_000_000_000L, 99_999)
+
+        assertEquals(WearLinkProtocol.Request.LogSince(1_700_000_000_000L, WearLinkProtocol.MAX_LOG_ENTRIES_PER_REQUEST), WearLinkProtocol.parseRequest(line))
+    }
+
+    @Test
     fun `ping tolerates surrounding whitespace`() {
         assertTrue(WearLinkProtocol.isPing(" PING\r"))
     }

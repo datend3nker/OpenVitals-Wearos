@@ -58,6 +58,13 @@ interface WearLinkRequestHandler {
     fun ascentSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.AscentMinute>
 
     /**
+     * The entries the wearer logged on the watch and that are newer than
+     * [sinceEpochMillis], oldest first, at most [limit]. Only called when the
+     * watch advertised [WearLinkProtocol.CAP_LOG].
+     */
+    fun logEntriesSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.LogEntry>
+
+    /**
      * Blocks for up to [seconds], handing each heart rate reading to [emit]
      * on the caller's thread as it arrives; returns how many. Returns 0 at
      * once when the watch is off the wrist or cannot measure.
