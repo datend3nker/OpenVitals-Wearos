@@ -14,6 +14,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import tech.mmarca.openvitals.wear.features.settings.PhoneScreen
+import tech.mmarca.openvitals.wear.features.settings.SensorAccess
+import tech.mmarca.openvitals.wear.features.settings.SensorAccessScreen
 
 /**
  * The watch app: the dashboard, tiles' screens and quick log, with the link
@@ -64,6 +67,8 @@ class MainActivity : ComponentActivity() {
                 deepLinkRoute = pendingRoute,
                 onDeepLinkHandled = { pendingRoute = null },
                 statusScreen = { StatusScreen() },
+                phoneScreen = { PhoneRoute() },
+                sensorScreen = { onOpenDetails -> SensorAccessRoute(onOpenDetails) },
             )
         }
     }
@@ -107,6 +112,40 @@ class MainActivity : ComponentActivity() {
             onForget = { address -> trust.forget(address) },
             onOpenBluetoothSettings = ::openBluetoothSettings,
         )
+    }
+
+    /** The phones that may read this watch, and the link they use. */
+    @Composable
+    private fun PhoneRoute() {
+        val link by WearLinkState.state.collectAsStateWithLifecycle()
+        PhoneScreen(
+            link = link,
+            bluetoothGranted = remember(permissionsVersion) { WearPermissions.hasBluetooth(this) },
+            onAllow = { pending ->
+                trust.trust(pending.address, pending.token, pending.name)
+                WearPhoneRequests.cancel(this)
+            },
+            onBlock = { pending ->
+                trust.block(pending.address)
+                WearPhoneRequests.cancel(this)
+            },
+            onForget = { address -> trust.forget(address) },
+            onOpenBluetoothSettings = ::openBluetoothSettings,
+        )
+    }
+
+    /** One row per grant the watch app uses. */
+    @Composable
+    private fun SensorAccessRoute(onOpenDetails: () -> Unit) {
+        val access = remember(permissionsVersion) {
+            SensorAccess(
+                heartRate = WearPermissions.hasHeartRate(this),
+                heartRateInBackground = WearPermissions.hasHeartRateInBackground(this),
+                steps = WearPermissions.hasActivityRecognition(this).takeIf { StepRecorder.hasStepCounter(this) },
+                nearbyDevices = WearPermissions.hasBluetooth(this),
+            )
+        }
+        SensorAccessScreen(access = access, onGrant = ::requestMissingPermissions, onOpenDetails = onOpenDetails)
     }
 
     private fun openBluetoothSettings() {
