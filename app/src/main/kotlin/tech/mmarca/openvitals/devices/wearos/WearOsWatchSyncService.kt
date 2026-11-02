@@ -351,6 +351,10 @@ class WearOsWatchSyncService(
                 for (part in elevation.partition { (it as ElevationGainedRecord).startTime.isAfter(cursor) }.toList()) {
                     insertEstimates(part, "elevation")
                 }
+                val elevation = WearOsFloorsImport.elevationRecords(page.minutes, steps)
+                for (part in elevation.partition { (it as ElevationGainedRecord).startTime.isAfter(cursor) }.toList()) {
+                    writeEstimates("elevation", part)
+                }
                 climbed += page.minutes.sumOf { it.metres }
                 credited += records.sumOf { (it as FloorsClimbedRecord).floors } * AscentCredit.METRES_PER_FLOOR
                 if (newest.isAfter(cursors.ascentCursor(device.id))) cursors.setAscentCursor(device.id, newest)
