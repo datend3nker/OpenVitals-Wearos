@@ -39,7 +39,6 @@ internal fun PhoneScreen(
     bluetoothGranted: Boolean,
     onAllow: (PendingPhone) -> Unit,
     onBlock: (PendingPhone) -> Unit,
-    onForget: (String) -> Unit,
     onOpenBluetoothSettings: () -> Unit,
 ) {
     val listState = rememberTransformingLazyColumnState()
@@ -75,31 +74,24 @@ internal fun PhoneScreen(
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Text(
-                            text = stringResource(R.string.status_phone_pending, pending.name),
+                            text = stringResource(
+                                if (pending.newKey) R.string.status_phone_new_key else R.string.status_phone_pending,
+                                pending.name,
+                            ),
                             style = MaterialTheme.typography.titleSmall,
                         )
+                        if (pending.newKey) {
+                            Text(
+                                text = stringResource(R.string.phone_new_key_reason),
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(onClick = { onAllow(pending) }) { Text(stringResource(R.string.action_allow)) }
                             Button(
                                 onClick = { onBlock(pending) },
                                 colors = ButtonDefaults.outlinedButtonColors(),
                             ) { Text(stringResource(R.string.action_block)) }
-                        }
-                    }
-                }
-            }
-            link.refused?.let { refused ->
-                item {
-                    Column(
-                        modifier = rowModifier.transformedHeight(this, transformationSpec),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Text(
-                            text = stringResource(R.string.status_phone_refused, refused.name),
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        Button(onClick = { onForget(refused.address) }) {
-                            Text(stringResource(R.string.action_forget_phone))
                         }
                     }
                 }
@@ -167,7 +159,6 @@ private fun PhoneScreenPreview() {
                 bluetoothGranted = true,
                 onAllow = {},
                 onBlock = {},
-                onForget = {},
                 onOpenBluetoothSettings = {},
             )
         }

@@ -128,7 +128,6 @@ class MainActivity : ComponentActivity() {
                 trust.block(pending.address)
                 WearPhoneRequests.cancel(this)
             },
-            onForget = { address -> trust.forget(address) },
             onOpenBluetoothSettings = ::openBluetoothSettings,
         )
     }
