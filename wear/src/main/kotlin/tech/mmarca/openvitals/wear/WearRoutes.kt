@@ -14,6 +14,8 @@ object WearRoutes {
     const val WORKOUT_SUMMARY = "workout_summary"
     const val SETTINGS = "settings"
     const val STATUS = "status"
+    const val PHONE = "phone"
+    const val SENSORS = "sensors"
     const val MEASURE = "measure"
     const val MEASUREMENT_ARG = "measurement"
     const val MEASUREMENT = "measure/{$MEASUREMENT_ARG}"

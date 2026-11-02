@@ -50,6 +50,8 @@ fun OpenVitalsWearApp(
     onDeepLinkHandled: () -> Unit = {},
     /** Link and recorder status, permissions and paired phones; the activity owns its stores. */
     statusScreen: @Composable () -> Unit = {},
+    phoneScreen: @Composable () -> Unit = {},
+    sensorScreen: @Composable (onOpenDetails: () -> Unit) -> Unit = {},
 ) {
     // The nav graph is built once, so every destination reads the latest
     // state through this holder instead of a value captured at build time.
@@ -218,11 +220,13 @@ fun OpenVitalsWearApp(
                     SettingsScreen(
                         state = currentState.settings,
                         unitSystem = currentState.preferences.unitSystem,
-                        onPhoneClick = { navController.navigate(WearRoutes.STATUS) },
-                        onSensorAccessClick = { navController.navigate(WearRoutes.STATUS) },
+                        onPhoneClick = { navController.navigate(WearRoutes.PHONE) },
+                        onSensorAccessClick = { navController.navigate(WearRoutes.SENSORS) },
                         onUnitsClick = {},
                     )
                 }
+                composable(WearRoutes.PHONE) { phoneScreen() }
+                composable(WearRoutes.SENSORS) { sensorScreen { navController.navigate(WearRoutes.STATUS) } }
                 composable(WearRoutes.STATUS) { statusScreen() }
             }
         }

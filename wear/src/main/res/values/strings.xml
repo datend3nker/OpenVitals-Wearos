@@ -170,6 +170,16 @@
     <string name="settings_sensor_access">Sensor access</string>
     <string name="settings_sensor_access_granted">Granted</string>
     <string name="settings_sensor_access_missing">Not granted</string>
+    <string name="phone_link">Link</string>
+    <string name="phone_state_pairing_lost">Pairing lost</string>
+    <string name="phone_state_waiting">Waiting for the link</string>
+    <string name="phone_none_hint">On your phone, open OpenVitals, Settings, Watches and add this watch.</string>
+    <string name="sensors_heart_rate">Heart rate</string>
+    <string name="sensors_heart_rate_background">Heart rate in the background</string>
+    <string name="sensors_steps">Steps</string>
+    <string name="sensors_no_step_counter">No step counter</string>
+    <string name="sensors_nearby_devices">Nearby devices</string>
+    <string name="sensors_recording_details">Recording details</string>
     <string name="settings_units">Units</string>
     <string name="settings_units_metric">Metric</string>
     <string name="settings_units_imperial">Imperial</string>
