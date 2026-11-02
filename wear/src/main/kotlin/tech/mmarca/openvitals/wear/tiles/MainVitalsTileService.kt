@@ -18,7 +18,12 @@ import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TileService
 import com.google.common.util.concurrent.ListenableFuture
 import tech.mmarca.openvitals.wear.MainActivity
+import tech.mmarca.openvitals.wear.MetricStore
+import tech.mmarca.openvitals.wear.TodayTotals
+import tech.mmarca.openvitals.wear.WearReadings
+import tech.mmarca.openvitals.wear.WearReadingsSource
 import tech.mmarca.openvitals.wear.R
+import java.text.NumberFormat
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
@@ -26,26 +31,38 @@ import java.util.concurrent.TimeUnit
 class MainVitalsTileService : TileService() {
 
     override fun onTileRequest(requestParams: RequestBuilders.TileRequest): ListenableFuture<TileBuilders.Tile> {
-        val tile = TileBuilders.Tile.Builder()
-            .setResourcesVersion(RESOURCES_VERSION)
-            .setTileTimeline(
-                TimelineBuilders.Timeline.Builder()
-                    .addTimelineEntry(
-                        TimelineBuilders.TimelineEntry.Builder()
-                            .setLayout(
-                                LayoutElementBuilders.Layout.Builder()
-                                    .setRoot(buildTileLayout(this, requestParams.deviceConfiguration))
-                                    .build()
-                            )
-                            .build()
-                    )
-                    .build()
-            )
-            .build()
-
-        val future = CompletableFuture<TileBuilders.Tile>()
-        future.complete(tile)
+        // The store is read off the main thread: a day of heart rate is thousands of rows.
+        val future = CompletableFuture.supplyAsync {
+            val totals = todayTotals(this)
+            TileBuilders.Tile.Builder()
+                .setResourcesVersion(RESOURCES_VERSION)
+                .setFreshnessIntervalMillis(FRESHNESS_MILLIS)
+                .setTileTimeline(
+                    TimelineBuilders.Timeline.Builder()
+                        .addTimelineEntry(
+                            TimelineBuilders.TimelineEntry.Builder()
+                                .setLayout(
+                                    LayoutElementBuilders.Layout.Builder()
+                                        .setRoot(buildTileLayout(this, requestParams.deviceConfiguration, totals))
+                                        .build()
+                                )
+                                .build()
+                        )
+                        .build()
+                )
+                .build()
+        }
         return SettableListenableFuture(future)
+    }
+
+    /** The day's totals from the watch's own store; nothing is shown as "--". */
+    private fun todayTotals(context: Context): TodayTotals {
+        val store = MetricStore(context)
+        return try {
+            WearReadings.totals(WearReadingsSource(store).today())
+        } finally {
+            store.close()
+        }
     }
 
     override fun onTileResourcesRequest(requestParams: RequestBuilders.ResourcesRequest): ListenableFuture<ResourceBuilders.Resources> {
@@ -61,6 +78,7 @@ class MainVitalsTileService : TileService() {
     private fun buildTileLayout(
         context: Context,
         deviceParameters: DeviceParametersBuilders.DeviceParameters,
+        totals: TodayTotals,
     ): LayoutElementBuilders.LayoutElement {
         val launchAction = ActionBuilders.LaunchAction.Builder()
             .setAndroidActivity(
@@ -87,8 +105,12 @@ class MainVitalsTileService : TileService() {
             .setColor(ColorBuilders.argb(primaryColor))
             .build()
 
-        val stepsText = Text.Builder(context, context.getString(R.string.dashboard_today))
+        val titleText = Text.Builder(context, context.getString(R.string.dashboard_today))
             .setTypography(Typography.TYPOGRAPHY_TITLE2)
+            .build()
+
+        val summaryText = Text.Builder(context, todaySummary(context, totals))
+            .setTypography(Typography.TYPOGRAPHY_BODY1)
             .build()
 
         val chip = CompactChip.Builder(
@@ -115,7 +137,13 @@ class MainVitalsTileService : TileService() {
                             .setHeight(dp(8f))
                             .build()
                     )
-                    .addContent(stepsText)
+                    .addContent(titleText)
+                    .addContent(
+                        LayoutElementBuilders.Spacer.Builder()
+                            .setHeight(dp(4f))
+                            .build()
+                    )
+                    .addContent(summaryText)
                     .addContent(
                         LayoutElementBuilders.Spacer.Builder()
                             .setHeight(dp(12f))
@@ -140,7 +168,19 @@ class MainVitalsTileService : TileService() {
         override fun get(timeout: Long, unit: TimeUnit): V = delegate.get(timeout, unit)
     }
 
+    private fun todaySummary(context: Context, totals: TodayTotals): String {
+        val steps = totals.steps?.let {
+            context.getString(R.string.tile_value, NumberFormat.getIntegerInstance().format(it), context.getString(R.string.unit_steps))
+        } ?: context.getString(R.string.metric_no_value)
+        val heart = totals.heartRate?.let {
+            context.getString(R.string.tile_value, it.toString(), context.getString(R.string.unit_bpm))
+        } ?: context.getString(R.string.metric_no_value)
+        return context.getString(R.string.tile_today_summary, steps, heart)
+    }
+
     companion object {
         private const val RESOURCES_VERSION = "1"
+        /** Read again at most this often while the tile is shown. */
+        private const val FRESHNESS_MILLIS = 5 * 60 * 1000L
     }
 }

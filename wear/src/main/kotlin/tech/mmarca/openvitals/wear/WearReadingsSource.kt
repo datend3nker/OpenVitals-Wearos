@@ -42,6 +42,9 @@ internal class WearReadingsSource(
         return WearReadings.metrics(days, clock.instant(), zone)
     }
 
+    /** Today only, read now: what the Today tile shows. */
+    fun today(): DayReadings = read(LocalDate.now(clock), clock.zone)
+
     private fun read(date: LocalDate, zone: ZoneId): DayReadings {
         // A row's time is its minute or sample start; a day is [midnight, next midnight).
         val from = date.atStartOfDay(zone).toInstant().toEpochMilli() - 1

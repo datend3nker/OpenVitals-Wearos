@@ -1,5 +1,6 @@
 package tech.mmarca.openvitals.wear
 
+import kotlin.math.roundToInt
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -26,6 +27,9 @@ internal data class DayReadings(
     val hasSteps: Boolean,
     val hasAscent: Boolean,
 )
+
+/** The Today tile's figures. */
+internal data class TodayTotals(val steps: Int?, val heartRate: Int?)
 
 /** Turns the watch's own rows into the values the dashboard and the detail screens read. */
 internal object WearReadings {
@@ -102,6 +106,12 @@ internal object WearReadings {
             }
         }
     }
+
+    /** What the Today tile shows: the day's steps and the latest heart rate, each null when there is none. */
+    fun totals(day: DayReadings): TodayTotals = TodayTotals(
+        steps = day.stepsByHour.sum().roundToInt().takeIf { day.hasSteps },
+        heartRate = day.latestHeartRate?.bpm,
+    )
 
     private fun cumulative(
         days: List<DayReadings>,
