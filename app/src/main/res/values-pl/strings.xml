@@ -4041,6 +4041,17 @@
     <string name="settings_watch_wearos_checking">Sprawdzanie aplikacji Wear OS…</string>
     <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
     <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_tracking_title">Rejestrowanie na zegarku</string>
+    <string name="settings_watch_wearos_heart_rate">Zapisuj tętno na zegarku</string>
+    <string name="settings_watch_wearos_steps">Licz kroki na zegarku</string>
+    <string name="settings_watch_wearos_ascent">Zapisuj pokonaną wysokość na zegarku</string>
+    <string name="settings_watch_wearos_interval_day">Tętno w ciągu dnia</string>
+    <string name="settings_watch_wearos_interval_night">Tętno w nocy</string>
+    <string name="settings_watch_wearos_interval_body">Noc to tryb snu zegarka. Dopóki zapisywany jest sen, w nocy pomiar pozostaje co 10 sekund, bo wykrywanie snu potrzebuje każdego pomiaru.</string>
+    <string name="settings_watch_wearos_interval_off">Wyłączone</string>
+    <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
+    <string name="settings_watch_wearos_interval_minute">1 min</string>
+    <string name="settings_watch_wearos_tracking_body">Wyłączenie zatrzymuje pomiar na zegarku. Dane już zapisane zostają na zegarku.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Synchronizacja zegarka</string>
     <string name="settings_watch_wearos_sync_body">Aplikacja OpenVitals na zegarku zapisuje tętno i dane potrzebne do oszacowania snu i przechowuje je przez tydzień. Synchronizacja kopiuje nowe tętno do Health Connect i zapisuje jedną oszacowaną sesję snu na noc.</string>

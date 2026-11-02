@@ -111,6 +111,22 @@ object WearLinkProtocol {
     object Preferences {
         /** Whether the watch records sleep minutes. Values [OFF] / [ON]. */
         const val SLEEP_RECORDING: String = "sleep"
+
+        /** Whether the watch measures heart rate. Values [OFF] / [ON]; off also withdraws the `hr` capability. */
+        const val HEART_RATE: String = "heart"
+
+        /** Whether the watch counts steps. Values [OFF] / [ON]; off withdraws the `st` capability. */
+        const val STEPS: String = "steps"
+
+        /** Whether the watch records height climbed. Values [OFF] / [ON]; off withdraws the `as` capability. */
+        const val ASCENT: String = "ascent"
+
+        /** The heart rate interval by day. Values are [HeartRateInterval.wire]. */
+        const val HEART_RATE_DAY: String = "hr_day"
+
+        /** The heart rate interval in bedtime mode, when sleep recording is off. Values are [HeartRateInterval.wire]. */
+        const val HEART_RATE_NIGHT: String = "hr_night"
+
         const val OFF: String = "0"
         const val ON: String = "1"
     }

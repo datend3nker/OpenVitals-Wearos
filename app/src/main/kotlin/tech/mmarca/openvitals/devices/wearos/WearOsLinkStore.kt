@@ -91,6 +91,17 @@ class WearOsLinkStore(private val prefs: SharedPreferences) {
         prefs.edit { putBoolean(settingKey(address, settingKey), enabled) }
     }
 
+    /** The text value the phone last pushed for [settingKey] to the watch under [registeredAddress], or [default]. */
+    fun watchValue(registeredAddress: String?, settingKey: String, default: String): String {
+        val address = registeredAddress?.takeIf { it.isNotBlank() } ?: return default
+        return prefs.getString(settingKey(address, settingKey), null) ?: default
+    }
+
+    fun setWatchValue(registeredAddress: String?, settingKey: String, value: String) {
+        val address = registeredAddress?.takeIf { it.isNotBlank() } ?: return
+        prefs.edit { putString(settingKey(address, settingKey), value) }
+    }
+
     /** Forgets a removed watch: adding it again presents a new token, which the watch asks the wearer about. */
     fun clear(deviceId: String, registeredAddress: String?) {
         registeredAddress?.takeIf { it.isNotBlank() }?.let { address ->

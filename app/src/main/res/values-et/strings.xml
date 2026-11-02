@@ -3969,6 +3969,17 @@
     <string name="settings_watch_wearos_checking">Wear OS rakenduse kontrollimine…</string>
     <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
     <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_tracking_title">Jälgimine kellas</string>
+    <string name="settings_watch_wearos_heart_rate">Südame löögisageduse salvestamine kellas</string>
+    <string name="settings_watch_wearos_steps">Sammude lugemine kellas</string>
+    <string name="settings_watch_wearos_ascent">Läbitud kõrguse salvestamine kellas</string>
+    <string name="settings_watch_wearos_interval_day">Südame löögisagedus päeval</string>
+    <string name="settings_watch_wearos_interval_night">Südame löögisagedus öösel</string>
+    <string name="settings_watch_wearos_interval_body">Öö on kellas unerežiim. Kui und salvestatakse, jääb öine mõõtmine iga 10 sekundi tagant, sest unetuvastus vajab iga mõõtmist.</string>
+    <string name="settings_watch_wearos_interval_off">Väljas</string>
+    <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
+    <string name="settings_watch_wearos_interval_minute">1 min</string>
+    <string name="settings_watch_wearos_tracking_body">Väljalülitamine lõpetab selle mõõtmise kellas. Juba salvestatud andmed jäävad alles.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Kella sünkroonimine</string>
     <string name="settings_watch_wearos_sync_body">Kella OpenVitalsi rakendus salvestab pulsi ja une hindamiseks vajaliku ning hoiab nädala jagu andmeid. Sünkroonimine kopeerib uue pulsi Health Connecti ja kirjutab iga öö kohta ühe hinnatud uneseansi.</string>

@@ -9,17 +9,28 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
 import android.util.Log
+import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 
 /**
- * Keeps the heart rate sensor on and writes what it reports to the
- * [MetricStore], one sample every [MIN_SAMPLE_GAP_MILLIS] at most. Runs
- * inside `WearAppService`, so it outlives the activity.
+ * Keeps the heart rate sensor on at the interval the wearer chose and writes
+ * what it reports to the [MetricStore]. Runs inside `WearAppService`, so it
+ * outlives the activity.
  *
- * The sensor is registered batched: the sensor hub buffers readings for up
- * to [MAX_REPORT_LATENCY_MICROS] and wakes the CPU once per batch instead of
- * once per beat. The listener runs on its own thread, where the SQLite write
- * is allowed.
+ * Two ways of running, one per interval:
+ * - [HeartRateInterval.EVERY_10_SECONDS]: the sensor stays registered, batched:
+ *   the sensor hub buffers readings for up to [MAX_REPORT_LATENCY_MICROS] and
+ *   wakes the CPU once per batch. One stored sample every ten seconds.
+ * - [HeartRateInterval.EVERY_MINUTE]: the sensor is registered for a window of
+ *   at most [WINDOW_MILLIS] at the start of each minute, unbatched, and is
+ *   unregistered as soon as its first usable reading is stored. Between the
+ *   windows the sensor is off, so this is not only thinner storage. The window
+ *   is not batched: a batch could not be flushed before the unregistration
+ *   without a race, and the reading has to be stored before the sensor goes.
+ *
+ * [setInterval] is the only entry point; the service calls it with the
+ * interval in force, and an unchanged one does nothing. The listener and the
+ * timers run on the recorder's own thread, where the SQLite write is allowed.
  */
 class HeartRateRecorder(
     context: Context,
@@ -32,53 +43,140 @@ class HeartRateRecorder(
 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private var thread: HandlerThread? = null
+
+    /** Set with [thread]; the timers and the window run on it. */
+    @Volatile
+    private var handler: Handler? = null
+
+    /** The interval this recorder runs at; [HeartRateInterval.OFF] while stopped. Read on any thread. */
+    @Volatile
+    var interval: HeartRateInterval = HeartRateInterval.OFF
+        private set
+
+    private var sensor: Sensor? = null
     private var lastStoredAt = 0L
     private var lastPrunedAt = 0L
+
+    // Read and written on the recorder's thread only. The tasks are fields:
+    // removing a timer needs the same Runnable that posted it.
+    private var windowOpen = false
+    private var windowOpenedAt = 0L
+    private val openWindowTask = Runnable { openWindow() }
+    private val closeWindowTask = Runnable { closeWindow() }
 
     val isRunning: Boolean
         get() = thread != null
 
-    /** Starts recording. False when the watch has no heart rate sensor or the registration failed. */
-    fun start(): Boolean {
-        if (thread != null) return true
+    /**
+     * Brings the recorder to [wanted]: starts it, changes its interval or
+     * stops it. False when [wanted] is not off and the watch has no heart rate
+     * sensor or the registration failed.
+     */
+    fun setInterval(wanted: HeartRateInterval): Boolean {
+        if (wanted == interval && (wanted == HeartRateInterval.OFF || thread != null)) return true
+        stop()
+        if (wanted == HeartRateInterval.OFF) return true
+        return start(wanted)
+    }
+
+    private fun start(wanted: HeartRateInterval): Boolean {
         // The wake-up variant empties its batch even while the watch sleeps; the
         // other one hands over only what survived until the next wake.
-        val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE, true)
+        val found = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE, true)
             ?: sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
-        if (sensor == null) {
+        if (found == null) {
             Log.w(TAG, "No heart rate sensor")
             return false
         }
         val worker = HandlerThread("HeartRateRecorder").apply { start() }
-        val registered = try {
+        val workerHandler = Handler(worker.looper)
+        sensor = found
+        thread = worker
+        handler = workerHandler
+        interval = wanted
+        if (wanted == HeartRateInterval.EVERY_10_SECONDS) {
+            val registered = registerBatched(found, workerHandler)
+            if (!registered) {
+                Log.w(TAG, "Heart rate listener not registered")
+                stop()
+                return false
+            }
+        } else {
+            workerHandler.post(openWindowTask)
+        }
+        Log.i(TAG, "Recording heart rate from ${found.name} every ${wanted.seconds} s")
+        return true
+    }
+
+    /** Registration for the continuous interval: one reading a second, batched. */
+    private fun registerBatched(found: Sensor, workerHandler: Handler): Boolean =
+        try {
             sensorManager.registerListener(
                 this,
-                sensor,
+                found,
                 SAMPLING_PERIOD_MICROS,
                 MAX_REPORT_LATENCY_MICROS,
-                Handler(worker.looper),
+                workerHandler,
             )
         } catch (e: SecurityException) {
             // The grant was revoked between the check and the registration.
             Log.e(TAG, "Heart rate sensor refused", e)
             false
         }
-        if (!registered) {
-            worker.quitSafely()
-            Log.w(TAG, "Heart rate listener not registered")
-            return false
-        }
-        thread = worker
-        Log.i(TAG, "Recording heart rate from ${sensor.name}")
-        return true
-    }
 
     fun stop() {
         val worker = thread ?: return
+        val workerHandler = handler
+        // Pending timers would reopen the sensor after this returns.
+        workerHandler?.removeCallbacksAndMessages(null)
         sensorManager.unregisterListener(this)
+        windowOpen = false
         worker.quitSafely()
         thread = null
+        handler = null
+        sensor = null
+        interval = HeartRateInterval.OFF
         Log.i(TAG, "Stopped recording heart rate")
+    }
+
+    /** Starts a window: the sensor on, until its first usable reading or [WINDOW_MILLIS]. Recorder thread. */
+    private fun openWindow() {
+        val workerHandler = handler ?: return
+        val found = sensor ?: return
+        windowOpenedAt = SystemClock.elapsedRealtime()
+        val registered = try {
+            sensorManager.registerListener(this, found, SAMPLING_PERIOD_MICROS, 0, workerHandler)
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Heart rate sensor refused", e)
+            false
+        }
+        if (!registered) {
+            Log.w(TAG, "Heart rate window not registered")
+            scheduleNextWindow()
+            return
+        }
+        windowOpen = true
+        workerHandler.postDelayed(closeWindowTask, WINDOW_MILLIS)
+    }
+
+    /**
+     * Ends the open window: the sensor off, and the next window at the
+     * minute's start. Does nothing when no window is open, so the reading path
+     * and the timeout cannot both schedule the next one. Recorder thread.
+     */
+    private fun closeWindow() {
+        if (!windowOpen) return
+        handler?.removeCallbacks(closeWindowTask)
+        windowOpen = false
+        sensorManager.unregisterListener(this)
+        scheduleNextWindow()
+    }
+
+    private fun scheduleNextWindow() {
+        val workerHandler = handler ?: return
+        val elapsed = SystemClock.elapsedRealtime() - windowOpenedAt
+        val wait = (interval.seconds * 1000L - elapsed).coerceAtLeast(0L)
+        workerHandler.postDelayed(openWindowTask, wait)
     }
 
     override fun onSensorChanged(event: SensorEvent) {
@@ -94,12 +192,18 @@ class HeartRateRecorder(
             return
         }
 
-        if (at - lastStoredAt < MIN_SAMPLE_GAP_MILLIS) return
-        lastStoredAt = at
-        store.put(WearMetrics.HEART_RATE, WearLinkProtocol.HeartRateSample(at, bpm))
-        onSample(at, bpm)
-        Log.d(TAG, "Stored $bpm bpm at $at")
+        if (at - lastStoredAt >= MIN_SAMPLE_GAP_MILLIS) {
+            lastStoredAt = at
+            store.put(WearMetrics.HEART_RATE, WearLinkProtocol.HeartRateSample(at, bpm))
+            onSample(at, bpm)
+            Log.d(TAG, "Stored $bpm bpm at $at")
+            prune(at)
+        }
+        // One reading per window is all the minute needs: the sensor goes off now.
+        if (interval == HeartRateInterval.EVERY_MINUTE && windowOpen) closeWindow()
+    }
 
+    private fun prune(at: Long) {
         if (at - lastPrunedAt > PRUNE_EVERY_MILLIS) {
             lastPrunedAt = at
             store.prune(WearMetrics.HEART_RATE, at)
@@ -134,8 +238,19 @@ class HeartRateRecorder(
          */
         const val MAX_REPORT_LATENCY_MICROS = 40 * 1_000_000
 
-        /** Stored sample spacing. Enough for resting and daily curves; a tenth of the bytes. */
+        /**
+         * Stored sample spacing at the continuous interval. Enough for resting
+         * and daily curves; a tenth of the bytes. The per-minute interval stores
+         * one reading per window, so it never meets this gap.
+         */
         const val MIN_SAMPLE_GAP_MILLIS = 10_000L
+
+        /**
+         * The most time the sensor stays on for one minute's reading. A
+         * reading usually comes well inside it; the sensor's warm-up on a real
+         * watch is not measured here.
+         */
+        const val WINDOW_MILLIS = 20_000L
 
         const val PRUNE_EVERY_MILLIS = 6L * 60 * 60 * 1000
         const val SKIP_LOG_EVERY_MILLIS = 60_000L

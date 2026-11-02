@@ -42,7 +42,9 @@ import tech.mmarca.openvitals.devices.wearos.WearOsCompanionManager
 import tech.mmarca.openvitals.devices.wearos.WearOsCompanionStatus
 import tech.mmarca.openvitals.devices.wearos.WearOsLinkSnapshot
 import tech.mmarca.openvitals.devices.wearos.WearOsLinkStore
+import tech.mmarca.openvitals.devices.wearos.WearOsHeartRatePeriod
 import tech.mmarca.openvitals.devices.wearos.WearOsWatchSetting
+import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.domain.model.BleSensorDevice
 import tech.mmarca.openvitals.navigation.WATCH_DEVICE_ID_ARG
 import tech.mmarca.openvitals.sensors.ble.BleSensorCoordinator
@@ -103,6 +105,8 @@ data class WatchDeviceUiState(
     val wearOsError: ScreenError? = null,
     /** Whether the watch records sleep, as the phone last set it. The phone is the watch's settings screen. */
     val wearOsSleepRecording: Boolean = true,
+    /** What the Wear OS watch tracks, as the phone last set it. */
+    val wearOsTracking: WearOsTracking = WearOsTracking(),
     /** True while a Wear OS setting is being pushed to the watch. */
     val isPushingWearOsSetting: Boolean = false,
 ) {
@@ -114,6 +118,19 @@ data class WatchDeviceUiState(
     val hasSettingsTree: Boolean
         get() = WatchSettingsTreeAvailable && supports(GarminCapability.REALTIME_SETTINGS)
 }
+
+/**
+ * What a Wear OS watch tracks and how often it measures heart rate, as the
+ * phone last pushed it. The watch keeps the state; these are the defaults a
+ * watch that never heard from the phone runs with.
+ */
+data class WearOsTracking(
+    val heartRate: Boolean = true,
+    val steps: Boolean = true,
+    val ascent: Boolean = true,
+    val heartRateDay: HeartRateInterval = HeartRateInterval.EVERY_10_SECONDS,
+    val heartRateNight: HeartRateInterval = HeartRateInterval.EVERY_10_SECONDS,
+)
 
 /** One watch, and everything about it. */
 @HiltViewModel
@@ -187,6 +204,7 @@ class WatchDeviceViewModel @Inject constructor(
             } else {
                 true
             },
+            wearOsTracking = if (device?.isWearosWatch == true) wearOsTrackingOf(device.address) else WearOsTracking(),
         )
     }
         .combine(agpsStore.agps) { state, agps -> state.copy(agps = agps) }
@@ -276,24 +294,46 @@ class WatchDeviceViewModel @Inject constructor(
         }
     }
 
+    /** Pushes the sleep-recording setting to the Wear OS watch. See [setWearOsSetting]. */
+    fun setWearOsSleepRecording(enabled: Boolean) = setWearOsSetting(WearOsWatchSetting.SLEEP_RECORDING, enabled)
+
     /**
-     * Pushes the sleep-recording setting to the Wear OS watch. The phone is
-     * the watch's settings screen; on success the store keeps the value and
-     * the status row reflects it. A watch too old to accept settings, or one
-     * that cannot be reached, surfaces as a Wear OS error.
+     * Pushes one tracking switch to the Wear OS watch. The phone is the
+     * watch's settings screen; on success the store keeps the value and the
+     * screen reads it back. A watch too old to accept settings, or one that
+     * cannot be reached, surfaces as a Wear OS error.
      */
-    fun setWearOsSleepRecording(enabled: Boolean) {
+    fun setWearOsSetting(setting: WearOsWatchSetting, enabled: Boolean) {
+        pushWearOsSetting { device ->
+            wearOsCompanionManager.setWatchSetting(
+                targetAddress = device.address,
+                targetName = device.bluetoothName,
+                setting = setting,
+                enabled = enabled,
+            )
+        }
+    }
+
+    /** Pushes the heart rate interval for [period] to the Wear OS watch; the same rules as [setWearOsSetting]. */
+    fun setWearOsHeartRateInterval(period: WearOsHeartRatePeriod, interval: HeartRateInterval) {
+        pushWearOsSetting { device ->
+            wearOsCompanionManager.setHeartRateInterval(
+                targetAddress = device.address,
+                targetName = device.bluetoothName,
+                period = period,
+                interval = interval,
+            )
+        }
+    }
+
+    /** Runs one push at a time for the Wear OS watch on screen; a refusal or a failure becomes the card's error. */
+    private fun pushWearOsSetting(push: suspend (BleSensorDevice) -> Boolean) {
         val device = uiState.value.device ?: return
         if (!device.isWearosWatch || localState.value.isPushingWearOsSetting) return
         localState.update { it.copy(isPushingWearOsSetting = true, wearOsError = null) }
         viewModelScope.launch {
             try {
-                val applied = wearOsCompanionManager.setWatchSetting(
-                    targetAddress = device.address,
-                    targetName = device.bluetoothName,
-                    setting = WearOsWatchSetting.SLEEP_RECORDING,
-                    enabled = enabled,
-                )
+                val applied = push(device)
                 if (!applied) localState.update { it.copy(wearOsError = ScreenError.Text(R.string.settings_watch_wearos_setting_unsupported)) }
             } catch (e: Exception) {
                 localState.update { it.copy(wearOsError = e.toScreenError(logTag = TAG, logMessage = "Wear OS setting push failed")) }
@@ -302,6 +342,15 @@ class WatchDeviceViewModel @Inject constructor(
             }
         }
     }
+
+    /** The tracking switches and intervals the phone last stored for the Wear OS watch at [address]. */
+    private fun wearOsTrackingOf(address: String): WearOsTracking = WearOsTracking(
+        heartRate = wearOsCompanionManager.watchSetting(address, WearOsWatchSetting.HEART_RATE),
+        steps = wearOsCompanionManager.watchSetting(address, WearOsWatchSetting.STEPS),
+        ascent = wearOsCompanionManager.watchSetting(address, WearOsWatchSetting.ASCENT),
+        heartRateDay = wearOsCompanionManager.heartRateInterval(address, WearOsHeartRatePeriod.DAY),
+        heartRateNight = wearOsCompanionManager.heartRateInterval(address, WearOsHeartRatePeriod.NIGHT),
+    )
 
     /** Companion mode. The bridge owns the pref, presence observation and the held link together. */
     fun setLiveReadings(enabled: Boolean) {

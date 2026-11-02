@@ -2,6 +2,7 @@ package tech.mmarca.openvitals.devices.wearos
 
 import java.time.Instant
 import tech.mmarca.openvitals.domain.model.WearSleepMinute
+import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 
 /**
@@ -94,10 +95,25 @@ data class WearOsAscentPage(
     val hasMore: Boolean,
 )
 
-/** A setting the phone pushes to the watch app; the phone is the watch's settings screen. */
+/** A switch the phone pushes to the watch app; the phone is the watch's settings screen. All on by default, so an added watch keeps recording what it did. */
 enum class WearOsWatchSetting(val protocolKey: String, val defaultOn: Boolean) {
-    /** Whether the watch records sleep at all. On by default, so an added watch keeps recording. */
+    /** Whether the watch records sleep at all. */
     SLEEP_RECORDING(WearLinkProtocol.Preferences.SLEEP_RECORDING, defaultOn = true),
+
+    /** Whether the watch measures heart rate. Off measures nothing, whatever the intervals say. */
+    HEART_RATE(WearLinkProtocol.Preferences.HEART_RATE, defaultOn = true),
+
+    /** Whether the watch counts steps. */
+    STEPS(WearLinkProtocol.Preferences.STEPS, defaultOn = true),
+
+    /** Whether the watch records height climbed. */
+    ASCENT(WearLinkProtocol.Preferences.ASCENT, defaultOn = true),
+}
+
+/** Which part of the day a heart rate interval applies to: by day, or in bedtime mode when sleep recording is off. */
+enum class WearOsHeartRatePeriod(val protocolKey: String) {
+    DAY(WearLinkProtocol.Preferences.HEART_RATE_DAY),
+    NIGHT(WearLinkProtocol.Preferences.HEART_RATE_NIGHT),
 }
 
 /**
@@ -191,4 +207,20 @@ interface WearOsNodePort {
 
     /** The last value the phone stored for [setting] on the registered watch; the default when never set. */
     fun watchSetting(targetAddress: String?, setting: WearOsWatchSetting): Boolean
+
+    /**
+     * Pushes the heart rate interval for [period] to the watch and stores it.
+     * The same contract as [setWatchSetting]: True when applied, false for a
+     * watch app too old to accept settings or no bonded watch, and any other
+     * failure throws [WearOsLinkFailure].
+     */
+    suspend fun setHeartRateInterval(
+        targetAddress: String?,
+        targetName: String?,
+        period: WearOsHeartRatePeriod,
+        interval: HeartRateInterval,
+    ): Boolean
+
+    /** The last interval the phone stored for [period] on the registered watch; [HeartRateInterval.EVERY_10_SECONDS] when never set. */
+    fun heartRateInterval(targetAddress: String?, period: WearOsHeartRatePeriod): HeartRateInterval
 }

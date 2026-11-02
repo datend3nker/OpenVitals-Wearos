@@ -4035,6 +4035,17 @@
     <string name="settings_watch_wearos_checking">Checking Wear OS app…</string>
     <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
     <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_tracking_title">Tracking on the watch</string>
+    <string name="settings_watch_wearos_heart_rate">Record heart rate on the watch</string>
+    <string name="settings_watch_wearos_steps">Count steps on the watch</string>
+    <string name="settings_watch_wearos_ascent">Record height climbed on the watch</string>
+    <string name="settings_watch_wearos_interval_day">Heart rate by day</string>
+    <string name="settings_watch_wearos_interval_night">Heart rate at night</string>
+    <string name="settings_watch_wearos_interval_body">Night means bedtime mode on the watch. While sleep is recorded, the night keeps every 10 seconds, because sleep detection needs every sample.</string>
+    <string name="settings_watch_wearos_interval_off">Off</string>
+    <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
+    <string name="settings_watch_wearos_interval_minute">1 min</string>
+    <string name="settings_watch_wearos_tracking_body">Turning a switch off stops the watch from measuring that. Data it has already recorded stays on the watch.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Watch Sync</string>
     <string name="settings_watch_wearos_sync_body">The OpenVitals app on the watch records your heart rate and what a sleep estimate needs, and keeps a week of it. Sync copies the new heart rate into Health Connect and writes one estimated sleep session per night.</string>
