@@ -189,10 +189,11 @@ internal fun WearOsStatusCard(
  */
 @Composable
 internal fun WearOsSettingsCard(
-    sleepRecording: Boolean,
-    isPushing: Boolean,
+    state: WatchDeviceUiState,
     onSleepRecordingChange: (Boolean) -> Unit,
 ) {
+    // The watch has to be reachable for a setting to reach it.
+    if (!state.wearOsStatus.isAppRunning) return
     OpenVitalsCard {
         Column(
             modifier = Modifier
@@ -207,9 +208,9 @@ internal fun WearOsSettingsCard(
                     modifier = Modifier.weight(1f),
                 )
                 Switch(
-                    checked = sleepRecording,
+                    checked = state.wearOsSleepRecording,
                     onCheckedChange = onSleepRecordingChange,
-                    enabled = !isPushing,
+                    enabled = !state.isPushingWearOsSetting,
                 )
             }
             Text(
