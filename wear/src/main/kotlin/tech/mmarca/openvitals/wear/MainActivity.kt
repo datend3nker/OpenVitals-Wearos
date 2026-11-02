@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -48,8 +49,17 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val link by WearLinkState.state.collectAsStateWithLifecycle()
+            // Read again on every resume: a grant can change in the system settings.
+            val settings = remember(link, permissionsVersion) {
+                SettingsUiState.from(
+                    link = link,
+                    sensorAccessGranted = WearPermissions.hasHeartRate(this) &&
+                        WearPermissions.hasHeartRateInBackground(this),
+                )
+            }
             OpenVitalsWearApp(
-                state = uiState,
+                state = uiState.copy(settings = settings),
                 onLog = viewModel::log,
                 deepLinkRoute = pendingRoute,
                 onDeepLinkHandled = { pendingRoute = null },

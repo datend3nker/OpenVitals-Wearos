@@ -70,4 +70,19 @@ data class RecordingUiState(
 data class SettingsUiState(
     val phoneConnected: Boolean = false,
     val sensorAccessGranted: Boolean = false,
-)
+) {
+    companion object {
+        /**
+         * A phone counts as connected while one is allowed, still paired and
+         * the link listens. Not while a request is open: the phone only holds
+         * a connection for as long as a pull takes, so no client at this
+         * moment says nothing about the link.
+         */
+        fun from(link: WearLinkUiState, sensorAccessGranted: Boolean): SettingsUiState =
+            SettingsUiState(
+                phoneConnected = link.listening &&
+                    link.trusted.any { phone -> link.bondLost.none { it.address == phone.address } },
+                sensorAccessGranted = sensorAccessGranted,
+            )
+    }
+}
