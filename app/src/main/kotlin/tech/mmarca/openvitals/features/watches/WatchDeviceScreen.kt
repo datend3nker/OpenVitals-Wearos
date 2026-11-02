@@ -191,7 +191,7 @@ fun WatchDeviceScreen(
                 },
                 liveHeartRateBpm = liveHeartRateBpm,
             )
-            WearOsSettingsCard(state, onSleepRecordingChange = viewModel::setWearOsSleepRecording)
+            WearOsTrackingCard(state, viewModel::setWearOsSetting, viewModel::setWearOsHeartRateInterval)
             SectionHeader(stringResource(R.string.settings_watch_wearos_sync_section))
             WearOsSyncCard(device, state.sync, onSync = viewModel::syncNow, onAllowGrants = syncGrantLauncher.launch)
         }

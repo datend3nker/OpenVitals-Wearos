@@ -38,6 +38,7 @@ import tech.mmarca.openvitals.devices.garmin.GarminTransportVariant
 import tech.mmarca.openvitals.devices.garmin.OnboardGarminWatchUseCase
 import tech.mmarca.openvitals.devices.wearos.OnboardWearOsWatchUseCase
 import tech.mmarca.openvitals.devices.wearos.WearOsCompanionManager
+import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.core.presentation.ScreenError
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -412,6 +413,7 @@ class WatchDeviceViewModelTest {
         coEvery { manager.checkWearOsWatchStatus(any(), any()) } throws SecurityException("BLUETOOTH_CONNECT")
         // The screen model also reads the watch's settings; this mock is not relaxed.
         every { manager.watchSetting(any(), any()) } returns true
+        every { manager.heartRateInterval(any(), any()) } returns HeartRateInterval.EVERY_10_SECONDS
         val vm = viewModel(watch.id, manager)
         backgroundScope.launch { vm.uiState.collect { } }
         runCurrent()

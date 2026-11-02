@@ -31,6 +31,23 @@ class WearOsLinkStoreTest {
     }
 
     @Test
+    fun `a pushed heart rate interval is kept per watch and period, and the default stands until set`() {
+        val key = "hr_night"
+        assertEquals("10", store.watchValue("7F:12:34:56:78:9A", key, default = "10"))
+
+        store.setWatchValue("7f:12:34:56:78:9a", key, "60")
+
+        assertEquals("60", store.watchValue("7F:12:34:56:78:9A", key, default = "10"))
+        assertEquals("60", WearOsLinkStore(prefs).watchValue("7F:12:34:56:78:9A", key, default = "10"))
+        assertEquals("10", store.watchValue("7F:12:34:56:78:9A", "hr_day", default = "10"))
+        assertEquals("10", store.watchValue("11:22:33:44:55:66", key, default = "10"))
+
+        store.clear("watch-1", "7F:12:34:56:78:9A")
+
+        assertEquals("10", store.watchValue("7F:12:34:56:78:9A", key, default = "10"))
+    }
+
+    @Test
     fun `a pushed watch setting is kept per watch and the default stands until set, cleared when the watch is removed`() {
         val key = "sleep"
         // Never set: the default stands.

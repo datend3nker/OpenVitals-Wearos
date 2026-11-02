@@ -4005,6 +4005,17 @@
     <string name="settings_watch_wearos_checking">Comprobando la app de Wear OS…</string>
     <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
     <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_tracking_title">Registro en el reloj</string>
+    <string name="settings_watch_wearos_heart_rate">Registrar la frecuencia cardíaca en el reloj</string>
+    <string name="settings_watch_wearos_steps">Contar pasos en el reloj</string>
+    <string name="settings_watch_wearos_ascent">Registrar la altura subida en el reloj</string>
+    <string name="settings_watch_wearos_interval_day">Frecuencia cardíaca de día</string>
+    <string name="settings_watch_wearos_interval_night">Frecuencia cardíaca de noche</string>
+    <string name="settings_watch_wearos_interval_body">La noche es el modo de hora de dormir del reloj. Mientras se registra el sueño, la noche se mantiene cada 10 segundos, porque la detección del sueño necesita cada medición.</string>
+    <string name="settings_watch_wearos_interval_off">Desactivado</string>
+    <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
+    <string name="settings_watch_wearos_interval_minute">1 min</string>
+    <string name="settings_watch_wearos_tracking_body">Desactivar detiene la medición en el reloj. Los datos ya registrados se quedan donde están.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Sincronización del reloj</string>
     <string name="settings_watch_wearos_sync_body">La app OpenVitals del reloj registra la frecuencia cardiaca y lo necesario para estimar el sueño, y guarda una semana. La sincronización copia la frecuencia cardiaca nueva en Health Connect y escribe una sesión de sueño estimada por noche.</string>

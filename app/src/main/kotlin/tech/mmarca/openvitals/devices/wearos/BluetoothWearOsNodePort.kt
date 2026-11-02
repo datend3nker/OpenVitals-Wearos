@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tech.mmarca.openvitals.domain.model.WearSleepMinute
+import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.wearlink.WearLinkClient
 import tech.mmarca.openvitals.wearlink.WearLinkConnection
 import tech.mmarca.openvitals.wearlink.WearLinkOutcome
@@ -161,19 +162,40 @@ class BluetoothWearOsNodePort @Inject constructor(
         enabled: Boolean,
     ): Boolean = withContext(Dispatchers.IO) {
         val match = bondedWatchOrNull(targetAddress, targetName) ?: return@withContext false
-        val applied = withSession(match, targetAddress, PING_TIMEOUT_MS) { session ->
-            // An older watch app has no settings channel; the caller tells the wearer to update.
-            if (WearLinkProtocol.CAP_PREFERENCES !in session.peer.capabilities) return@withSession false
-            val value = if (enabled) WearLinkProtocol.Preferences.ON else WearLinkProtocol.Preferences.OFF
-            unwrap(session.setPreference(setting.protocolKey, value))
-            true
-        }
+        val value = if (enabled) WearLinkProtocol.Preferences.ON else WearLinkProtocol.Preferences.OFF
+        val applied = pushPreference(match, targetAddress, setting.protocolKey, value)
         if (applied) linkStore.setWatchSetting(targetAddress, setting.protocolKey, enabled)
+        applied
+    }
+
+    override suspend fun setHeartRateInterval(
+        targetAddress: String?,
+        targetName: String?,
+        period: WearOsHeartRatePeriod,
+        interval: HeartRateInterval,
+    ): Boolean = withContext(Dispatchers.IO) {
+        val match = bondedWatchOrNull(targetAddress, targetName) ?: return@withContext false
+        val applied = pushPreference(match, targetAddress, period.protocolKey, interval.wire)
+        if (applied) linkStore.setWatchValue(targetAddress, period.protocolKey, interval.wire)
         applied
     }
 
     override fun watchSetting(targetAddress: String?, setting: WearOsWatchSetting): Boolean =
         linkStore.watchSetting(targetAddress, setting.protocolKey, default = setting.defaultOn)
+
+    override fun heartRateInterval(targetAddress: String?, period: WearOsHeartRatePeriod): HeartRateInterval =
+        HeartRateInterval.fromWire(
+            linkStore.watchValue(targetAddress, period.protocolKey, HeartRateInterval.EVERY_10_SECONDS.wire),
+        ) ?: HeartRateInterval.EVERY_10_SECONDS
+
+    /** Sends one `SET_PREF`. False for a watch app with no settings channel; the caller tells the wearer to update it. */
+    private suspend fun pushPreference(match: BondedWatch, targetAddress: String?, key: String, value: String): Boolean =
+        withSession(match, targetAddress, PING_TIMEOUT_MS) { session ->
+            // An older watch app has no settings channel; the caller tells the wearer to update.
+            if (WearLinkProtocol.CAP_PREFERENCES !in session.peer.capabilities) return@withSession false
+            unwrap(session.setPreference(key, value))
+            true
+        }
 
     /** The name the watch gave in its last `OK`, for the status card. */
     @Volatile
