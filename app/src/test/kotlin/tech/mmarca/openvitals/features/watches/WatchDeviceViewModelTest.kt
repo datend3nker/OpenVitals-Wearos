@@ -410,6 +410,8 @@ class WatchDeviceViewModelTest {
         )
         val manager = mockk<WearOsCompanionManager>()
         coEvery { manager.checkWearOsWatchStatus(any(), any()) } throws SecurityException("BLUETOOTH_CONNECT")
+        // The screen model also reads the watch's settings; this mock is not relaxed.
+        every { manager.watchSetting(any(), any()) } returns true
         val vm = viewModel(watch.id, manager)
         backgroundScope.launch { vm.uiState.collect { } }
         runCurrent()
