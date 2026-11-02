@@ -133,6 +133,23 @@ class BluetoothWearOsNodePort @Inject constructor(
         }
     }
 
+    override suspend fun pullLogEntries(
+        targetAddress: String?,
+        targetName: String?,
+        since: Instant,
+    ): WearOsLogEntryPage? = withContext(Dispatchers.IO) {
+        val match = bondedWatchOrNull(targetAddress, targetName) ?: return@withContext null
+        withSession(match, targetAddress, PULL_TIMEOUT_MS) { session ->
+            // A watch app from before the log would answer the request with an error.
+            if (WearLinkProtocol.CAP_LOG !in session.peer.capabilities) return@withSession WearOsLogEntryPage(emptyList(), false)
+            val page = unwrap(session.pullLogEntries(since.toEpochMilli(), WearLinkProtocol.MAX_LOG_ENTRIES_PER_REQUEST))
+            WearOsLogEntryPage(
+                entries = page.items.map { WearOsLogEntry(Instant.ofEpochMilli(it.epochMillis), it.kind, it.value, it.value2) },
+                hasMore = page.more,
+            )
+        }
+    }
+
     override suspend fun liveHeartRate(
         targetAddress: String?,
         targetName: String?,

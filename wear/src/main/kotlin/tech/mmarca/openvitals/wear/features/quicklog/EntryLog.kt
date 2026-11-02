@@ -43,6 +43,9 @@ enum class EntryType {
 
     /** Millimoles per litre; shown in mg/dL with the imperial units. */
     BLOOD_GLUCOSE,
+
+    /** Centimetres; shown in inches with the imperial units. */
+    HEIGHT,
 }
 
 data class LoggedEntry(

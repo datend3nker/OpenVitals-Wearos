@@ -252,11 +252,13 @@ internal fun WearOsSyncCard(
                     val caloriesLine = stringResource(R.string.settings_watch_wearos_needs_calories_write)
                     val weightLine = stringResource(R.string.settings_watch_wearos_needs_weight_read)
                     val restingHeartRateLine = stringResource(R.string.settings_watch_wearos_needs_resting_heart_rate)
+                    val logLine = stringResource(R.string.settings_watch_wearos_needs_log_write)
                     InlineGrantPrompt(
                         message = listOfNotNull(
                             stepsLine.takeIf { UnwrittenSeries.STEPS in unwritten },
                             caloriesLine.takeIf { UnwrittenSeries.WALKING_ENERGY in unwritten },
                             restingHeartRateLine.takeIf { UnwrittenSeries.RESTING_HEART_RATE in unwritten },
+                            logLine.takeIf { UnwrittenSeries.LOG_ENTRIES in unwritten },
                             weightLine.takeIf { weightUnreadable },
                         ).joinToString("\n"),
                         actionLabel = stringResource(R.string.action_grant_permission),

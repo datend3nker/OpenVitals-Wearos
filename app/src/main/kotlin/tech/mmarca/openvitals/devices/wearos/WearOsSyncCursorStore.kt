@@ -55,14 +55,29 @@ class WearOsSyncCursorStore(private val prefs: SharedPreferences) {
         prefs.edit { putLong(ascentKey(deviceId), at.toEpochMilli()) }
     }
 
+    /**
+     * The logged-entry cursor: the time of the newest entry written, or the
+     * time just before the first entry a missing grant kept out. [Instant.EPOCH]
+     * for a watch never synced.
+     */
+    fun logCursor(deviceId: String): Instant =
+        Instant.ofEpochMilli(prefs.getLong(logKey(deviceId), 0L))
+
+    fun setLogCursor(deviceId: String, at: Instant) {
+        prefs.edit { putLong(logKey(deviceId), at.toEpochMilli()) }
+    }
+
     fun clear(deviceId: String) {
         prefs.edit {
             remove(key(deviceId))
             remove(sleepKey(deviceId))
             remove(stepsKey(deviceId))
             remove(ascentKey(deviceId))
+            remove(logKey(deviceId))
         }
     }
+
+    private fun logKey(deviceId: String) = "log_cursor_$deviceId"
 
     private fun key(deviceId: String) = "hr_cursor_$deviceId"
 

@@ -81,4 +81,5 @@
     <string name="settings_watch_wearos_interval_minute">دقيقة</string>
     <string name="settings_watch_wearos_tracking_body">إيقاف أي مفتاح يمنع الساعة من قياس ذلك. البيانات المسجّلة سابقًا تبقى على الساعة.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
+    <string name="settings_watch_wearos_needs_log_write">لم تُكتب الإدخالات المسجّلة: اسمح لـ OpenVitals بكتابتها في Health Connect، ثم زامن مرة أخرى.</string>
 </resources>

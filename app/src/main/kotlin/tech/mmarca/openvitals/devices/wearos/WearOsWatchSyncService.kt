@@ -79,6 +79,10 @@ import tech.mmarca.openvitals.healthconnect.withStrictHealthConnectReads
  * If the user withheld the write permission for an estimate, it is skipped
  * and the sync goes on.
  *
+ * Last, what the wearer logged on the watch ([WearOsLogEntrySync]): each
+ * kind is written as its Health Connect record, and a kind whose grant is
+ * missing waits on the watch for the next sync.
+ *
  * [DeviceSyncResult.Succeeded.fileCount] carries the number of heart rate
  * samples, [DeviceSyncResult.Succeeded.stepMinuteCount] the minutes of
  * steps and [DeviceSyncResult.Succeeded.nightCount] the nights written; the
@@ -119,6 +123,14 @@ class WearOsWatchSyncService(
 
     private val syncMutex = Mutex()
 
+    private val logEntries = WearOsLogEntrySync(
+        importRepository = importRepository,
+        cursors = cursors,
+        granted = { healthConnect.grantedPermissions() },
+        mindfulnessAvailable = { importRepository.isMindfulnessAvailable() },
+        zone = zone,
+    )
+
     init {
         WearOsLog.installLogcatSink()
     }
@@ -152,6 +164,7 @@ class WearOsWatchSyncService(
                 return notPaired(device)
             }
             if (!pullSleep(device, progress)) return notPaired(device)
+            if (!pullLogEntries(device, progress)) return notPaired(device)
         } catch (error: CancellationException) {
             throw error
         } catch (failure: WearOsLinkFailure) {
@@ -460,6 +473,23 @@ class WearOsWatchSyncService(
         cursors.setSleepCursor(device.id, newest)
         progress.nights = nights
         WearOsLog.log("sleep: $nights night(s) written from ${minutes.size} minutes")
+        return true
+    }
+
+    /**
+     * What the wearer logged on the watch, written as its Health Connect
+     * records ([WearOsLogEntrySync]). Last, so a failure here costs nothing
+     * already written. False when no bonded watch matches.
+     */
+    private suspend fun pullLogEntries(device: BleSensorDevice, progress: Progress): Boolean {
+        val outcome = logEntries.sync(device.id) { since ->
+            retryOnce { nodePort.pullLogEntries(device.address, device.bluetoothName, since) }
+        } ?: return false
+        if (outcome.withheld.isNotEmpty()) {
+            progress.unwritten += UnwrittenSeries.LOG_ENTRIES
+            progress.withheldPermissions += outcome.withheld
+        }
+        WearOsLog.log("log entries: ${outcome.written} written")
         return true
     }
 

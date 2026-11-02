@@ -31,6 +31,10 @@ import java.util.UUID
  *   each newer than `epochMillis` (exclusive), then `END <count> <more>`.
  * - `SM_SINCE <epochMillis> <limit>` → up to `limit` `SM` lines, oldest first,
  *   each newer than `epochMillis` (exclusive), then `END <count> <more>`.
+ * - `LG_SINCE <epochMillis> <limit>` → up to `limit` `LG` lines, oldest first,
+ *   each newer than `epochMillis` (exclusive), then `END <count> <more>`. The
+ *   entries the wearer logged on the watch; only a watch announcing `lg`
+ *   serves it.
  * - `HR_LIVE <seconds>` → for up to `seconds` (at most [MAX_LIVE_SECONDS],
  *   less than the watch's idle timeout), one `HR` line as each reading
  *   arrives, then `END <count> 0`. Only a watch announcing `hl` serves it; a
@@ -48,6 +52,9 @@ import java.util.UUID
  *   deviation times ten and sample count; `mx..sz` the per-axis mean and
  *   standard deviation in milli-g; `zmin`, `zmax` the five-second z-angle
  *   extremes in degrees and `zd10` its mean change times ten.
+ * - `LG <epochMillis> <KIND> <value> <value2|->` — one logged entry: the
+ *   kind's unit is the metric one (`LogKind`), `value2` only for a blood
+ *   pressure's diastolic. A kind this side does not know is skipped.
  * - `END <count> <more>` — `count` data lines were sent; `more` is `1` when the
  *   limit cut the reply short and another request from the last line's time
  *   would return more.
@@ -83,6 +90,8 @@ object WearLinkProtocol {
     const val ASCENT_SINCE: String = "AS_SINCE"
     const val ASCENT_MINUTE: String = "AS"
     const val HEART_RATE_LIVE: String = "HR_LIVE"
+    const val LOG_SINCE: String = "LG_SINCE"
+    const val LOG_ENTRY: String = "LG"
     const val SET_PREFERENCE: String = "SET_PREF"
     const val PREFERENCE_OK: String = "PREF_OK"
     const val END: String = "END"
@@ -98,6 +107,9 @@ object WearLinkProtocol {
     const val CAP_STEPS: String = "st"
     const val CAP_ASCENT: String = "as"
     const val CAP_LIVE_HEART_RATE: String = "hl"
+
+    /** The watch serves `LG_SINCE`: the entries the wearer logged on it. */
+    const val CAP_LOG: String = "lg"
 
     /** The watch accepts `SET_PREF`: the phone is its settings screen. */
     const val CAP_PREFERENCES: String = "pref"
@@ -176,6 +188,7 @@ object WearLinkProtocol {
         data class SleepMinutesSince(val sinceEpochMillis: Long, val limit: Int) : Request()
         data class StepsSince(val sinceEpochMillis: Long, val limit: Int) : Request()
         data class AscentSince(val sinceEpochMillis: Long, val limit: Int) : Request()
+        data class LogSince(val sinceEpochMillis: Long, val limit: Int) : Request()
         data class LiveHeartRate(val seconds: Int) : Request()
         data class SetPreference(val key: String, val value: String) : Request()
     }
@@ -234,6 +247,7 @@ object WearLinkProtocol {
         is Request.SleepMinutesSince -> formatSleepMinutesRequest(request.sinceEpochMillis, request.limit)
         is Request.StepsSince -> formatStepsRequest(request.sinceEpochMillis, request.limit)
         is Request.AscentSince -> formatAscentRequest(request.sinceEpochMillis, request.limit)
+        is Request.LogSince -> formatLogRequest(request.sinceEpochMillis, request.limit)
         is Request.LiveHeartRate -> "$HEART_RATE_LIVE ${request.seconds.coerceIn(1, MAX_LIVE_SECONDS)}"
         is Request.SetPreference -> "$SET_PREFERENCE ${request.key} ${request.value}"
     }
@@ -248,6 +262,9 @@ object WearLinkProtocol {
         }
         parseSinceRequest(line, ASCENT_SINCE, MAX_ASCENT_MINUTES_PER_REQUEST)?.let { (since, limit) ->
             return Request.AscentSince(since, limit)
+        }
+        parseSinceRequest(line, LOG_SINCE, MAX_LOG_ENTRIES_PER_REQUEST)?.let { (since, limit) ->
+            return Request.LogSince(since, limit)
         }
         parseLiveRequest(line)?.let { return Request.LiveHeartRate(it) }
         parsePreferenceRequest(line)?.let { return it }
@@ -301,6 +318,61 @@ object WearLinkProtocol {
 
     /** The most ascent minutes one `AS_SINCE` reply carries. The phone pages past it. */
     const val MAX_ASCENT_MINUTES_PER_REQUEST: Int = 2000
+
+    /** The most logged entries one `LG_SINCE` reply carries. The watch keeps 500 at most, so one page is the whole log. */
+    const val MAX_LOG_ENTRIES_PER_REQUEST: Int = 500
+
+    /**
+     * What the wearer logged on the watch, by kind. The names are the watch's
+     * own `EntryType` names, so a kind reads the same on the wire and in the
+     * watch's storage; the watch maps each of its kinds to one of these by an
+     * exhaustive `when`. Every value is metric: the unit is named beside each.
+     */
+    enum class LogKind {
+        /** Millilitres. */
+        WATER,
+
+        /** Kilograms. */
+        WEIGHT,
+
+        /** Systolic mmHg; [LogEntry.value2] is the diastolic. */
+        BLOOD_PRESSURE,
+
+        /** Minutes of a breathing session, logged when it ends. */
+        MINDFULNESS,
+
+        /** Beats per minute from a spot measurement. */
+        HEART_RATE,
+
+        /** Milliseconds RMSSD from a spot measurement. */
+        HRV,
+
+        /** Percent of body mass. */
+        BODY_FAT,
+
+        /** Percent of haemoglobin carrying oxygen. */
+        BLOOD_OXYGEN,
+
+        /** Breaths per minute. */
+        RESPIRATORY_RATE,
+
+        /** Degrees Celsius. */
+        BODY_TEMPERATURE,
+
+        /** Millimoles per litre. */
+        BLOOD_GLUCOSE,
+
+        /** Centimetres. */
+        HEIGHT,
+        ;
+
+        companion object {
+            fun fromWord(word: String): LogKind? = entries.firstOrNull { it.name == word }
+        }
+    }
+
+    /** One logged entry. [value2] is the diastolic of a blood pressure, else null; see [LogKind] for the units. */
+    data class LogEntry(val epochMillis: Long, val kind: LogKind, val value: Double, val value2: Double?)
 
     data class HeartRateRequest(val sinceEpochMillis: Long, val limit: Int)
 
@@ -424,6 +496,33 @@ object WearLinkProtocol {
         val decimetres = fields[2].toIntOrNull() ?: return null
         if (at <= 0 || at % MINUTE_MILLIS != 0L || decimetres !in 1..MAX_ASCENT_DECIMETRES_PER_MINUTE) return null
         return AscentMinute(at, decimetres)
+    }
+
+    fun formatLogRequest(sinceEpochMillis: Long, limit: Int): String =
+        "$LOG_SINCE $sinceEpochMillis ${limit.coerceIn(1, MAX_LOG_ENTRIES_PER_REQUEST)}"
+
+    /**
+     * `LG <epochMillis> <KIND> <value> <value2|->`. The value is written as
+     * Kotlin prints a double, which parses back to the same double, so the
+     * phone's record id from it is the same on every sync.
+     */
+    fun formatLogEntry(entry: LogEntry): String =
+        "$LOG_ENTRY ${entry.epochMillis} ${entry.kind.name} ${entry.value} ${entry.value2 ?: NO_VALUE}"
+
+    /** Null unless [line] is a well-formed `LG` line: a time, a kind this side knows, and finite values. */
+    fun parseLogEntry(line: String): LogEntry? {
+        val fields = fields(line)
+        if (fields.size != 5 || fields[0] != LOG_ENTRY) return null
+        val at = fields[1].toLongOrNull() ?: return null
+        val kind = LogKind.fromWord(fields[2]) ?: return null
+        val value = fields[3].toDoubleOrNull()?.takeIf { it.isFinite() } ?: return null
+        val value2 = if (fields[4] == NO_VALUE) {
+            null
+        } else {
+            fields[4].toDoubleOrNull()?.takeIf { it.isFinite() } ?: return null
+        }
+        if (at <= 0) return null
+        return LogEntry(at, kind, value, value2)
     }
 
     fun formatSample(epochMillis: Long, bpm: Int): String = "$HEART_RATE $epochMillis $bpm"
