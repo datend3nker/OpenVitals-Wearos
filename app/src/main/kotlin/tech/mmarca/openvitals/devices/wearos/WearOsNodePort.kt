@@ -94,6 +94,20 @@ data class WearOsAscentPage(
     val hasMore: Boolean,
 )
 
+/** One entry the wearer logged on the watch, in metric; [value2] is a blood pressure's diastolic. */
+data class WearOsLogEntry(
+    val time: Instant,
+    val kind: WearLinkProtocol.LogKind,
+    val value: Double,
+    val value2: Double?,
+)
+
+/** One page of a logged-entry pull. [hasMore] means the watch cut the reply at its limit. */
+data class WearOsLogEntryPage(
+    val entries: List<WearOsLogEntry>,
+    val hasMore: Boolean,
+)
+
 /** A setting the phone pushes to the watch app; the phone is the watch's settings screen. */
 enum class WearOsWatchSetting(val protocolKey: String, val defaultOn: Boolean) {
     /** Whether the watch records sleep at all. On by default, so an added watch keeps recording. */
@@ -161,6 +175,18 @@ interface WearOsNodePort {
         targetName: String?,
         since: Instant,
     ): WearOsAscentPage?
+
+    /**
+     * Entries the wearer logged on the watch, newer than [since], oldest
+     * first, up to the watch's page limit. Empty page: the watch app is too
+     * old to keep a log. Null: no bonded watch matches. Any other failure
+     * throws [WearOsLinkFailure].
+     */
+    suspend fun pullLogEntries(
+        targetAddress: String?,
+        targetName: String?,
+        since: Instant,
+    ): WearOsLogEntryPage?
 
     /**
      * Holds one connection and hands each heart rate reading to [onSample],

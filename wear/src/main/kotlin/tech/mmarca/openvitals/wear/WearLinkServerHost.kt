@@ -7,6 +7,8 @@ import android.util.Log
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import tech.mmarca.openvitals.wear.features.quicklog.EntryType
+import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
 import tech.mmarca.openvitals.wearlink.Page
 import tech.mmarca.openvitals.wearlink.WearLinkConnection
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
@@ -25,10 +27,12 @@ class WearLinkServerHost(
     store: MetricStore,
     live: LiveHeartRate,
     preferences: WearPreferences,
+    /** What the wearer logged on this watch, the entries the phone pulls. */
+    logEntries: () -> List<LoggedEntry>,
     private val localName: () -> String,
     private val state: WearLinkState = WearLinkState,
 ) {
-    private val server = WearLinkServer(trust, Handler(store, live, preferences, localName))
+    private val server = WearLinkServer(trust, Handler(store, live, preferences, logEntries, localName))
 
     @Volatile
     private var serverSocket: BluetoothServerSocket? = null
@@ -111,6 +115,7 @@ class WearLinkServerHost(
         private val store: MetricStore,
         private val live: LiveHeartRate,
         private val preferences: WearPreferences,
+        private val logEntries: () -> List<LoggedEntry>,
         private val localName: () -> String,
     ) : WearLinkRequestHandler {
         override fun localName(): String = localName.invoke()
@@ -120,6 +125,16 @@ class WearLinkServerHost(
             if (!preferences.sleepRecording) remove(WearLinkProtocol.CAP_SLEEP_MINUTES)
             if (live.hasSensor) add(WearLinkProtocol.CAP_LIVE_HEART_RATE)
             add(WearLinkProtocol.CAP_PREFERENCES)
+            add(WearLinkProtocol.CAP_LOG)
+        }
+
+        override fun logEntriesSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.LogEntry> {
+            // The log is capped at 500 entries in its own store, so the whole of it is read here.
+            val newer = logEntries().filter { it.timeMillis > sinceEpochMillis }.sortedBy { it.timeMillis }
+            return Page(
+                newer.take(limit).map { WearLinkProtocol.LogEntry(it.timeMillis, it.type.wireKind(), it.value, it.value2) },
+                newer.size > limit,
+            )
         }
 
         override fun setPreference(key: String, value: String): Boolean = preferences.applyPreference(key, value)
@@ -150,4 +165,23 @@ class WearLinkServerHost(
         const val TAG = "WearLinkServerHost"
         const val SERVICE_NAME = "OpenVitalsWearApp"
     }
+}
+
+/**
+ * The wire name of a logged kind. Exhaustive on purpose: a new [EntryType]
+ * does not compile until the protocol has its kind.
+ */
+internal fun EntryType.wireKind(): WearLinkProtocol.LogKind = when (this) {
+    EntryType.WATER -> WearLinkProtocol.LogKind.WATER
+    EntryType.WEIGHT -> WearLinkProtocol.LogKind.WEIGHT
+    EntryType.BLOOD_PRESSURE -> WearLinkProtocol.LogKind.BLOOD_PRESSURE
+    EntryType.MINDFULNESS -> WearLinkProtocol.LogKind.MINDFULNESS
+    EntryType.HEART_RATE -> WearLinkProtocol.LogKind.HEART_RATE
+    EntryType.HRV -> WearLinkProtocol.LogKind.HRV
+    EntryType.BODY_FAT -> WearLinkProtocol.LogKind.BODY_FAT
+    EntryType.BLOOD_OXYGEN -> WearLinkProtocol.LogKind.BLOOD_OXYGEN
+    EntryType.RESPIRATORY_RATE -> WearLinkProtocol.LogKind.RESPIRATORY_RATE
+    EntryType.BODY_TEMPERATURE -> WearLinkProtocol.LogKind.BODY_TEMPERATURE
+    EntryType.BLOOD_GLUCOSE -> WearLinkProtocol.LogKind.BLOOD_GLUCOSE
+    EntryType.HEIGHT -> WearLinkProtocol.LogKind.HEIGHT
 }

@@ -64,6 +64,20 @@ class WearLinkSession internal constructor(
         }
     }
 
+    /**
+     * The entries logged on the watch after [sinceEpochMillis]. A line of a
+     * kind this side does not know is skipped, so a newer watch adds kinds
+     * without breaking an older phone.
+     */
+    fun pullLogEntries(sinceEpochMillis: Long, limit: Int): WearLinkOutcome<Page<WearLinkProtocol.LogEntry>> {
+        val items = ArrayList<WearLinkProtocol.LogEntry>()
+        return exchange(WearLinkProtocol.Request.LogSince(sinceEpochMillis, limit)) { line ->
+            WearLinkProtocol.parseLogEntry(line)?.let { items += it; return@exchange Reply.More }
+            WearLinkProtocol.parseEnd(line)?.let { return@exchange Reply.Done(Page(items, it.more)) }
+            Reply.Unexpected
+        }
+    }
+
     /** One live window of up to [seconds]: hands each reading to [onSample] as it arrives; the count when it ends. */
     fun liveHeartRate(seconds: Int, onSample: (WearLinkProtocol.HeartRateSample) -> Unit): WearLinkOutcome<Int> =
         exchange(WearLinkProtocol.Request.LiveHeartRate(seconds)) { line ->

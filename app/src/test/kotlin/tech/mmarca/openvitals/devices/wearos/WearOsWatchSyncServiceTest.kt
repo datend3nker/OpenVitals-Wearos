@@ -110,6 +110,9 @@ class WearOsWatchSyncServiceTest {
             return ascentPages.removeFirstOrNull() ?: WearOsAscentPage(emptyList(), hasMore = false)
         }
 
+        override suspend fun pullLogEntries(targetAddress: String?, targetName: String?, since: Instant): WearOsLogEntryPage =
+            WearOsLogEntryPage(emptyList(), hasMore = false)
+
         override suspend fun liveHeartRate(
             targetAddress: String?,
             targetName: String?,
