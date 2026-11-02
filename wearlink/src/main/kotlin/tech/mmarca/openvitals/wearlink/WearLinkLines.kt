@@ -1,4 +1,4 @@
-qpackage tech.mmarca.openvitals.wearlink
+package tech.mmarca.openvitals.wearlink
 
 import java.io.IOException
 import java.io.InputStream
