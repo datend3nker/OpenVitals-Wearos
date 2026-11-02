@@ -4039,6 +4039,9 @@
     <string name="settings_watch_wearos_fail_generic">ウォッチを同期できませんでした。もう一度お試しください。</string>
     <string name="settings_watch_wearos_check_app">Wear OS アプリを確認</string>
     <string name="settings_watch_wearos_checking">Wear OS アプリを確認中…</string>
+    <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
+    <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">ウォッチの同期</string>
     <string name="settings_watch_wearos_sync_body">ウォッチの OpenVitals アプリは心拍数と睡眠推定に必要なデータを記録し、1 週間分を保持します。同期すると新しい心拍数を Health Connect にコピーし、一晩ごとに推定した睡眠セッションを書き込みます。</string>
     <string name="settings_watch_wearos_sync_now">ウォッチを同期</string>

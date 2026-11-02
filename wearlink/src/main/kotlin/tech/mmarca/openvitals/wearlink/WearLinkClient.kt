@@ -72,6 +72,17 @@ class WearLinkSession internal constructor(
             Reply.Unexpected
         }
 
+    /**
+     * Pushes one preference to the watch. [WearLinkOutcome.Ok] means applied;
+     * [WearLinkOutcome.Refused] with [WearLinkProtocol.ErrorCode.BAD_REQUEST]
+     * means the watch does not know the key or value. Only call when the peer
+     * advertised [WearLinkProtocol.CAP_PREFERENCES].
+     */
+    fun setPreference(key: String, value: String): WearLinkOutcome<Unit> =
+        exchange(WearLinkProtocol.Request.SetPreference(key, value)) { line ->
+            if (line.trim() == WearLinkProtocol.PREFERENCE_OK) Reply.Done(Unit) else Reply.Unexpected
+        }
+
     /** Closes the connection; the watch is waiting for exactly this. */
     fun close() = connection.close()
 

@@ -3994,6 +3994,9 @@
     <string name="settings_watch_wearos_fail_generic">Não foi possível sincronizar o relógio. Tente de novo.</string>
     <string name="settings_watch_wearos_check_app">Verificar a app Wear OS</string>
     <string name="settings_watch_wearos_checking">A verificar a app Wear OS…</string>
+    <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
+    <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Sincronização do relógio</string>
     <string name="settings_watch_wearos_sync_body">A app OpenVitals do relógio regista a frequência cardíaca e o necessário para estimar o sono, e guarda uma semana. A sincronização copia a frequência cardíaca nova para o Health Connect e escreve uma sessão de sono estimada por noite.</string>
     <string name="settings_watch_wearos_sync_now">Sincronizar relógio</string>

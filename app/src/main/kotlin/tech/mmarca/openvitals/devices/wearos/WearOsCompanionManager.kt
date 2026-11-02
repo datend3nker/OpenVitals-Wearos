@@ -21,6 +21,23 @@ class WearOsCompanionManager @Inject constructor(
         targetName: String? = null,
     ): WearOsCompanionStatus = nodePort.checkStatus(targetAddress, targetName)
 
+    /** The value the phone last pushed for [setting] to the watch registered under [targetAddress]. */
+    fun watchSetting(targetAddress: String?, setting: WearOsWatchSetting): Boolean =
+        nodePort.watchSetting(targetAddress, setting)
+
+    /**
+     * Pushes [setting] to the watch. True when applied; false when the watch
+     * app is too old to accept settings or no bonded watch matches. Throws
+     * [SecurityException] for a missing Bluetooth grant, [WearOsLinkFailure]
+     * for a watch that could not be reached.
+     */
+    suspend fun setWatchSetting(
+        targetAddress: String?,
+        targetName: String?,
+        setting: WearOsWatchSetting,
+        enabled: Boolean,
+    ): Boolean = nodePort.setWatchSetting(targetAddress, targetName, setting, enabled)
+
     /**
      * The watch's heart rate as it happens, for as long as it is collected:
      * each reading's bpm, and null whenever the stream pauses (the watch is

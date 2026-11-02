@@ -32,6 +32,8 @@ data class WearLinkUiState(
     val ppgLogging: Boolean = false,
     /** Whether the sleep recorder holds the processor awake for bedtime. */
     val bedtimeHold: BedtimeHold = BedtimeHold.OFF,
+    /** Whether the watch records sleep at all; set from the phone. Default on. */
+    val sleepRecording: Boolean = true,
 )
 
 /**

@@ -4003,6 +4003,9 @@
     <string name="settings_watch_wearos_fail_generic">La montre n’a pas pu être synchronisée. Réessayez.</string>
     <string name="settings_watch_wearos_check_app">Vérifier l\'appli Wear OS</string>
     <string name="settings_watch_wearos_checking">Vérification de l\'appli Wear OS…</string>
+    <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
+    <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Synchronisation de la montre</string>
     <string name="settings_watch_wearos_sync_body">L’app OpenVitals de la montre enregistre la fréquence cardiaque et ce qu’il faut pour estimer le sommeil, et en garde une semaine. La synchronisation copie la nouvelle fréquence cardiaque dans Health Connect et écrit une session de sommeil estimée par nuit.</string>
     <string name="settings_watch_wearos_sync_now">Synchroniser la montre</string>

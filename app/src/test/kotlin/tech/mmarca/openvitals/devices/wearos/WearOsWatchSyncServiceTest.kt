@@ -115,6 +115,15 @@ class WearOsWatchSyncServiceTest {
             targetName: String?,
             onSample: (WearOsHeartRateSample) -> Unit,
         ): Boolean = false
+
+        override suspend fun setWatchSetting(
+            targetAddress: String?,
+            targetName: String?,
+            setting: WearOsWatchSetting,
+            enabled: Boolean,
+        ): Boolean = true
+
+        override fun watchSetting(targetAddress: String?, setting: WearOsWatchSetting): Boolean = setting.defaultOn
     }
 
     /**

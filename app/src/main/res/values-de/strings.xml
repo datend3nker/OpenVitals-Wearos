@@ -3967,6 +3967,9 @@
     <string name="settings_watch_wearos_fail_generic">Die Uhr konnte nicht synchronisiert werden. Versuche es erneut.</string>
     <string name="settings_watch_wearos_check_app">Wear-OS-App prüfen</string>
     <string name="settings_watch_wearos_checking">Wear-OS-App wird geprüft…</string>
+    <string name="settings_watch_wearos_sleep_recording">Schlaf auf der Uhr aufzeichnen</string>
+    <string name="settings_watch_wearos_sleep_recording_body">Ausgeschaltet zeichnet die Uhr keinen Schlaf mehr auf und das Handy holt ihn nicht mehr ab. Nutze das, wenn eine andere App deinen Schlaf schon erfasst.</string>
+    <string name="settings_watch_wearos_setting_unsupported">Aktualisiere die Uhren-App, um diese Einstellung zu ändern.</string>
     <string name="settings_watch_wearos_sync_section">Uhr-Synchronisierung</string>
     <string name="settings_watch_wearos_sync_body">Die OpenVitals-App auf der Uhr zeichnet die Herzfrequenz und die Daten für eine Schlafschätzung auf und behält eine Woche davon. Die Synchronisierung kopiert die neue Herzfrequenz nach Health Connect und schreibt pro Nacht eine geschätzte Schlafsitzung.</string>
     <string name="settings_watch_wearos_sync_now">Uhr synchronisieren</string>

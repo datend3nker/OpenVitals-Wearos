@@ -4040,6 +4040,9 @@
     <string name="settings_watch_wearos_fail_generic">Не удалось синхронизировать часы. Попробуйте снова.</string>
     <string name="settings_watch_wearos_check_app">Проверить приложение Wear OS</string>
     <string name="settings_watch_wearos_checking">Проверка приложения Wear OS…</string>
+    <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
+    <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Синхронизация часов</string>
     <string name="settings_watch_wearos_sync_body">Приложение OpenVitals на часах записывает пульс и данные для оценки сна и хранит их неделю. Синхронизация копирует новый пульс в Health Connect и записывает по одной оценённой сессии сна за ночь.</string>
     <string name="settings_watch_wearos_sync_now">Синхронизировать часы</string>

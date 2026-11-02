@@ -31,6 +31,25 @@ class WearOsLinkStoreTest {
     }
 
     @Test
+    fun `a pushed watch setting is kept per watch and the default stands until set, cleared when the watch is removed`() {
+        val key = "sleep"
+        // Never set: the default stands.
+        assertTrue(store.watchSetting("7F:12:34:56:78:9A", key, default = true))
+
+        store.setWatchSetting("7f:12:34:56:78:9a", key, enabled = false)
+
+        // Stored under the registered address, case-insensitive, and survives a restart.
+        assertFalse(store.watchSetting("7F:12:34:56:78:9A", key, default = true))
+        assertFalse(WearOsLinkStore(prefs).watchSetting("7F:12:34:56:78:9A", key, default = true))
+        // Another watch keeps its own default.
+        assertTrue(store.watchSetting("11:22:33:44:55:66", key, default = true))
+
+        store.clear("watch-1", "7F:12:34:56:78:9A")
+
+        assertTrue(store.watchSetting("7F:12:34:56:78:9A", key, default = true))
+    }
+
+    @Test
     fun `a token kept per bond address is adopted once by the watch reached through it`() {
         val allowed = WearLinkToken.generate()
         prefs.edit().putString("token_4A:F1:89:49:3C:85", allowed).apply()

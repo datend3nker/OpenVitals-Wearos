@@ -68,4 +68,7 @@
     <string name="skin_temperature_baseline_not_provided">לא סופק על ידי המקור</string>
     <string name="skin_temperature_baseline_newest">מהרשומה החדשה ביותר</string>
     <string name="stat_vs_usual_average">לעומת הממוצע הרגיל</string>
+    <string name="settings_watch_wearos_sleep_recording">Record sleep on the watch</string>
+    <string name="settings_watch_wearos_sleep_recording_body">When off, the watch stops recording sleep and your phone no longer collects it. Use this if another app already tracks your sleep.</string>
+    <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
 </resources>
