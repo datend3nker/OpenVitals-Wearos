@@ -101,7 +101,9 @@ class WearAppService : Service() {
         nightHrv = NightHrvRecorder(
             this,
             store,
-            isHolding = { WearLinkState.state.value.bedtimeHold == BedtimeHold.HOLDING },
+            isHolding = {
+                WearLinkState.state.value.let { it.bedtimeHold == BedtimeHold.HOLDING || it.sleepHoldActive }
+            },
         )
         recorder = HeartRateRecorder(
             this,

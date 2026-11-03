@@ -53,8 +53,17 @@ The phone's Watches screen sets what the watch records. The switches go over the
 - **Heart rate at night**: the same three choices. Night is bedtime mode on the watch, the same mode the sleep recorder follows. While sleep is recorded the night stays every 10 seconds whatever this says, because sleep detection reads every sample; the night setting then applies only with sleep recording off.
 - **Steps** and **height climbed**: off stops that recorder and the watch stops offering it. Data already on the watch stays there.
 - **Sleep**: as in the Sleep section.
+- Night-time HRV has no switch of its own: it runs only with heart rate and sleep both on, and the watch then offers it to the phone.
 
 An interval of every minute switches the sensor off between readings: the watch registers it for at most 20 seconds at the start of each minute and takes it off at the first usable reading. This is not only thinner storage. The readings are not batched, because a batch could not be delivered before the sensor is switched off without a race. How long the sensor takes to give a first reading on a real watch is not measured yet. Not yet tried on a watch.
+
+### Heart rate variability at night
+
+While bedtime mode is on, the watch is worn and off the charger, and the last ten minutes of movement rows show a still arm, the watch listens to its raw pulse sensor for five minutes, at most every 30 minutes, and works out the heart rate variability as RMSSD in milliseconds (the root mean square of the differences between successive beat-to-beat intervals). It finds each beat in the 25 Hz signal, places it finer than one sample, drops intervals that cannot be a resting heart, and gives no value when too few beats are clean. A window is also dropped when the movement rows that cover it show the arm moved. Each good window is one row (start time, RMSSD, number of beats) and a week is kept. It needs heart rate tracking and sleep recording switched on (see [Tracking on the watch](#tracking-on-the-watch)), and a watch with Samsung's raw pulse sensor; without it there is no HRV. It uses only the heart rate permission the watch app already holds, and no vendor SDK.
+
+The watch's HRV tile shows last night's mean and the week of nightly means. The phone's sync writes each window to Health Connect as an HRV (RMSSD) record. If OpenVitals may not write HRV there, the windows stay on the watch and the card asks for the grant. The method is not validated against a chest strap or ECG; the research behind it is on `research/wear-ppg-hrv`.
+
+Not yet verified on a watch: the whole chain (the sensor registration, the five-minute windows, whether the raw sensor can run beside the normal heart rate sensor, the battery cost, and the stillness thresholds). The pipeline itself is tested only with synthetic pulses.
 
 ### Sleep
 
