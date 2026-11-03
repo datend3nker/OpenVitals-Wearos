@@ -22,6 +22,7 @@ import tech.mmarca.openvitals.wear.health.WearCapabilities
 class WearAppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val entryLog = EntryLog(application)
+    private val wearPreferences = WearPreferences(application)
     private val capabilities = MutableStateFlow(WearCapabilities())
     private val readings = WearReadingsSource(MetricStore(application))
 
@@ -33,6 +34,7 @@ class WearAppViewModel(application: Application) : AndroidViewModel(application)
                 metrics = readings.metrics,
                 sleepStages = readings.sleepStages,
                 capabilities = capabilities,
+                preferences = DisplayPreferences(unitSystem = wearPreferences.unitSystem),
                 // Until the probe answers, keep offering what was on offer before.
                 availableMetrics = if (capabilities.probed) capabilities.availableMetrics else initial.availableMetrics,
             ).withEntries(entries)

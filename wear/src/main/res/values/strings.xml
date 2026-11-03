@@ -204,4 +204,14 @@
     <string name="diag_drain">Battery −%1$s %% per hour</string>
     <string name="diag_heart_rate_share">Heart rate on: %1$d %% of the time</string>
     <string name="action_forget_phone">Forget phone</string>
+    <string name="settings_tracking">Tracking &amp; Sensors</string>
+    <string name="settings_tracking_heart_rate">Heart rate tracking</string>
+    <string name="settings_tracking_steps">Step counter</string>
+    <string name="settings_tracking_ascent">Elevation &amp; floors</string>
+    <string name="settings_tracking_sleep">Sleep recording</string>
+    <string name="settings_tracking_hr_day">Daytime heart rate</string>
+    <string name="settings_tracking_hr_night">Bedtime heart rate</string>
+    <string name="interval_every_10_seconds">Every 10 seconds</string>
+    <string name="interval_every_minute">Every minute</string>
+    <string name="interval_off">Off</string>
 </resources>

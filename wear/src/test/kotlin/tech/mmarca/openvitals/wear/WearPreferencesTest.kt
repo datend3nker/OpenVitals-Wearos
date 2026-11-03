@@ -100,4 +100,17 @@ class WearPreferencesTest {
         preferences.applyPreference(WearLinkProtocol.Preferences.SLEEP_RECORDING, WearLinkProtocol.Preferences.ON)
         assertTrue(state.state.value.sleepRecording)
     }
+
+    @Test
+    fun `local setters update flags intervals and unit system on watch`() {
+        preferences.setFlag(WearLinkProtocol.Preferences.STEPS, false)
+        assertFalse(preferences.steps)
+
+        preferences.setInterval(WearLinkProtocol.Preferences.HEART_RATE_DAY, HeartRateInterval.EVERY_MINUTE)
+        assertEquals(HeartRateInterval.EVERY_MINUTE, preferences.heartRateDay)
+
+        assertEquals(UnitSystem.METRIC, preferences.unitSystem)
+        preferences.unitSystem = UnitSystem.IMPERIAL
+        assertEquals(UnitSystem.IMPERIAL, preferences.unitSystem)
+    }
 }

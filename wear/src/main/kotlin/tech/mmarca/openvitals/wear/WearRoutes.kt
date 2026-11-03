@@ -13,6 +13,7 @@ object WearRoutes {
     const val RECORDING = "recording"
     const val WORKOUT_SUMMARY = "workout_summary"
     const val SETTINGS = "settings"
+    const val TRACKING = "tracking"
     const val STATUS = "status"
     const val PHONE = "phone"
     const val SENSORS = "sensors"
