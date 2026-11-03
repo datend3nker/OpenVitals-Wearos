@@ -9,7 +9,10 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material3.AppScaffold
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emptyFlow
 import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
@@ -18,6 +21,7 @@ import tech.mmarca.openvitals.wear.features.dashboard.TileEditorScreen
 import tech.mmarca.openvitals.wear.features.measure.MeasureListScreen
 import tech.mmarca.openvitals.wear.features.measure.Measurement
 import tech.mmarca.openvitals.wear.features.measure.MeasurementRoute
+import tech.mmarca.openvitals.wear.features.measure.MeasurementRunner
 import tech.mmarca.openvitals.wear.features.metric.MetricDetailScreen
 import tech.mmarca.openvitals.wear.features.quicklog.BloodPressureEntryScreen
 import tech.mmarca.openvitals.wear.features.quicklog.BreatheScreen
@@ -108,9 +112,17 @@ fun OpenVitalsWearApp(
                 composable(WearRoutes.METRIC) { entry ->
                     val metric = MetricTile.valueOf(checkNotNull(entry.arguments?.getString(WearRoutes.METRIC_ARG)))
                     val measurement = metric.spotMeasurement?.takeIf { it in currentState.capabilities.measurements }
+                    val recorded = currentState.metrics[metric] ?: MetricUiState()
+                    val live by remember(metric, measurement) {
+                        if (metric == MetricTile.HEART_RATE && measurement != null) {
+                            MeasurementRunner(context).liveHeartRate().catch { }
+                        } else {
+                            emptyFlow()
+                        }
+                    }.collectAsStateWithLifecycle(null)
                     MetricDetailScreen(
                         metric = metric,
-                        state = currentState.metrics[metric] ?: MetricUiState(),
+                        state = live?.let { recorded.copy(current = it) } ?: recorded,
                         unitSystem = currentState.preferences.unitSystem,
                         maxHeartRate = currentState.preferences.maxHeartRate,
                         restingHeartRate = currentState.metrics[MetricTile.RESTING_HEART_RATE]?.current,
