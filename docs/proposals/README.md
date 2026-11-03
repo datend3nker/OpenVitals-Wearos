@@ -7,5 +7,6 @@ These pages describe explorations or future work. They are not the source of tru
 - [Caffeine detail and future sleep insights](caffeine-aware-sleep-insights.md): implemented standalone caffeine experience plus planned direct sleep-insight integration.
 - [Medical records through Health Connect](medical-records.md): the plan for FHIR medical records held in Health Connect. Phase 1 and part of phase 2 are built.
 - [Medical records: what is left](medical-records-left.md): the open work list: checks that need real data, small fixes, release steps, and the parsers not built.
+- [Watch tiles with real values](wear-computed-metrics.md): the watch computes what it measures with code shared with the phone; the phone sends only what the watch cannot know.
 
 Current implemented feature behavior lives in [Features](../features/README.md).
