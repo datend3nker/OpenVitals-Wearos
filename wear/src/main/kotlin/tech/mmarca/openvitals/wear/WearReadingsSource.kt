@@ -7,6 +7,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.Dispatchers
 import tech.mmarca.openvitals.domain.insights.sleepNightWindow
 
@@ -24,13 +26,16 @@ internal class WearReadingsSource(
 ) {
     private val pastDays = HashMap<LocalDate, DayReadings>()
 
-    /** The tiles' values and last night's stages now, read again every [REFRESH_MILLIS] while someone collects. */
-    fun readings(): Flow<WearReadingsState> = flow {
-        while (true) {
-            emit(load())
-            delay(REFRESH_MILLIS)
-        }
-    }.flowOn(Dispatchers.IO)
+    /** The tiles' values and last night's stages now, read again on store updates or ticker. */
+    fun readings(): Flow<WearReadingsState> = merge(
+        flow {
+            while (true) {
+                emit(Unit)
+                delay(REFRESH_MILLIS)
+            }
+        },
+        store.updates,
+    ).flowOn(Dispatchers.IO).map { load() }
 
     internal fun load(): WearReadingsState {
         val zone = clock.zone
