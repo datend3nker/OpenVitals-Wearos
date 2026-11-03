@@ -201,4 +201,6 @@
     <string name="diag_drain">Aku −%1$s %% tunnis</string>
     <string name="diag_heart_rate_share">Pulss sees: %1$d %% ajast</string>
     <string name="action_forget_phone">Unusta telefon</string>
+    <string name="recording_waiting_gps">Ootan GPS-i</string>
+    <string name="unit_spm">sammu/min</string>
 </resources>

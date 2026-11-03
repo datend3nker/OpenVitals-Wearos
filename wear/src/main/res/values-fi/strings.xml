@@ -201,4 +201,6 @@
     <string name="diag_drain">Akku −%1$s %% tunnissa</string>
     <string name="diag_heart_rate_share">Syke päällä: %1$d %% ajasta</string>
     <string name="action_forget_phone">Unohda puhelin</string>
+    <string name="recording_waiting_gps">Odotetaan GPS:ää</string>
+    <string name="unit_spm">askelta/min</string>
 </resources>

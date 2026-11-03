@@ -201,4 +201,6 @@
     <string name="diag_drain">Bateria −%1$s %% por hora</string>
     <string name="diag_heart_rate_share">Frequência cardíaca ativa: %1$d %% do tempo</string>
     <string name="action_forget_phone">Esquecer telemóvel</string>
+    <string name="recording_waiting_gps">A aguardar o GPS</string>
+    <string name="unit_spm">passos/min</string>
 </resources>

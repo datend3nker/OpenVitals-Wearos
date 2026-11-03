@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
+import tech.mmarca.openvitals.wearlink.WearLinkWorkout
 
 class WearMetricsTest {
 
@@ -45,6 +46,18 @@ class WearMetricsTest {
         val hrv = WearLinkProtocol.HrvWindow(1_791_568_860_000, 452, 280)
         assertEquals(hrv, roundTrip(WearMetrics.HRV, hrv))
         assertEquals(hrv.epochMillis, WearMetrics.HRV.timeOf(hrv))
+
+        val workout = WearLinkWorkout(1_791_568_860_000, 1_791_570_000_000, 56, 4000, 3210, null)
+        assertEquals(workout, roundTrip(WearMetrics.WORKOUTS, workout))
+        assertEquals(workout.startMillis, WearMetrics.WORKOUTS.timeOf(workout))
+
+        val pause = WearLinkWorkout.Pause(1_791_569_000_000, 1_791_569_060_000)
+        assertEquals(pause, roundTrip(WearMetrics.WORKOUT_PAUSES, pause))
+        assertEquals(pause.startMillis, WearMetrics.WORKOUT_PAUSES.timeOf(pause))
+
+        val point = WearLinkWorkout.RoutePoint(1_791_569_000_000, 480_000_000, 110_000_000, 5000, 45)
+        assertEquals(point, roundTrip(WearMetrics.WORKOUT_POINTS, point))
+        assertEquals(point.epochMillis, WearMetrics.WORKOUT_POINTS.timeOf(point))
     }
 
     @Test
@@ -54,11 +67,11 @@ class WearMetricsTest {
     }
 
     @Test
-    fun `keys are unique and are the capabilities the link announces`() {
+    fun `keys are unique, and each series that is a capability uses its name`() {
         val keys = WearMetrics.ALL.map { it.key }
         assertEquals(keys.size, keys.toSet().size)
         assertEquals(
-            listOf(WearLinkProtocol.CAP_HEART_RATE, WearLinkProtocol.CAP_SLEEP_MINUTES, WearLinkProtocol.CAP_STEPS, WearLinkProtocol.CAP_ASCENT, WearLinkProtocol.CAP_HRV),
+            listOf(WearLinkProtocol.CAP_HEART_RATE, WearLinkProtocol.CAP_SLEEP_MINUTES, WearLinkProtocol.CAP_STEPS, WearLinkProtocol.CAP_ASCENT, WearLinkProtocol.CAP_HRV, WearLinkProtocol.CAP_WORKOUTS, "wp", "wr"),
             keys,
         )
     }
@@ -70,6 +83,7 @@ class WearMetricsTest {
         assertEquals(WearMetric.OnSameTime.REPLACE, WearMetrics.STEPS.onSameTime)
         assertEquals(WearMetric.OnSameTime.REPLACE, WearMetrics.ASCENT.onSameTime)
         assertEquals(WearMetric.OnSameTime.KEEP, WearMetrics.HRV.onSameTime)
+        assertEquals(WearMetric.OnSameTime.KEEP, WearMetrics.WORKOUTS.onSameTime)
     }
 
     private fun <T> roundTrip(metric: WearMetric<T>, value: T): T? = metric.decode(metric.encode(value))

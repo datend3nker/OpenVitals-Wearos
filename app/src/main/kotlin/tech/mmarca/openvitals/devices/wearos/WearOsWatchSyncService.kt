@@ -27,6 +27,7 @@ import tech.mmarca.openvitals.core.presentation.ScreenError
 import tech.mmarca.openvitals.core.presentation.isPermissionFailure
 import tech.mmarca.openvitals.data.repository.AppleHealthImportRepository
 import tech.mmarca.openvitals.data.repository.BleDeviceRepository
+import tech.mmarca.openvitals.data.repository.contract.ActivityRepository
 import tech.mmarca.openvitals.data.repository.contract.BodyProfilePreferences
 import tech.mmarca.openvitals.data.repository.contract.BodyRepository
 import tech.mmarca.openvitals.devices.core.sync.DeviceSyncPhase
@@ -81,6 +82,10 @@ import tech.mmarca.openvitals.healthconnect.withStrictHealthConnectReads
  * If the user withheld the write permission for an estimate, it is skipped
  * and the sync goes on.
  *
+ * Then the workouts the wearer recorded on the watch ([WearOsWorkoutSync]):
+ * each is written as an activity session with its route, under an id from its
+ * start. Without the activity write grants they wait on the watch.
+ *
  * Last, what the wearer logged on the watch ([WearOsLogEntrySync]): each
  * kind is written as its Health Connect record, and a kind whose grant is
  * missing waits on the watch for the next sync.
@@ -103,6 +108,8 @@ class WearOsWatchSyncService(
     private val weightKg: suspend () -> Double?,
     private val clock: () -> Instant,
     private val zone: () -> ZoneId,
+    /** Writes the watch's workouts as sessions; null where a test has no activity store. */
+    private val activityRepository: ActivityRepository? = null,
 ) : DeviceSyncPort {
 
     @Inject
@@ -116,11 +123,12 @@ class WearOsWatchSyncService(
         linkStore: WearOsLinkStore,
         bodyRepository: BodyRepository,
         bodyProfilePreferences: BodyProfilePreferences,
+        activityRepository: ActivityRepository,
     ) : this(
         nodePort, cursors, importRepository, bleDeviceRepository, recordingController, healthConnect, linkStore,
         // Strict: the readers turn a failed read into null, which would pass for "no weight".
         { withStrictHealthConnectReads { bodyRepository.resolveBodyProfile(bodyProfilePreferences.bodyProfile()).weightKg } },
-        Instant::now, ZoneId::systemDefault,
+        Instant::now, ZoneId::systemDefault, activityRepository,
     )
 
     private val syncMutex = Mutex()
@@ -138,6 +146,14 @@ class WearOsWatchSyncService(
         cursors = cursors,
         granted = { healthConnect.grantedPermissions() },
         zone = zone,
+    )
+
+    private val workouts = WearOsWorkoutSync(
+        cursors = cursors,
+        missingPermissions = { request ->
+            activityRepository?.activityWritePermissions(request).orEmpty() - healthConnect.grantedPermissions()
+        },
+        write = { request -> activityRepository?.writeActivityEntry(request) },
     )
 
     init {
@@ -174,6 +190,7 @@ class WearOsWatchSyncService(
             }
             if (!pullSleep(device, progress)) return notPaired(device)
             if (!pullHrv(device, progress)) return notPaired(device)
+            if (!pullWorkouts(device, progress)) return notPaired(device)
             if (!pullLogEntries(device, progress)) return notPaired(device)
         } catch (error: CancellationException) {
             throw error
@@ -541,6 +558,24 @@ class WearOsWatchSyncService(
             WearOsLog.log("hrv: not written, Health Connect permission missing")
         }
         WearOsLog.log("hrv: ${outcome.written} window(s) written")
+        return true
+    }
+
+    /**
+     * The workouts the wearer recorded on the watch, written as sessions with
+     * their route ([WearOsWorkoutSync]). A missing grant leaves them on the
+     * watch and the sync goes on. False when no bonded watch matches.
+     */
+    private suspend fun pullWorkouts(device: BleSensorDevice, progress: Progress): Boolean {
+        if (activityRepository == null) return true
+        val outcome = workouts.sync(device.id) { since ->
+            retryOnce { nodePort.pullWorkouts(device.address, device.bluetoothName, since) }
+        } ?: return false
+        if (outcome.withheld.isNotEmpty()) {
+            progress.withheldPermissions += outcome.withheld
+            WearOsLog.log("workouts: not written, Health Connect permission missing")
+        }
+        WearOsLog.log("workouts: ${outcome.written} written")
         return true
     }
 

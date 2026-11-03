@@ -201,4 +201,6 @@
     <string name="diag_drain">Accu −%1$s %% per uur</string>
     <string name="diag_heart_rate_share">Hartslag aan: %1$d %% van de tijd</string>
     <string name="action_forget_phone">Telefoon vergeten</string>
+    <string name="recording_waiting_gps">Wachten op GPS</string>
+    <string name="unit_spm">stappen/min</string>
 </resources>

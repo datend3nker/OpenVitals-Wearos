@@ -24,6 +24,14 @@ class HeartRateScheduleTest {
     }
 
     @Test
+    fun `a workout records at the full rate even with tracking off`() {
+        assertEquals(
+            EVERY_10_SECONDS,
+            HeartRateSchedule.interval(heartRate = false, sleepRecording = false, bedtime = false, day = OFF, night = OFF, workout = true),
+        )
+    }
+
+    @Test
     fun `by day the day setting applies`() {
         assertEquals(
             EVERY_MINUTE,

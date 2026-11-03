@@ -17,7 +17,7 @@ object HeartRateSchedule {
     val FULL_RATE: HeartRateInterval = HeartRateInterval.EVERY_10_SECONDS
 
     /**
-     * The interval in force. Off while heart rate tracking is off. In bedtime
+     * The interval in force. [FULL_RATE] during a [workout]. Otherwise off while heart rate tracking is off. In bedtime
      * mode with sleep recording on it is [FULL_RATE]: the sleep pipeline reads
      * every sample, so a thinned night would break it. In bedtime mode with
      * sleep recording off it is the [night] setting; otherwise [day].
@@ -28,7 +28,10 @@ object HeartRateSchedule {
         bedtime: Boolean,
         day: HeartRateInterval,
         night: HeartRateInterval,
+        workout: Boolean = false,
     ): HeartRateInterval = when {
+        // A workout records at the full rate, whatever the settings say.
+        workout -> FULL_RATE
         !heartRate -> HeartRateInterval.OFF
         bedtime && sleepRecording -> FULL_RATE
         bedtime -> night

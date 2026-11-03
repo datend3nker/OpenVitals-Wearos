@@ -83,6 +83,7 @@ class MemoryHandler(
     var ascent: List<WearLinkProtocol.AscentMinute> = emptyList(),
     var hrv: List<WearLinkProtocol.HrvWindow> = emptyList(),
     var logEntries: List<WearLinkProtocol.LogEntry> = emptyList(),
+    var workouts: List<WearLinkWorkout> = emptyList(),
     /** What one `HR_LIVE` window hands out; empty is a watch off the wrist. */
     var live: List<WearLinkProtocol.HeartRateSample> = emptyList(),
     var name: String = "Galaxy Watch8 (89FZ)",
@@ -113,6 +114,10 @@ class MemoryHandler(
     }
     override fun ascentSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.AscentMinute> {
         val newer = ascent.filter { it.epochMillis > sinceEpochMillis }
+        return Page(newer.take(limit), newer.size > limit)
+    }
+    override fun workoutsSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkWorkout> {
+        val newer = workouts.filter { it.startMillis > sinceEpochMillis }.sortedBy { it.startMillis }
         return Page(newer.take(limit), newer.size > limit)
     }
     override fun logEntriesSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.LogEntry> {

@@ -201,4 +201,6 @@
     <string name="diag_drain">Bateria −%1$s %% na godzinę</string>
     <string name="diag_heart_rate_share">Tętno włączone: %1$d %% czasu</string>
     <string name="action_forget_phone">Zapomnij o telefonie</string>
+    <string name="recording_waiting_gps">Czekam na GPS</string>
+    <string name="unit_spm">kroków/min</string>
 </resources>

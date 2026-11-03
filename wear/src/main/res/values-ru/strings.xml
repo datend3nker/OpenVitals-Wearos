@@ -201,4 +201,6 @@
     <string name="diag_drain">Батарея −%1$s %% в час</string>
     <string name="diag_heart_rate_share">Пульс включён: %1$d %% времени</string>
     <string name="action_forget_phone">Забыть телефон</string>
+    <string name="recording_waiting_gps">Ожидание GPS</string>
+    <string name="unit_spm">шагов/мин</string>
 </resources>
