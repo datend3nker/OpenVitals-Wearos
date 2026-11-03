@@ -94,3 +94,7 @@ The watch closes a minute 90 seconds after it started; by then every batch that 
 ## What the watch actually delivers
 
 The Watch8's accelerometer cannot wake the watch and buffers 300 readings, 48 seconds at the 6.25 Hz the hub delivers; readings older than that are lost when the buffer wraps. The heart rate sensor can wake the watch, so its report latency sets how often the watch wakes at night and is kept at 40 seconds so the accelerometer buffer is drained before it wraps. A minute still ends up sparse now and then (`SPARSE` flag, `n` under 150), with few or no valid five-second epochs; the phone's window detector carries the last known angle change across such minutes rather than reading them as movement. The first recorded night, before the latency change, kept a median of 30 readings a minute.
+
+## Other uses of the rows
+
+The watch's night-time HRV windows (`NightHrvSchedule` in `:healthcalc`) read the `mv10`, `kind` and `CHARGING`, `OFF_BODY` and `SCREEN_ON` flags of these rows: a window starts after ten minutes with `mv10` 0, and is kept only when every minute it touches has `mv10` of 10 or less. The rows are not changed for it.
