@@ -50,7 +50,7 @@ internal fun AppleHealthWorkoutsWithoutRoute(
         )
         (if (expanded) sorted else sorted.take(CollapsedCount)).forEach { workout ->
             Text(
-                text = "${exerciseTypeLabel(workout.appleType.toExerciseType())} · ${formatter.format(workout.start)}",
+                text = "${exerciseTypeLabel(workout.appleType.toExerciseType(emptyMap()))} · ${formatter.format(workout.start)}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp),
