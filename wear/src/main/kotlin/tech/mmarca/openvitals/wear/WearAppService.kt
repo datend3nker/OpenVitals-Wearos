@@ -50,6 +50,7 @@ class WearAppService : Service() {
     private lateinit var stepRecorder: StepRecorder
     private lateinit var ascentRecorder: AscentRecorder
     private lateinit var minuteRecorder: SleepMinuteRecorder
+    private lateinit var nightHrv: NightHrvRecorder
     private lateinit var preferences: WearPreferences
     private lateinit var bedtimeMonitor: BedtimeMonitor
     private lateinit var wornMonitor: WornMonitor
@@ -90,6 +91,11 @@ class WearAppService : Service() {
         Thread({ LegacyStoreImport.run(this, store) }, "LegacyStoreImport").start()
         ppgLogger = PpgRawLogger(this)
         minuteRecorder = SleepMinuteRecorder(this, store, isHeartRateRecording = ::isHeartRateDense)
+        nightHrv = NightHrvRecorder(
+            this,
+            store,
+            isHolding = { WearLinkState.state.value.bedtimeHold == BedtimeHold.HOLDING },
+        )
         recorder = HeartRateRecorder(
             this,
             store,
@@ -114,6 +120,7 @@ class WearAppService : Service() {
             store = store,
             live = LiveHeartRate(this, isRecording = { recorder.isRunning }),
             preferences = preferences,
+            hrvAvailable = { nightHrv.hasSensor },
             logEntries = { EntryLog(this).load() },
             localName = ::localName,
         )
@@ -250,6 +257,8 @@ class WearAppService : Service() {
         }
         if (preferences.ascent) ascentRecorder.start() else ascentRecorder.stop()
         if (preferences.sleepRecording) minuteRecorder.start() else minuteRecorder.stop()
+        // The windows need heart rate tracking, and the minute rows that say the arm is still.
+        nightHrv.setEnabled(heartRateGranted && preferences.heartRate && preferences.sleepRecording)
     }
 
     private fun setHeartRateWanted(wanted: Boolean) {
@@ -289,6 +298,7 @@ class WearAppService : Service() {
             stepRecorder.stop()
             ascentRecorder.stop()
             minuteRecorder.stop()
+            nightHrv.stop()
             ppgLogger.stop()
             WearLinkState.update { it.copy(ppgLogging = false) }
         }
