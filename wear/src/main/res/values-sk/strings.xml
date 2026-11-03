@@ -201,4 +201,6 @@
     <string name="diag_drain">Batéria −%1$s %% za hodinu</string>
     <string name="diag_heart_rate_share">Tep zapnutý: %1$d %% času</string>
     <string name="action_forget_phone">Zabudnúť telefón</string>
+    <string name="recording_waiting_gps">Čaká sa na GPS</string>
+    <string name="unit_spm">krokov/min</string>
 </resources>

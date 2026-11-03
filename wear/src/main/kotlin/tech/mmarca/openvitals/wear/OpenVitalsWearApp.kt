@@ -32,6 +32,7 @@ import tech.mmarca.openvitals.wear.features.quicklog.QuickLogScreen
 import tech.mmarca.openvitals.wear.features.quicklog.WaterServingMl
 import tech.mmarca.openvitals.wear.features.quicklog.WeightEntryScreen
 import tech.mmarca.openvitals.wear.features.recording.ActivityPickerScreen
+import tech.mmarca.openvitals.wear.features.recording.ActivityType
 import tech.mmarca.openvitals.wear.features.recording.RecordingScreen
 import tech.mmarca.openvitals.wear.features.recording.WorkoutSummaryScreen
 import tech.mmarca.openvitals.wear.features.settings.SettingsScreen
@@ -58,6 +59,11 @@ fun OpenVitalsWearApp(
     statusScreen: @Composable () -> Unit = {},
     phoneScreen: @Composable () -> Unit = {},
     sensorScreen: @Composable (onOpenDetails: () -> Unit) -> Unit = {},
+    onStartWorkout: (ActivityType) -> Unit = {},
+    onPauseWorkout: () -> Unit = {},
+    onResumeWorkout: () -> Unit = {},
+    onStopWorkout: () -> Unit = {},
+    onCloseSummary: () -> Unit = {},
 ) {
     // The nav graph is built once, so every destination reads the latest
     // state through this holder instead of a value captured at build time.
@@ -70,8 +76,6 @@ fun OpenVitalsWearApp(
             val tilePrefs = remember(context) { WearTilePreferences(context) }
             val wearPreferences = remember(context) { WearPreferences.shared(context) }
             val navController = rememberSwipeDismissableNavController()
-            var activityType by rememberSaveable { mutableStateOf(state.recording.activityType) }
-            var paused by rememberSaveable { mutableStateOf(state.recording.paused) }
             var chosenTiles by remember { mutableStateOf(tilePrefs.loadTiles()) }
             fun updateTiles(updated: List<MetricTile>) {
                 chosenTiles = updated
@@ -79,8 +83,8 @@ fun OpenVitalsWearApp(
             }
             // A chosen tile whose sensor is missing stays chosen but is not shown.
             fun visibleTiles() = chosenTiles.filter { it in currentState.availableMetrics }
-            fun recording() = currentState.recording.copy(activityType = activityType, paused = paused)
-            fun workoutFields() = currentState.capabilities.workouts[activityType].orEmpty()
+            fun recording() = currentState.recording
+            fun workoutFields() = currentState.capabilities.workouts[currentState.recording.activityType].orEmpty()
             fun log(type: EntryType, value: Double, value2: Double? = null) =
                 onLog(LoggedEntry(type, System.currentTimeMillis(), value, value2))
 
@@ -90,6 +94,18 @@ fun OpenVitalsWearApp(
                     navController.navigate(route) { popUpTo(WearRoutes.DASHBOARD) }
                 }
                 onDeepLinkHandled()
+            }
+
+            // A workout the service runs opens its screen, also when the app was closed meanwhile.
+            LaunchedEffect(state.workout.running) {
+                if (state.workout.running) {
+                    navController.navigate(WearRoutes.RECORDING) { popUpTo(WearRoutes.DASHBOARD) }
+                }
+            }
+            LaunchedEffect(state.workout.finished) {
+                if (state.workout.finished) {
+                    navController.navigate(WearRoutes.WORKOUT_SUMMARY) { popUpTo(WearRoutes.DASHBOARD) }
+                }
             }
 
             SwipeDismissableNavHost(
@@ -106,6 +122,7 @@ fun OpenVitalsWearApp(
                         onMeasure = { navController.navigate(WearRoutes.MEASURE) },
                         onQuickLog = { navController.navigate(WearRoutes.QUICK_LOG) },
                         onEditTiles = { navController.navigate(WearRoutes.TILE_EDITOR) },
+                        onStartActivity = { navController.navigate(WearRoutes.ACTIVITY_PICKER) },
                         onOpenSettings = { navController.navigate(WearRoutes.SETTINGS) },
                     )
                 }
@@ -212,14 +229,8 @@ fun OpenVitalsWearApp(
                 composable(WearRoutes.ACTIVITY_PICKER) {
                     ActivityPickerScreen(
                         capabilities = currentState.capabilities,
-                        onPick = { picked ->
-                            activityType = picked
-                            paused = false
-                            navController.navigate(WearRoutes.RECORDING) {
-                                // Stopping returns to the dashboard, not to the picker.
-                                popUpTo(WearRoutes.DASHBOARD)
-                            }
-                        },
+                        // The service starts the workout; the screen follows its state.
+                        onPick = onStartWorkout,
                     )
                 }
                 composable(WearRoutes.RECORDING) {
@@ -228,12 +239,8 @@ fun OpenVitalsWearApp(
                         fields = workoutFields(),
                         unitSystem = currentState.preferences.unitSystem,
                         maxHeartRate = currentState.preferences.maxHeartRate,
-                        onTogglePause = { paused = !paused },
-                        onStop = {
-                            navController.navigate(WearRoutes.WORKOUT_SUMMARY) {
-                                popUpTo(WearRoutes.DASHBOARD)
-                            }
-                        },
+                        onTogglePause = { if (currentState.recording.paused) onResumeWorkout() else onPauseWorkout() },
+                        onStop = onStopWorkout,
                     )
                 }
                 composable(WearRoutes.WORKOUT_SUMMARY) {
@@ -241,7 +248,10 @@ fun OpenVitalsWearApp(
                         state = recording(),
                         fields = workoutFields(),
                         unitSystem = currentState.preferences.unitSystem,
-                        onDone = { navController.popBackStack() },
+                        onDone = {
+                            onCloseSummary()
+                            navController.popBackStack()
+                        },
                     )
                 }
                 composable(WearRoutes.SETTINGS) {

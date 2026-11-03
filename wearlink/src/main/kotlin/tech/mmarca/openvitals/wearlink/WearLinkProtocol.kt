@@ -39,6 +39,10 @@ import java.util.UUID
  *   each newer than `epochMillis` (exclusive), then `END <count> <more>`. The
  *   heart rate variability the watch measured at night; only a watch
  *   announcing `hv` serves it.
+ * - `WO_SINCE <epochMillis> <limit>` → up to `limit` workouts, oldest first, each
+ *   started after `epochMillis` (exclusive): its `WO` header, then its `WP`
+ *   pauses and `WR` route points (see [WearLinkWorkout]), then one `END
+ *   <count> <more>` that counts workouts. Only a watch announcing `wo` serves it.
  * - `HR_LIVE <seconds>` → for up to `seconds` (at most [MAX_LIVE_SECONDS],
  *   less than the watch's idle timeout), one `HR` line as each reading
  *   arrives, then `END <count> 0`. Only a watch announcing `hl` serves it; a
@@ -97,6 +101,7 @@ object WearLinkProtocol {
     const val ASCENT_MINUTE: String = "AS"
     const val HRV_SINCE: String = "HV_SINCE"
     const val HRV_WINDOW: String = "HV"
+    const val WORKOUTS_SINCE: String = "WO_SINCE"
     const val HEART_RATE_LIVE: String = "HR_LIVE"
     const val LOG_SINCE: String = "LG_SINCE"
     const val LOG_ENTRY: String = "LG"
@@ -118,6 +123,9 @@ object WearLinkProtocol {
 
     /** The watch measures heart rate variability at night and serves `HV_SINCE`. */
     const val CAP_HRV: String = "hv"
+
+    /** The watch records workouts and serves `WO_SINCE`. */
+    const val CAP_WORKOUTS: String = "wo"
 
     /** The watch serves `LG_SINCE`: the entries the wearer logged on it. */
     const val CAP_LOG: String = "lg"
@@ -201,6 +209,7 @@ object WearLinkProtocol {
         data class AscentSince(val sinceEpochMillis: Long, val limit: Int) : Request()
         data class LogSince(val sinceEpochMillis: Long, val limit: Int) : Request()
         data class HrvSince(val sinceEpochMillis: Long, val limit: Int) : Request()
+        data class WorkoutsSince(val sinceEpochMillis: Long, val limit: Int) : Request()
         data class LiveHeartRate(val seconds: Int) : Request()
         data class SetPreference(val key: String, val value: String) : Request()
     }
@@ -261,6 +270,7 @@ object WearLinkProtocol {
         is Request.AscentSince -> formatAscentRequest(request.sinceEpochMillis, request.limit)
         is Request.LogSince -> formatLogRequest(request.sinceEpochMillis, request.limit)
         is Request.HrvSince -> formatHrvRequest(request.sinceEpochMillis, request.limit)
+        is Request.WorkoutsSince -> "$WORKOUTS_SINCE ${request.sinceEpochMillis} ${request.limit.coerceIn(1, MAX_WORKOUTS_PER_REQUEST)}"
         is Request.LiveHeartRate -> "$HEART_RATE_LIVE ${request.seconds.coerceIn(1, MAX_LIVE_SECONDS)}"
         is Request.SetPreference -> "$SET_PREFERENCE ${request.key} ${request.value}"
     }
@@ -281,6 +291,9 @@ object WearLinkProtocol {
         }
         parseSinceRequest(line, HRV_SINCE, MAX_HRV_WINDOWS_PER_REQUEST)?.let { (since, limit) ->
             return Request.HrvSince(since, limit)
+        }
+        parseSinceRequest(line, WORKOUTS_SINCE, MAX_WORKOUTS_PER_REQUEST)?.let { (since, limit) ->
+            return Request.WorkoutsSince(since, limit)
         }
         parseLiveRequest(line)?.let { return Request.LiveHeartRate(it) }
         parsePreferenceRequest(line)?.let { return it }
@@ -337,6 +350,9 @@ object WearLinkProtocol {
 
     /** The most HRV windows one `HV_SINCE` reply carries: a week at 2 a night is far below it. */
     const val MAX_HRV_WINDOWS_PER_REQUEST: Int = 500
+
+    /** The most workouts one `WO_SINCE` reply carries; each brings its own route, so the phone pages by workout. */
+    const val MAX_WORKOUTS_PER_REQUEST: Int = 5
 
     /** The most logged entries one `LG_SINCE` reply carries. The watch keeps 500 at most, so one page is the whole log. */
     const val MAX_LOG_ENTRIES_PER_REQUEST: Int = 500

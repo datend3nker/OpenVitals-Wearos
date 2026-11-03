@@ -201,4 +201,6 @@
     <string name="diag_drain">Μπαταρία −%1$s %% ανά ώρα</string>
     <string name="diag_heart_rate_share">Καρδιακός ρυθμός ενεργός: %1$d %% του χρόνου</string>
     <string name="action_forget_phone">Ξέχασε το τηλέφωνο</string>
+    <string name="recording_waiting_gps">Αναμονή για GPS</string>
+    <string name="unit_spm">βήματα/λεπτό</string>
 </resources>

@@ -73,6 +73,15 @@ fun WorkoutSummaryScreen(
                     )
                 }
             }
+            if (WorkoutField.STEPS in fields && state.steps != null) {
+                item {
+                    SummaryRow(
+                        label = stringResource(R.string.metric_steps),
+                        value = formatCount(state.steps),
+                        unit = stringResource(R.string.unit_steps),
+                    )
+                }
+            }
             if (WorkoutField.PACE in fields && state.speedMetersPerSecond != null) {
                 item {
                     SummaryRow(

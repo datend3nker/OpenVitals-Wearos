@@ -3,6 +3,7 @@ package tech.mmarca.openvitals.wear
 import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
 import tech.mmarca.openvitals.wear.features.recording.ActivityType
 import tech.mmarca.openvitals.wear.health.WearCapabilities
+import tech.mmarca.openvitals.wear.workout.WorkoutUiState
 
 /** Everything the screens render. A null value means "no reading yet". */
 data class WearUiState(
@@ -14,6 +15,7 @@ data class WearUiState(
     /** A metric without an entry renders as "no reading yet". */
     val metrics: Map<MetricTile, MetricUiState> = emptyMap(),
     val recording: RecordingUiState = RecordingUiState(),
+    val workout: WorkoutUiState = WorkoutUiState(),
     val settings: SettingsUiState = SettingsUiState(),
     val preferences: DisplayPreferences = DisplayPreferences(),
     /** What the watch can measure; gates measurement buttons and workouts. */
@@ -59,7 +61,31 @@ data class RecordingUiState(
     val speedMetersPerSecond: Double? = null,
     val averageHeartRateBpm: Int? = null,
     val paused: Boolean = false,
+    val steps: Int? = null,
+    val cadenceStepsPerMinute: Int? = null,
+    val floors: Int? = null,
+    val waitingForFix: Boolean = false,
 )
+
+/** The screens' view of the workout: its latest snapshot, or the final one. */
+fun WorkoutUiState.toRecording(): RecordingUiState {
+    val s = snapshot ?: return RecordingUiState()
+    val type = ActivityType.entries.firstOrNull { it.sport == sport } ?: ActivityType.WORKOUT
+    return RecordingUiState(
+        activityType = type,
+        elapsedSeconds = s.activeSeconds,
+        heartRateBpm = s.heartRateBpm,
+        distanceMeters = s.distanceMetres,
+        elevationGainMeters = s.ascentMetres,
+        speedMetersPerSecond = s.speedMetresPerSecond,
+        averageHeartRateBpm = s.averageHeartRateBpm,
+        paused = s.paused,
+        steps = s.steps,
+        cadenceStepsPerMinute = s.cadenceStepsPerMinute,
+        floors = s.floors,
+        waitingForFix = s.waitingForFix,
+    )
+}
 
 data class SettingsUiState(
     val phoneConnected: Boolean = false,

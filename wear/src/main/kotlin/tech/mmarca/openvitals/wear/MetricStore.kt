@@ -83,6 +83,28 @@ class MetricStore(context: Context, name: String? = DB_NAME) : SQLiteOpenHelper(
         notifyDataChanged()
     }
 
+    /** Sets the state [key] to [value]. */
+    fun setState(key: String, value: String) {
+        val row = ContentValues(2).apply {
+            put(COL_KEY, key)
+            put(COL_VALUE, value)
+        }
+        writableDatabase.insertWithOnConflict(STATE_TABLE, null, row, SQLiteDatabase.CONFLICT_REPLACE)
+    }
+
+    fun clearState(key: String) {
+        writableDatabase.delete(STATE_TABLE, "$COL_KEY = ?", arrayOf(key))
+    }
+
+    /** Removes the rows of [metric] with a time from [fromEpochMillis] to [toEpochMillis], both included. */
+    fun deleteRange(metric: WearMetric<*>, fromEpochMillis: Long, toEpochMillis: Long) {
+        writableDatabase.delete(
+            TABLE,
+            "$COL_METRIC = ? AND $COL_TIME >= ? AND $COL_TIME <= ?",
+            arrayOf(metric.key, fromEpochMillis.toString(), toEpochMillis.toString()),
+        )
+    }
+
     /** The state stored under [key], or null when there is none. */
     fun state(key: String): String? =
         readableDatabase.query(STATE_TABLE, arrayOf(COL_VALUE), "$COL_KEY = ?", arrayOf(key), null, null, null)

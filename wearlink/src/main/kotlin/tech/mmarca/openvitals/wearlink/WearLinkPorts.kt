@@ -61,6 +61,12 @@ interface WearLinkRequestHandler {
     fun hrvSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.HrvWindow>
 
     /**
+     * The finished workouts that started after [sinceEpochMillis], oldest first, at most [limit], each with
+     * its pauses and route. Only called when the watch advertised [WearLinkProtocol.CAP_WORKOUTS].
+     */
+    fun workoutsSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkWorkout>
+
+    /**
      * The entries the wearer logged on the watch and that are newer than
      * [sinceEpochMillis], oldest first, at most [limit]. Only called when the
      * watch advertised [WearLinkProtocol.CAP_LOG].

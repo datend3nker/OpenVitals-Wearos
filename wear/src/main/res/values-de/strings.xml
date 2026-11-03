@@ -214,4 +214,6 @@
     <string name="interval_every_10_seconds">Alle 10 Sekunden</string>
     <string name="interval_every_minute">Jede Minute</string>
     <string name="interval_off">Aus</string>
+    <string name="recording_waiting_gps">Warte auf GPS</string>
+    <string name="unit_spm">Schritte/min</string>
 </resources>
