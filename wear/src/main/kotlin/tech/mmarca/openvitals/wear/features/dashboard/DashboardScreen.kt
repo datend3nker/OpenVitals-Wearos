@@ -17,6 +17,7 @@ import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
+import androidx.wear.compose.material3.EdgeButton
 import androidx.wear.compose.material3.Icon
 import androidx.wear.compose.material3.ListHeader
 import androidx.wear.compose.material3.ScreenScaffold
@@ -55,13 +56,21 @@ fun DashboardScreen(
     onMeasure: () -> Unit,
     onQuickLog: () -> Unit,
     onEditTiles: () -> Unit,
+    onStartActivity: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
     val rings = activityRings(tiles, metrics, unitSystem)
 
-    ScreenScaffold(scrollState = listState) { contentPadding ->
+    ScreenScaffold(
+        scrollState = listState,
+        edgeButton = {
+            EdgeButton(onClick = onStartActivity) {
+                Text(stringResource(R.string.dashboard_start_activity))
+            }
+        },
+    ) { contentPadding ->
         TransformingLazyColumn(state = listState, contentPadding = contentPadding) {
             item {
                 ListHeader(
@@ -173,7 +182,7 @@ private fun activityRings(
 private fun DashboardScreenPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.METRIC, true, {}, {}, {}, {}, {})
+            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.METRIC, true, {}, {}, {}, {}, {}, {})
         }
     }
 }
@@ -183,7 +192,7 @@ private fun DashboardScreenPreview() {
 private fun DashboardScreenEmptyPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(MetricTile.DefaultTiles, emptyMap(), UnitSystem.METRIC, false, {}, {}, {}, {}, {})
+            DashboardScreen(MetricTile.DefaultTiles, emptyMap(), UnitSystem.METRIC, false, {}, {}, {}, {}, {}, {})
         }
     }
 }
@@ -193,7 +202,7 @@ private fun DashboardScreenEmptyPreview() {
 private fun DashboardScreenImperialPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.IMPERIAL, true, {}, {}, {}, {}, {})
+            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.IMPERIAL, true, {}, {}, {}, {}, {}, {})
         }
     }
 }

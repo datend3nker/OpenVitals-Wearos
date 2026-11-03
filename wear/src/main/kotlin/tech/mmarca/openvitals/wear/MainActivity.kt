@@ -14,6 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import tech.mmarca.openvitals.wear.features.recording.ActivityType
+import tech.mmarca.openvitals.wear.workout.WorkoutState
 import tech.mmarca.openvitals.wear.features.settings.PhoneScreen
 import tech.mmarca.openvitals.wear.features.settings.SensorAccess
 import tech.mmarca.openvitals.wear.features.settings.SensorAccessScreen
@@ -46,6 +48,25 @@ class MainActivity : ComponentActivity() {
         requestBackgroundHeartRateIfNeeded()
     }
 
+    /** The sport waiting for the location answer; null when none is. */
+    private var workoutAwaitingLocation: ActivityType? = null
+
+    private val requestLocation = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        // Declined: the workout still records, without a route or a distance.
+        workoutAwaitingLocation?.let { WearAppService.startWorkout(this, it.sport, gps = granted) }
+        workoutAwaitingLocation = null
+    }
+
+    /** Asks for location at the first workout that uses the GPS, then starts it. */
+    private fun startWorkout(type: ActivityType) {
+        if (!type.sport.gps || WearPermissions.hasLocation(this)) {
+            WearAppService.startWorkout(this, type.sport, gps = type.sport.gps)
+        } else {
+            workoutAwaitingLocation = type
+            requestLocation.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestMissingPermissions()
@@ -70,6 +91,11 @@ class MainActivity : ComponentActivity() {
                 statusScreen = { StatusScreen() },
                 phoneScreen = { PhoneRoute() },
                 sensorScreen = { onOpenDetails -> SensorAccessRoute(onOpenDetails) },
+                onStartWorkout = ::startWorkout,
+                onPauseWorkout = { WearAppService.pauseWorkout(this) },
+                onResumeWorkout = { WearAppService.resumeWorkout(this) },
+                onStopWorkout = { WearAppService.stopWorkout(this) },
+                onCloseSummary = WorkoutState::clearFinished,
             )
         }
     }

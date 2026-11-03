@@ -201,4 +201,6 @@
     <string name="diag_drain">Akkumulátor −%1$s %% óránként</string>
     <string name="diag_heart_rate_share">Pulzus bekapcsolva az idő %1$d %%-ában</string>
     <string name="action_forget_phone">Telefon elfelejtése</string>
+    <string name="recording_waiting_gps">GPS-jelre várakozás</string>
+    <string name="unit_spm">lépés/perc</string>
 </resources>

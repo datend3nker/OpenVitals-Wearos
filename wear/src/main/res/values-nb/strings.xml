@@ -201,4 +201,6 @@
     <string name="diag_drain">Batteri −%1$s %% per time</string>
     <string name="diag_heart_rate_share">Puls på: %1$d %% av tiden</string>
     <string name="action_forget_phone">Glem telefonen</string>
+    <string name="recording_waiting_gps">Venter på GPS</string>
+    <string name="unit_spm">skritt/min</string>
 </resources>
