@@ -2,13 +2,16 @@ package tech.mmarca.openvitals.wear
 
 import android.content.Context
 import android.content.SharedPreferences
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 
 /**
- * The settings the phone pushes over the link, kept on the watch. The watch
- * is a companion: it stores and shows these, the phone's Watches screen is
- * where they are changed. A setting survives a restart, so the watch keeps
+ * The settings kept on the watch. The phone's Watches screen pushes them over
+ * the link; the watch's own Tracking screen changes the same values through
+ * [setFlag] and [setInterval]. A setting survives a restart, so the watch keeps
  * behaving as the wearer last chose even before the phone reconnects.
  *
  * Only keys and values the protocol defines are accepted; [applyPreference]
@@ -51,6 +54,34 @@ class WearPreferences(
     /** The heart rate interval in bedtime mode while sleep recording is off. */
     val heartRateNight: HeartRateInterval
         get() = interval(WearLinkProtocol.Preferences.HEART_RATE_NIGHT)
+
+    /** Once now and after every stored change, whichever instance made it. */
+    val changes: Flow<Unit> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> trySend(Unit) }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        send(Unit)
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
+
+    /** The unit system chosen for display on the watch. */
+    var unitSystem: UnitSystem
+        get() = prefs.getString(KEY_UNIT_SYSTEM, null)?.let { runCatching { UnitSystem.valueOf(it) }.getOrNull() } ?: UnitSystem.METRIC
+        set(value) {
+            if (unitSystem == value) return
+            prefs.edit().putString(KEY_UNIT_SYSTEM, value.name).apply()
+            onChange?.invoke()
+        }
+
+    /** Changes a tracking flag from the watch's own screen. */
+    fun setFlag(protocolKey: String, on: Boolean) {
+        val value = if (on) WearLinkProtocol.Preferences.ON else WearLinkProtocol.Preferences.OFF
+        applyPreference(protocolKey, value)
+    }
+
+    /** Changes a heart rate interval locally on the watch. */
+    fun setInterval(protocolKey: String, interval: HeartRateInterval) {
+        applyPreference(protocolKey, interval.wire)
+    }
 
     private fun flag(key: String): Boolean = prefs.getBoolean(FLAG_STORAGE.getValue(key), true)
 
@@ -102,6 +133,15 @@ class WearPreferences(
         HeartRateInterval.fromWire(prefs.getString(key, null).orEmpty()) ?: DEFAULT_INTERVAL
 
     companion object {
+        @Volatile
+        private var shared: WearPreferences? = null
+
+        /** The one instance of the process, so a change made on a screen reaches the service's [onChange]. */
+        fun shared(context: Context): WearPreferences =
+            shared ?: synchronized(this) {
+                shared ?: WearPreferences(context.applicationContext).also { shared = it }
+            }
+
         /** The interval a watch measures at before the phone says otherwise. */
         val DEFAULT_INTERVAL: HeartRateInterval = HeartRateInterval.EVERY_10_SECONDS
 
@@ -120,5 +160,6 @@ class WearPreferences(
         )
         private val FLAG_KEYS: Set<String> = FLAG_STORAGE.keys
         private const val KEY_SLEEP_RECORDING = "sleep_recording"
+        private const val KEY_UNIT_SYSTEM = "unit_system"
     }
 }
