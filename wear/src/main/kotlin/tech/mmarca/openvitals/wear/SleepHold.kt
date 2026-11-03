@@ -15,6 +15,15 @@ package tech.mmarca.openvitals.wear
  * half needs a reading, three in all, so a sparse day setting can still
  * start it.
  *
+ * That lying still and heart rate falling mark sleep onset is established
+ * (e.g. Carrington et al., "Changes in cardiovascular function during the
+ * sleep onset period", Journal of Applied Physiology 98(4), 2005; a wrist
+ * actigraphy approach based on movement alone goes back to Cole, Kripke et
+ * al., "Automatic sleep/wake identification from wrist activity", Sleep
+ * 15(5), 1992). None of those papers give the specific numbers below, which
+ * are this app's own choice, not fitted to a reference like polysomnography
+ * or a validated actigraph.
+ *
  * Stop: [Config.wakeMinutesToRelease] waking minutes in a row (screen on,
  * steps, or movement of at least [Config.wakeMovement]), the watch off the
  * wrist or on the charger, or [Config.maxHoldMinutes]. After the cap the

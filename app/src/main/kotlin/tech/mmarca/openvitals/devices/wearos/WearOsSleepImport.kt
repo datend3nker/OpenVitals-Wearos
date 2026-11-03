@@ -118,5 +118,8 @@ object WearOsSleepImport {
     private val NAP_REWRITE_LOOKBACK: java.time.Duration = java.time.Duration.ofHours(1)
 
     private const val NOTES =
-        "Sleep stages estimated by OpenVitals from the heart rate and movement the OpenVitals watch app recorded."
+        "Sleep stages estimated by OpenVitals from the heart rate and movement the OpenVitals watch app " +
+            "recorded, using published actigraphy and sleep-onset methods (see docs/engineering/" +
+            "sleep-minute-features.md); the exact thresholds are OpenVitals' own and not fitted to a " +
+            "polysomnography or chest-strap reference."
 }
