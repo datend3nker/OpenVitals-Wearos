@@ -4,7 +4,7 @@ import java.io.File
 import java.time.ZoneId
 import org.junit.Assume.assumeTrue
 import org.junit.Test
-import tech.mmarca.openvitals.devices.wearos.WearOsSleepMinuteMapping
+import tech.mmarca.openvitals.domain.model.WearSleepMinuteMapping
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 
 /**
@@ -21,7 +21,7 @@ class WearNightReplayTest {
     @Test
     fun `replay a recorded night and print the estimate`() {
         assumeTrue("set -Dopenvitals.wearNightLines to run", path != null)
-        val rows = File(path!!).readLines().mapNotNull { WearLinkProtocol.parseSleepMinute(it) }.map(WearOsSleepMinuteMapping::toDomain)
+        val rows = File(path!!).readLines().mapNotNull { WearLinkProtocol.parseSleepMinute(it) }.map(WearSleepMinuteMapping::toDomain)
         val grid = requireNotNull(WearMinuteGrid.of(rows)) { "no rows" }
         val config = WearSleepEstimator.Config()
         val wear = WearStateDetector.detect(grid, config.wear)

@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tech.mmarca.openvitals.domain.model.WearSleepMinute
+import tech.mmarca.openvitals.domain.model.WearSleepMinuteMapping
 import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.wearlink.WearLinkClient
 import tech.mmarca.openvitals.wearlink.WearLinkConnection
@@ -95,7 +96,7 @@ class BluetoothWearOsNodePort @Inject constructor(
             // A watch with sleep recording switched off no longer offers the capability.
             if (WearLinkProtocol.CAP_SLEEP_MINUTES !in session.peer.capabilities) return@withSession WearOsSleepMinutePage(emptyList(), false)
             val page = unwrap(session.pullSleepMinutes(since.toEpochMilli(), WearLinkProtocol.MAX_MINUTES_PER_REQUEST))
-            WearOsSleepMinutePage(minutes = page.items.map(WearOsSleepMinuteMapping::toDomain), hasMore = page.more)
+            WearOsSleepMinutePage(minutes = page.items.map(WearSleepMinuteMapping::toDomain), hasMore = page.more)
         }
     }
 

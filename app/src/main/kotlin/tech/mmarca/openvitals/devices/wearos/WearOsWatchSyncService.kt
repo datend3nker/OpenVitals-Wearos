@@ -36,7 +36,7 @@ import tech.mmarca.openvitals.devices.core.sync.DeviceSyncResult
 import tech.mmarca.openvitals.devices.core.sync.UnwrittenSeries
 import tech.mmarca.openvitals.data.repository.RecordWrite
 import tech.mmarca.openvitals.data.repository.insertWithOutcomes
-import tech.mmarca.openvitals.devices.core.sync.sleepNightWindow
+import tech.mmarca.openvitals.domain.insights.sleepNightWindow
 import tech.mmarca.openvitals.domain.insights.WearSleepEstimator
 import tech.mmarca.openvitals.domain.model.BleSensorDevice
 import tech.mmarca.openvitals.domain.model.WearSleepMinute

@@ -5,9 +5,10 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
 import tech.mmarca.openvitals.devices.core.sync.estimatedSleepSessionRecord
-import tech.mmarca.openvitals.devices.core.sync.sleepNightWindow
 import tech.mmarca.openvitals.domain.insights.SleepStageEstimator
+import tech.mmarca.openvitals.domain.insights.WearNight
 import tech.mmarca.openvitals.domain.insights.WearSleepEstimator
+import tech.mmarca.openvitals.domain.insights.sleepNightWindow
 import tech.mmarca.openvitals.domain.model.WearSleepMinute
 
 /**
@@ -55,14 +56,12 @@ object WearOsSleepImport {
     }
 
     /** The pipeline's input for [night]: the rows inside its window. */
-    fun minutesOfNight(minutes: List<WearSleepMinute>, night: LocalDate, offset: ZoneOffset): List<WearSleepMinute> {
-        val (from, to) = sleepNightWindow(night, offset)
-        return minutes.filter { !it.time.isBefore(from) && it.time.isBefore(to) }
-    }
+    fun minutesOfNight(minutes: List<WearSleepMinute>, night: LocalDate, offset: ZoneOffset): List<WearSleepMinute> =
+        WearNight.minutesOf(minutes, night, offset)
 
     /** The estimated night for [night], or null when the minutes hold no night. */
     fun night(minutes: List<WearSleepMinute>, night: LocalDate, offset: ZoneOffset): WearSleepEstimator.Night? =
-        WearSleepEstimator.estimate(minutesOfNight(minutes, night, offset))
+        WearNight.estimate(minutes, night, offset)
 
     /** The record for an estimated night, or null when nothing counted as sleep. */
     fun record(night: WearSleepEstimator.Night, date: LocalDate, offset: ZoneOffset, version: Long): SleepSessionRecord? =
