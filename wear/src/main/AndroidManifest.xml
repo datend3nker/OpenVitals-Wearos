@@ -17,6 +17,10 @@
     <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
     <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND" />
 
+    <!-- The GPS route of a workout, read through the platform LocationManager. Asked at the first GPS workout. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
     <!-- The step counter. -->
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 
@@ -55,7 +59,7 @@
         <service
             android:name=".WearAppService"
             android:exported="false"
-            android:foregroundServiceType="connectedDevice|health" />
+            android:foregroundServiceType="connectedDevice|health|location" />
 
         <!-- Restarts the phone link after a reboot or an update; no-op without the Bluetooth grant. -->
         <receiver

@@ -33,9 +33,10 @@ class WearLinkServerHost(
     /** What the wearer logged on this watch, the entries the phone pulls. */
     logEntries: () -> List<LoggedEntry>,
     private val localName: () -> String,
+    workouts: (sinceEpochMillis: Long, limit: Int) -> Page<WearLinkWorkout>,
     private val state: WearLinkState = WearLinkState,
 ) {
-    private val server = WearLinkServer(trust, Handler(store, live, preferences, hrvAvailable, logEntries, localName))
+    private val server = WearLinkServer(trust, Handler(store, live, preferences, hrvAvailable, logEntries, localName, workouts))
 
     @Volatile
     private var serverSocket: BluetoothServerSocket? = null
@@ -121,6 +122,7 @@ class WearLinkServerHost(
         private val hrvAvailable: () -> Boolean,
         private val logEntries: () -> List<LoggedEntry>,
         private val localName: () -> String,
+        private val workouts: (Long, Int) -> Page<WearLinkWorkout>,
     ) : WearLinkRequestHandler {
         override fun localName(): String = localName.invoke()
 
@@ -138,6 +140,7 @@ class WearLinkServerHost(
             // Windows need heart rate tracking and the sleep minutes that show a still arm.
             if (preferences.heartRate && preferences.sleepRecording && hrvAvailable()) add(WearLinkProtocol.CAP_HRV)
             if (preferences.heartRate && live.hasSensor) add(WearLinkProtocol.CAP_LIVE_HEART_RATE)
+            add(WearLinkProtocol.CAP_WORKOUTS)
             add(WearLinkProtocol.CAP_PREFERENCES)
             add(WearLinkProtocol.CAP_LOG)
         }
@@ -168,7 +171,8 @@ class WearLinkServerHost(
         override fun hrvSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.HrvWindow> =
             page(WearMetrics.HRV, sinceEpochMillis, limit)
 
-        override fun workoutsSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkWorkout> = Page(emptyList(), false)
+        override fun workoutsSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkWorkout> =
+            workouts(sinceEpochMillis, limit)
 
         override fun liveHeartRate(seconds: Int, emit: (WearLinkProtocol.HeartRateSample) -> Unit): Int =
             live.window(seconds, emit)
