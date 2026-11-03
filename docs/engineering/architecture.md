@@ -9,7 +9,7 @@ The repo now has one Android app module for the local app. The goal is to keep b
 ## Current Snapshot
 
 - App namespace: `tech.mmarca.openvitals`
-- Project shape: four Gradle modules. The phone app is `:app`, under `app/`; `:domain` holds the app-local pure code the app depends on (see [Module `:domain`](#module-domain)); `:wear` is the Wear OS watch app with its own CI gate; `:wearlink` is the pure-Kotlin link both apps depend on (see [Shared module `:wearlink`](#shared-module-wearlink)). The rest of this document is about `:app` unless it says otherwise; package names are the same across `:app` and `:domain`
+- Project shape: five Gradle modules. The phone app is `:app`, under `app/`; `:domain` holds the app-local pure code the app depends on (see [Module `:domain`](#module-domain)); `:wear` is the Wear OS watch app with its own CI gate; `:wearlink` is the pure-Kotlin link both apps depend on (see [Shared module `:wearlink`](#shared-module-wearlink)); `:healthcalc` holds the pure-Kotlin calculations both apps run (see [Shared module `:healthcalc`](#shared-module-healthcalc)). The rest of this document is about `:app` unless it says otherwise; package names are the same across `:app` and `:domain`
 - Dependency wiring: Hilt in `:app`, rooted at [`OpenVitalsApp`](../../app/src/main/kotlin/tech/mmarca/openvitals/OpenVitalsApp.kt); modules are `di/AppModule.kt`, `di/RepositoryModule.kt`, `di/PreferencesModule.kt`, `di/RemindersModule.kt`, and `di/DevicesModule.kt`
 - UI stack: Jetpack Compose + Material 3 app shell + Navigation Compose + `ViewModel` + coroutines/`StateFlow`
 - Health data backend: Health Connect AndroidX client, wrapped by [`HealthConnectManager`](../../app/src/main/kotlin/tech/mmarca/openvitals/healthconnect/HealthConnectManager.kt)
@@ -459,7 +459,7 @@ The app-local code that nothing in the rest of the phone app sits below, in `dom
 
 It is an Android library, not plain Kotlin: a few files use Health Connect record constants (`ExerciseTypeTraits`, `PlannedExerciseSteps`, the activity splits) and the platform's locale data (`SystemUnitSystemProvider`, `AppLanguage`), and Android lint then still checks it. It has the app's build types (`ci`, `nightly`), so the app's `ci` variant takes the module's `ci` variant and the module's tests and lint run on that one compile. Nothing in it is injected: it holds no Hilt module, and its classes are constructed by the app's repositories and the app's `di/` modules.
 
-Its test fixtures (`testFixtures`) hold the FHIR, C-CDA, SMART Health Card and wear sleep fixtures that both its own tests and the app's import tests use, and the privacy sentinels (`PrivacySentinels`) that tests of crash drafts, logs and reports seed and look for, with the FHIR sample files under `domain/src/testFixtures/resources/fhir/`. Its tests and lint are part of the phone gate (`verifyCiUnitTest` depends on `:domain:testCiUnitTest`, `verifyCiLint` on `:domain:lintCi`), its lockfile is `domain/gradle.lockfile`, and the ratchet tests and the `runBlocking` allow-list cover its files under the same package-relative paths as the app's.
+Its test fixtures (`testFixtures`) hold the FHIR, C-CDA and SMART Health Card fixtures that both its own tests and the app's import tests use, and the privacy sentinels (`PrivacySentinels`) that tests of crash drafts, logs and reports seed and look for, with the FHIR sample files under `domain/src/testFixtures/resources/fhir/`. Its tests and lint are part of the phone gate (`verifyCiUnitTest` depends on `:domain:testCiUnitTest`, `verifyCiLint` on `:domain:lintCi`), its lockfile is `domain/gradle.lockfile`, and the ratchet tests and the `runBlocking` allow-list cover its files under the same package-relative paths as the app's.
 
 The module exists for the build: the app's lint and tests no longer cover these lines, and a change elsewhere leaves this module's compile, lint and test results in the build cache. What does not belong here: anything with an inbound dependency from `data/`, `healthconnect/` or `features/` (`domain/query` and `domain/usecase` stay in `:app` for that reason), resources, and Hilt wiring.
 
@@ -473,6 +473,15 @@ The phone-to-watch link, in `wearlink/`, pure Kotlin on the JDK with no Android 
 - `WearLinkToken` — the secret a phone presents on every connection: 32 random bytes as Base64, compared in constant time. The bond says the devices know each other; the token says this app on this phone is the one the wearer allowed. The phone keeps one per added watch (`WearOsLinkStore`, keyed by the address the watch was added under, since pairing again can list the bond under another address) and drops it when the watch is removed; the watch keeps one per phone address. A known phone presenting another token, as after a reinstall, is asked about again like a new one, and allowing it replaces the old token.
 
 Its tests run in both gates (`verifyCiUnitTest` and `verifyWearCi` depend on `:wearlink:test`), its lockfile is `wearlink/gradle.lockfile`, and the two ratchet tests hold its files to the same limits as the phone app's. `ArchitectureDocTest` fails when a Gradle module is missing from this document.
+
+## Shared module `:healthcalc`
+
+The calculations the phone and the watch both run, in `healthcalc/`, pure Kotlin on the JDK, compiled into `:domain` (and so `:app`) and into `:wear`. It exists so the watch can show the same sleep and resting heart rate as the phone without a second copy of the code. `:wear` cannot use `:domain`, which brings the Health Connect client and zxing. Package names are those of `:domain` (`domain/insights`, `domain/model`), so an import does not say which module a class is in:
+
+- `domain/model`: `WearSleepMinute` and `WearMinuteFlags`, one watch minute as the phone stores it; `SleepMinute` and `SleepMinuteKind`, the Garmin minute the estimator also reads.
+- `domain/insights`: `WearSleepEstimator`, the sleep session and stages from watch minutes, and the parts it runs: `WearMinuteGrid`, `WearStateDetector`, `SptWindowDetector`, `SleepWakeScorer`, `SleepLabels`, `SleepStageEstimator`, `Lids`; `NocturnalRestingHeartRate`.
+
+It depends on `:wearlink` for the minute flags. Its tests, with the wear sleep fixtures (`WearSleepFixtures`) and the Garmin minute sample under `healthcalc/src/test/resources/`, run in both gates (`verifyCiUnitTest` and `verifyWearCi` depend on `:healthcalc:test`); its lockfile is `healthcalc/gradle.lockfile`, and the two ratchet tests cover its files under the same package-relative paths as the app's. A calculation moves here when the watch needs it; one only the phone uses stays in `:domain`.
 
 ## Phone-To-Phone Sync
 
