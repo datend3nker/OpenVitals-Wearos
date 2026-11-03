@@ -44,6 +44,9 @@ object WearPermissions {
     fun hasActivityRecognition(context: Context): Boolean =
         isGranted(context, Manifest.permission.ACTIVITY_RECOGNITION)
 
+    /** Precise location, asked at the first workout that uses the GPS. */
+    fun hasLocation(context: Context): Boolean = isGranted(context, Manifest.permission.ACCESS_FINE_LOCATION)
+
     fun hasHeartRateInBackground(context: Context): Boolean =
         heartRateInBackground?.let { isGranted(context, it) } ?: true
 
