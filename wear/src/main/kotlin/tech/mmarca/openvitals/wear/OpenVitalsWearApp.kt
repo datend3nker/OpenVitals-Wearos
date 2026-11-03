@@ -114,8 +114,8 @@ fun OpenVitalsWearApp(
                     val measurement = metric.spotMeasurement?.takeIf { it in currentState.capabilities.measurements }
                     val recorded = currentState.metrics[metric] ?: MetricUiState()
                     val live by remember(metric, measurement) {
-                        if (metric == MetricTile.HEART_RATE && measurement != null) {
-                            MeasurementRunner(context).liveHeartRate().catch { }
+                        if (measurement != null) {
+                            MeasurementRunner(context).live(measurement).catch { }
                         } else {
                             emptyFlow()
                         }
