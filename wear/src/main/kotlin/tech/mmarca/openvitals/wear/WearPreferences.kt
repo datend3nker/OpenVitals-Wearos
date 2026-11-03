@@ -52,6 +52,26 @@ class WearPreferences(
     val heartRateNight: HeartRateInterval
         get() = interval(WearLinkProtocol.Preferences.HEART_RATE_NIGHT)
 
+    /** The unit system chosen for display on the watch. */
+    var unitSystem: UnitSystem
+        get() = prefs.getString(KEY_UNIT_SYSTEM, null)?.let { runCatching { UnitSystem.valueOf(it) }.getOrNull() } ?: UnitSystem.METRIC
+        set(value) {
+            if (unitSystem == value) return
+            prefs.edit().putString(KEY_UNIT_SYSTEM, value.name).apply()
+            onChange?.invoke()
+        }
+
+    /** Changes a tracking flag locally on the watch. */
+    fun setFlag(protocolKey: String, on: Boolean) {
+        val value = if (on) WearLinkProtocol.Preferences.ON else WearLinkProtocol.Preferences.OFF
+        applyPreference(protocolKey, value)
+    }
+
+    /** Changes a heart rate interval locally on the watch. */
+    fun setInterval(protocolKey: String, interval: HeartRateInterval) {
+        applyPreference(protocolKey, interval.wire)
+    }
+
     private fun flag(key: String): Boolean = prefs.getBoolean(FLAG_STORAGE.getValue(key), true)
 
     /** Publishes the stored values to the status screen; call once at startup. */
@@ -120,5 +140,6 @@ class WearPreferences(
         )
         private val FLAG_KEYS: Set<String> = FLAG_STORAGE.keys
         private const val KEY_SLEEP_RECORDING = "sleep_recording"
+        private const val KEY_UNIT_SYSTEM = "unit_system"
     }
 }

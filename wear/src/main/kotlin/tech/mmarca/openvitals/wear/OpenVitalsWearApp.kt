@@ -31,6 +31,7 @@ import tech.mmarca.openvitals.wear.features.recording.ActivityPickerScreen
 import tech.mmarca.openvitals.wear.features.recording.RecordingScreen
 import tech.mmarca.openvitals.wear.features.recording.WorkoutSummaryScreen
 import tech.mmarca.openvitals.wear.features.settings.SettingsScreen
+import tech.mmarca.openvitals.wear.features.settings.TrackingSettingsScreen
 import tech.mmarca.openvitals.wear.ui.theme.OpenVitalsWearTheme
 
 /** Starting weight on the weight stepper before anything was logged. */
@@ -63,6 +64,7 @@ fun OpenVitalsWearApp(
         AppScaffold {
             val context = LocalContext.current
             val tilePrefs = remember(context) { WearTilePreferences(context) }
+            val wearPreferences = remember(context) { WearPreferences(context) }
             val navController = rememberSwipeDismissableNavController()
             var activityType by rememberSaveable { mutableStateOf(state.recording.activityType) }
             var paused by rememberSaveable { mutableStateOf(state.recording.paused) }
@@ -236,7 +238,17 @@ fun OpenVitalsWearApp(
                         unitSystem = currentState.preferences.unitSystem,
                         onPhoneClick = { navController.navigate(WearRoutes.PHONE) },
                         onSensorAccessClick = { navController.navigate(WearRoutes.SENSORS) },
-                        onUnitsClick = {},
+                        onTrackingClick = { navController.navigate(WearRoutes.TRACKING) },
+                        onUnitsClick = {
+                            wearPreferences.unitSystem = if (currentState.preferences.unitSystem == UnitSystem.METRIC) UnitSystem.IMPERIAL else UnitSystem.METRIC
+                        },
+                    )
+                }
+                composable(WearRoutes.TRACKING) {
+                    TrackingSettingsScreen(
+                        prefs = wearPreferences,
+                        onToggleFlag = { key, on -> wearPreferences.setFlag(key, on) },
+                        onChangeInterval = { key, interval -> wearPreferences.setInterval(key, interval) },
                     )
                 }
                 composable(WearRoutes.PHONE) { phoneScreen() }

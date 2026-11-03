@@ -33,6 +33,7 @@ fun SettingsScreen(
     unitSystem: UnitSystem,
     onPhoneClick: () -> Unit,
     onSensorAccessClick: () -> Unit,
+    onTrackingClick: () -> Unit,
     onUnitsClick: () -> Unit,
 ) {
     val listState = rememberTransformingLazyColumnState()
@@ -49,6 +50,18 @@ fun SettingsScreen(
                 ) {
                     Text(stringResource(R.string.settings_title))
                 }
+            }
+            item {
+                Button(
+                    onClick = onTrackingClick,
+                    label = { Text(stringResource(R.string.settings_tracking)) },
+                    icon = { Icon(Icons.Outlined.Sensors, contentDescription = null) },
+                    colors = ButtonDefaults.filledTonalButtonColors(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .transformedHeight(this, transformationSpec),
+                    transformation = SurfaceTransformation(transformationSpec),
+                )
             }
             item {
                 Button(
@@ -97,7 +110,6 @@ fun SettingsScreen(
                 )
             }
             item {
-                // Shows the value the phone chose; the watch has no picker of its own.
                 Button(
                     onClick = onUnitsClick,
                     label = { Text(stringResource(R.string.settings_units)) },
@@ -133,6 +145,7 @@ private fun SettingsScreenPreview() {
                 UnitSystem.METRIC,
                 onPhoneClick = {},
                 onSensorAccessClick = {},
+                onTrackingClick = {},
                 onUnitsClick = {},
             )
         }
