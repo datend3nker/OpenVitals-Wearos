@@ -83,4 +83,5 @@
     <string name="settings_watch_wearos_tracking_body">כיבוי מפסיק את המדידה בשעון. מה שכבר נרשם נשאר בשעון.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_needs_log_write">רשומות שנרשמו לא נכתבו: אשר ל-OpenVitals לכתוב אותן ב-Health Connect, ואז סנכרן שוב.</string>
+    <string name="settings_watch_wearos_needs_hrv_write">שונות קצב הלב לא נכתבה: אשר ל-OpenVitals לכתוב אותה ב-Health Connect, ואז סנכרן שוב.</string>
 </resources>
