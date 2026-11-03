@@ -8,6 +8,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.math.sin
+import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.AscentMinute
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.HeartRateSample
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.StepMinute
@@ -144,5 +146,59 @@ class WearReadingsTest {
         assertTrue(WearReadings.metrics(emptyList(), now, zone).isEmpty())
         assertNull(WearReadings.metrics(week(day(today)), now, zone)[MetricTile.HEART_RATE])
         assertFalse(WearReadings.metrics(week(day(today)), now, zone).containsKey(MetricTile.STEPS))
+    }
+
+    /** A worn minute as the watch stores it: [movement] in tenths, a pulse, still or moving. */
+    private fun minute(epochMillis: Long, movement10: Int, bpm: Int) = WearLinkProtocol.SleepMinute(
+        epochMillis = epochMillis,
+        kind = WearLinkProtocol.MinuteKind.RAW,
+        offsetSeconds = 0,
+        flags = WearLinkProtocol.FLAG_HR_RECORDING,
+        sampleCount = 375,
+        movement10 = movement10,
+        bpm = bpm,
+        heartRateSd10 = 20,
+        heartRateSamples = 6,
+        meanMilliG = intArrayOf(0, 0, 1000),
+        sdMilliG = IntArray(3) { if (movement10 > 0) 60 else 20 },
+        zAngleMin = 80,
+        zAngleMax = 82,
+        zAngleDelta10 = if (movement10 > 0) 60 else 4,
+    )
+
+    /** 22:30 to 08:00: half an hour restless, eight hours still with a night's pulse, an hour restless, so the night has ended. */
+    private fun nightRows(): List<WearLinkProtocol.SleepMinute> {
+        val start = today.minusDays(1).atTime(22, 30).toInstant(zone).toEpochMilli()
+        return List(570) { index ->
+            val time = start + index * 60_000L
+            when {
+                index < 30 || index >= 510 -> minute(time, movement10 = 80 + (index * 5) % 80, bpm = 64)
+                else -> minute(time, movement10 = 0, bpm = (52 + 4 * sin(2 * Math.PI * index / 90.0)).toInt())
+            }
+        }
+    }
+
+    @Test
+    fun aNightTheWatchRecordedFillsSleepAndRestingHeartRate() {
+        val night = WearReadings.night(today, zone, nightRows())
+
+        requireNotNull(night)
+        assertTrue("asleep ${night.asleepMinutes}", night.asleepMinutes > 360)
+        assertTrue("stages ${night.stageMinutes}", night.stageMinutes.values.sum() >= night.asleepMinutes)
+        val resting = requireNotNull(night.restingHeartRate)
+        assertTrue("resting $resting", resting in 46..56)
+
+        val readings = week(WearReadings.day(today, zone, emptyList(), emptyList(), emptyList(), sleep = night))
+        val metrics = WearReadings.metrics(readings, now, zone)
+        assertEquals(night.asleepMinutes.toDouble(), metrics.getValue(MetricTile.SLEEP).current!!, 0.0)
+        assertEquals(7, metrics.getValue(MetricTile.SLEEP).week.size)
+        assertEquals(resting.toDouble(), metrics.getValue(MetricTile.RESTING_HEART_RATE).current!!, 0.0)
+        assertEquals(night.stageMinutes, WearReadings.sleepStages(readings))
+    }
+
+    @Test
+    fun noMinutesMeanNoSleepTile() {
+        assertNull(WearReadings.night(today, zone, emptyList()))
+        assertFalse(WearReadings.metrics(week(day(today)), now, zone).containsKey(MetricTile.SLEEP))
     }
 }

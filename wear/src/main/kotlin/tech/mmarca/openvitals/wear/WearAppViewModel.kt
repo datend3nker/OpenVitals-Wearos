@@ -28,9 +28,10 @@ class WearAppViewModel(application: Application) : AndroidViewModel(application)
     private val initial = WearUiState()
 
     val uiState: StateFlow<WearUiState> =
-        combine(capabilities, entryLog.entries, readings.metrics()) { capabilities, entries, metrics ->
+        combine(capabilities, entryLog.entries, readings.readings()) { capabilities, entries, readings ->
             initial.copy(
-                metrics = metrics,
+                metrics = readings.metrics,
+                sleepStages = readings.sleepStages,
                 capabilities = capabilities,
                 // Until the probe answers, keep offering what was on offer before.
                 availableMetrics = if (capabilities.probed) capabilities.availableMetrics else initial.availableMetrics,

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.Dispatchers
+import tech.mmarca.openvitals.domain.insights.sleepNightWindow
 
 /**
  * What the watch itself recorded, as the dashboard and the detail screens
@@ -23,15 +24,15 @@ internal class WearReadingsSource(
 ) {
     private val pastDays = HashMap<LocalDate, DayReadings>()
 
-    /** The tiles' values now, read again every [REFRESH_MILLIS] while someone collects. */
-    fun metrics(): Flow<Map<MetricTile, MetricUiState>> = flow {
+    /** The tiles' values and last night's stages now, read again every [REFRESH_MILLIS] while someone collects. */
+    fun readings(): Flow<WearReadingsState> = flow {
         while (true) {
             emit(load())
             delay(REFRESH_MILLIS)
         }
     }.flowOn(Dispatchers.IO)
 
-    internal fun load(): Map<MetricTile, MetricUiState> {
+    internal fun load(): WearReadingsState {
         val zone = clock.zone
         val today = LocalDate.now(clock)
         val days = (DAYS - 1 downTo 0).map { back ->
@@ -39,7 +40,10 @@ internal class WearReadingsSource(
             if (back == 0) read(date, zone) else pastDays.getOrPut(date) { read(date, zone) }
         }
         pastDays.keys.retainAll { it >= today.minusDays(DAYS.toLong()) }
-        return WearReadings.metrics(days, clock.instant(), zone)
+        return WearReadingsState(
+            metrics = WearReadings.metrics(days, clock.instant(), zone),
+            sleepStages = WearReadings.sleepStages(days),
+        )
     }
 
     /** Today only, read now: what the Today tile shows. */
@@ -55,7 +59,16 @@ internal class WearReadingsSource(
             heartRate = store.since(WearMetrics.HEART_RATE, from, ROW_LIMIT, until),
             steps = store.since(WearMetrics.STEPS, from, ROW_LIMIT, until),
             ascent = store.since(WearMetrics.ASCENT, from, ROW_LIMIT, until),
+            sleep = readNight(date, zone),
         )
+    }
+
+    /** The night that ended on the morning of [date]: the minutes in its window, estimated as the phone does. */
+    private fun readNight(date: LocalDate, zone: ZoneId): NightSleep? {
+        val offset = zone.rules.getOffset(date.atStartOfDay(zone).toInstant())
+        val (from, until) = sleepNightWindow(date, offset)
+        val rows = store.since(WearMetrics.SLEEP_MINUTES, from.toEpochMilli() - 1, ROW_LIMIT, until.toEpochMilli())
+        return WearReadings.night(date, offset, rows)
     }
 
     private companion object {
