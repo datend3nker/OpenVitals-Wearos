@@ -8,12 +8,13 @@ import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
 import androidx.compose.material.icons.outlined.FitnessCenter
 import androidx.compose.material.icons.outlined.Hiking
 import androidx.compose.ui.graphics.vector.ImageVector
+import tech.mmarca.openvitals.domain.workout.WorkoutSport
 import tech.mmarca.openvitals.wear.R
 
-enum class ActivityType(@param:StringRes val label: Int, val icon: ImageVector) {
-    WALK(R.string.activity_walk, Icons.AutoMirrored.Outlined.DirectionsWalk),
-    RUN(R.string.activity_run, Icons.AutoMirrored.Outlined.DirectionsRun),
-    CYCLE(R.string.activity_cycle, Icons.AutoMirrored.Outlined.DirectionsBike),
-    HIKE(R.string.activity_hike, Icons.Outlined.Hiking),
-    WORKOUT(R.string.activity_workout, Icons.Outlined.FitnessCenter),
+enum class ActivityType(@param:StringRes val label: Int, val icon: ImageVector, val sport: WorkoutSport) {
+    WALK(R.string.activity_walk, Icons.AutoMirrored.Outlined.DirectionsWalk, WorkoutSport.WALKING),
+    RUN(R.string.activity_run, Icons.AutoMirrored.Outlined.DirectionsRun, WorkoutSport.RUNNING),
+    CYCLE(R.string.activity_cycle, Icons.AutoMirrored.Outlined.DirectionsBike, WorkoutSport.BIKING),
+    HIKE(R.string.activity_hike, Icons.Outlined.Hiking, WorkoutSport.HIKING),
+    WORKOUT(R.string.activity_workout, Icons.Outlined.FitnessCenter, WorkoutSport.OTHER_WORKOUT),
 }

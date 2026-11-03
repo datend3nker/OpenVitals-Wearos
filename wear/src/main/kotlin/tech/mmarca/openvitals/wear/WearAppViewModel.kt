@@ -14,6 +14,7 @@ import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
 import tech.mmarca.openvitals.wear.features.quicklog.withEntries
 import tech.mmarca.openvitals.wear.health.CapabilityProbe
 import tech.mmarca.openvitals.wear.health.WearCapabilities
+import tech.mmarca.openvitals.wear.workout.WorkoutState
 
 /**
  * Puts the app-wide state together: what the watch recorded, what this watch
@@ -28,8 +29,10 @@ class WearAppViewModel(application: Application) : AndroidViewModel(application)
     private val initial = WearUiState()
 
     val uiState: StateFlow<WearUiState> =
-        combine(capabilities, entryLog.entries, readings.readings()) { capabilities, entries, readings ->
+        combine(capabilities, entryLog.entries, readings.readings(), WorkoutState.state) { capabilities, entries, readings, workout ->
             initial.copy(
+                workout = workout,
+                recording = workout.toRecording(),
                 metrics = readings.metrics,
                 sleepStages = readings.sleepStages,
                 capabilities = capabilities,

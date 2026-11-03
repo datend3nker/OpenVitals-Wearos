@@ -201,4 +201,6 @@
     <string name="diag_drain">Baterija −%1$s %% per valandą</string>
     <string name="diag_heart_rate_share">Pulsas įjungtas: %1$d %% laiko</string>
     <string name="action_forget_phone">Pamiršti telefoną</string>
+    <string name="recording_waiting_gps">Laukiama GPS</string>
+    <string name="unit_spm">žingsnių/min</string>
 </resources>

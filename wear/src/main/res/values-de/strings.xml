@@ -204,4 +204,6 @@
     <string name="diag_drain">Akku −%1$s %% pro Stunde</string>
     <string name="diag_heart_rate_share">Herzfrequenz an: %1$d %% der Zeit</string>
     <string name="action_forget_phone">Telefon vergessen</string>
+    <string name="recording_waiting_gps">Warte auf GPS</string>
+    <string name="unit_spm">Schritte/min</string>
 </resources>

@@ -201,4 +201,6 @@
     <string name="diag_drain">Акумулятор −%1$s %% за годину</string>
     <string name="diag_heart_rate_share">Пульс увімкнено: %1$d %% часу</string>
     <string name="action_forget_phone">Забути телефон</string>
+    <string name="recording_waiting_gps">Очікування GPS</string>
+    <string name="unit_spm">кроків/хв</string>
 </resources>

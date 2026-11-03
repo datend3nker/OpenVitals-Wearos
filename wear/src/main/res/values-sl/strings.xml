@@ -201,4 +201,6 @@
     <string name="diag_drain">Baterija −%1$s %% na uro</string>
     <string name="diag_heart_rate_share">Srčni utrip vklopljen: %1$d %% časa</string>
     <string name="action_forget_phone">Pozabi telefon</string>
+    <string name="recording_waiting_gps">Čakanje na GPS</string>
+    <string name="unit_spm">korakov/min</string>
 </resources>

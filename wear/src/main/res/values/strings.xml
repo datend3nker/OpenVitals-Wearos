@@ -175,6 +175,8 @@
     <string name="recording_stop_confirm">End workout?</string>
     <string name="recording_pace">Pace</string>
     <string name="recording_speed">Speed</string>
+    <string name="recording_waiting_gps">Waiting for GPS</string>
+    <string name="unit_spm">spm</string>
     <string name="recording_none_supported">This watch cannot record workouts.</string>
     <string name="summary_duration">Duration</string>
     <string name="summary_average_heart_rate">Avg heart rate</string>

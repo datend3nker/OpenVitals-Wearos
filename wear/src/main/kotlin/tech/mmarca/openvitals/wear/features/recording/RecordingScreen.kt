@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material.icons.outlined.Pause
@@ -87,7 +88,7 @@ fun RecordingScreen(
             add(WorkoutPage.CONTROLS)
             add(WorkoutPage.OVERVIEW)
             if (WorkoutField.HEART_RATE in fields) add(WorkoutPage.HEART)
-            if (fields.any { it == WorkoutField.PACE || it == WorkoutField.SPEED || it == WorkoutField.ELEVATION }) {
+            if (fields.any { it == WorkoutField.PACE || it == WorkoutField.SPEED || it == WorkoutField.ELEVATION || it == WorkoutField.STEPS }) {
                 add(WorkoutPage.PACE)
             }
         }
@@ -162,6 +163,21 @@ private fun OverviewPage(
                 unit = stringResource(metricUnitLabel(MetricTile.DISTANCE, unitSystem)),
             )
         }
+        if (state.waitingForFix) {
+            Text(
+                text = stringResource(R.string.recording_waiting_gps),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (WorkoutField.STEPS in fields && state.steps != null) {
+            FieldRow(
+                icon = Icons.AutoMirrored.Outlined.DirectionsWalk,
+                color = DistanceColor,
+                value = formatCount(state.steps),
+                unit = stringResource(R.string.unit_steps),
+            )
+        }
         if (WorkoutField.CALORIES in fields) {
             FieldRow(
                 icon = Icons.Outlined.LocalFireDepartment,
@@ -220,6 +236,14 @@ private fun PacePage(state: RecordingUiState, fields: Set<WorkoutField>, unitSys
                 label = stringResource(R.string.recording_speed),
                 value = speed?.let { formatSpeed(it, unitSystem) },
                 unit = stringResource(speedUnit(unitSystem)),
+            )
+        }
+        if (WorkoutField.STEPS in fields && state.cadenceStepsPerMinute != null) {
+            FieldRow(
+                icon = Icons.AutoMirrored.Outlined.DirectionsWalk,
+                color = DistanceColor,
+                value = formatCount(state.cadenceStepsPerMinute),
+                unit = stringResource(R.string.unit_spm),
             )
         }
         if (WorkoutField.ELEVATION in fields) {

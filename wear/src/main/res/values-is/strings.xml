@@ -201,4 +201,6 @@
     <string name="diag_drain">Rafhlaða −%1$s %% á klukkustund</string>
     <string name="diag_heart_rate_share">Hjartsláttur á: %1$d %% af tímanum</string>
     <string name="action_forget_phone">Gleyma síma</string>
+    <string name="recording_waiting_gps">Bíð eftir GPS</string>
+    <string name="unit_spm">skref/mín</string>
 </resources>
