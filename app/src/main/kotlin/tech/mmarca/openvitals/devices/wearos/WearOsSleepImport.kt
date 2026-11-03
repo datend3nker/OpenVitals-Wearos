@@ -6,6 +6,8 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import tech.mmarca.openvitals.devices.core.sync.estimatedSleepSessionRecord
 import tech.mmarca.openvitals.domain.insights.SleepStageEstimator
+import tech.mmarca.openvitals.domain.insights.WearNap
+import tech.mmarca.openvitals.domain.insights.WearNaps
 import tech.mmarca.openvitals.domain.insights.WearNight
 import tech.mmarca.openvitals.domain.insights.WearSleepEstimator
 import tech.mmarca.openvitals.domain.insights.sleepNightWindow
@@ -13,7 +15,8 @@ import tech.mmarca.openvitals.domain.model.WearSleepMinute
 
 /**
  * Turns the per-minute rows the watch recorded into one estimated sleep
- * session per night, through `WearSleepEstimator`. The watch is the store: the phone keeps no minutes, only a cursor,
+ * session per night, through `WearSleepEstimator`, and one per nap, through
+ * `WearNaps`. The watch is the store: the phone keeps no minutes, only a cursor,
  * and re-pulls a whole night's window to estimate it again as the night
  * fills in. One id per night, so the later estimate replaces the earlier.
  *
@@ -23,23 +26,55 @@ object WearOsSleepImport {
 
     const val CLIENT_ID_PREFIX = "wearos_sleep_est_"
 
+    const val NAP_ID_PREFIX = "wearos_nap_"
+
     fun clientRecordId(night: LocalDate): String = "$CLIENT_ID_PREFIX$night"
 
-    /** True for a session this import wrote. Any other session in the window wins over a new estimate. */
-    fun isOwnRecordId(clientRecordId: String?): Boolean = clientRecordId?.startsWith(CLIENT_ID_PREFIX) == true
+    /** One id per nap: its onset minute, which re-estimating the day keeps. */
+    fun napClientRecordId(nap: WearNap): String = "$NAP_ID_PREFIX${nap.onset.toEpochMilli()}"
+
+    /** True for a session this import wrote, night or nap. Any other session in the window wins over a new estimate. */
+    fun isOwnRecordId(clientRecordId: String?): Boolean =
+        clientRecordId?.startsWith(CLIENT_ID_PREFIX) == true || isOwnNapId(clientRecordId)
+
+    fun isOwnNapId(clientRecordId: String?): Boolean = clientRecordId?.startsWith(NAP_ID_PREFIX) == true
 
     /**
      * Where a pull starts so the night the cursor sits in can be estimated
-     * whole: the start of that night's window, or the cursor itself when it
-     * falls in the afternoon gap between nights. Never before the epoch.
+     * whole, and so can the day's naps: the earlier of that night's window
+     * start and 18:00 the evening before the cursor's day, which gives
+     * the waking heart rate a day to be read from. Never before the epoch.
      */
     fun pullStart(cursor: Instant, offset: ZoneOffset): Instant {
         if (cursor == Instant.EPOCH) return cursor
-        val night = SleepStageEstimator.nightDateOf(cursor, offset) ?: return cursor
-        val (windowStart, _) = sleepNightWindow(night, offset)
+        val dayStart = cursor.atOffset(offset).toLocalDate().minusDays(1).atTime(NIGHT_WINDOW_START_HOUR, 0).toInstant(offset)
+        val night = SleepStageEstimator.nightDateOf(cursor, offset)
+        val windowStart = night?.let { sleepNightWindow(it, offset).first } ?: dayStart
         // The watch answers "newer than", so one millisecond before the window includes its first minute.
-        return minOf(cursor, windowStart.minusMillis(1))
+        return minOf(cursor, windowStart, dayStart).let { if (it == cursor) it else it.minusMillis(1) }
     }
+
+    /**
+     * The naps in [minutes] that touch the minutes newer than [cursor], with
+     * the offset their onset had. A nap that ended long before the cursor is
+     * not written again.
+     */
+    fun naps(minutes: List<WearSleepMinute>, cursor: Instant): List<Pair<WearNap, ZoneOffset>> {
+        val newest = minutes.maxByOrNull { it.time } ?: return emptyList()
+        return WearNaps.detectAll(minutes, newest.zoneOffset)
+            .filter { it.end.isAfter(cursor.minus(NAP_REWRITE_LOOKBACK)) }
+            .map { nap -> nap to (minutes.firstOrNull { it.time == nap.onset }?.zoneOffset ?: newest.zoneOffset) }
+    }
+
+    /** The record for a nap, or null when nothing counted as sleep. */
+    fun napRecord(nap: WearNap, offset: ZoneOffset, version: Long): SleepSessionRecord? =
+        estimatedSleepSessionRecord(
+            session = nap.session,
+            offset = offset,
+            clientRecordId = napClientRecordId(nap),
+            version = version,
+            notes = NOTES,
+        )
 
     /**
      * The nights that minutes newer than [cursor] belong to, each with the
@@ -76,6 +111,11 @@ object WearOsSleepImport {
     /** Both steps, for callers that do not log the night. */
     fun record(minutes: List<WearSleepMinute>, date: LocalDate, offset: ZoneOffset, version: Long): SleepSessionRecord? =
         night(minutes, date, offset)?.let { record(it, date, offset, version) }
+
+    private const val NIGHT_WINDOW_START_HOUR = 18
+
+    /** A nap that ended less than this before the cursor is still re-estimated: its end may have moved. */
+    private val NAP_REWRITE_LOOKBACK: java.time.Duration = java.time.Duration.ofHours(1)
 
     private const val NOTES =
         "Sleep stages estimated by OpenVitals from the heart rate and movement the OpenVitals watch app recorded."
