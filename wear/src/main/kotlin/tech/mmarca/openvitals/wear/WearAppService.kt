@@ -89,7 +89,14 @@ class WearAppService : Service() {
         // Off the main thread: a week of heart rate is tens of thousands of rows.
         Thread({ LegacyStoreImport.run(this, store) }, "LegacyStoreImport").start()
         ppgLogger = PpgRawLogger(this)
-        minuteRecorder = SleepMinuteRecorder(this, store, isHeartRateRecording = ::isHeartRateDense)
+        minuteRecorder = SleepMinuteRecorder(
+            this,
+            store,
+            isHeartRateRecording = ::isHeartRateDense,
+            stepsInMinute = ::stepsInMinute,
+            // The heart rate runs at full rate while sleep is held; the schedule reads it.
+            onSleepHoldChange = { mainHandler.post { reconcileRecorders() } },
+        )
         recorder = HeartRateRecorder(
             this,
             store,
@@ -210,10 +217,15 @@ class WearAppService : Service() {
     private fun heartRateInterval(): HeartRateInterval = HeartRateSchedule.interval(
         heartRate = preferences.heartRate,
         sleepRecording = preferences.sleepRecording,
-        bedtime = bedtimeMonitor.isBedtime,
+        bedtime = bedtimeMonitor.isBedtime || minuteRecorder.isSleepHolding,
         day = preferences.heartRateDay,
         night = preferences.heartRateNight,
     )
+
+    /** The steps stored for the minute that starts at [minuteStartMillis]. Any thread. */
+    private fun stepsInMinute(minuteStartMillis: Long): Int =
+        store.since(WearMetrics.STEPS, minuteStartMillis - 1, 2, minuteStartMillis + 60_000L)
+            .filter { it.epochMillis == minuteStartMillis }.sumOf { it.steps }
 
     /**
      * Whether heart rate is recorded at every ten seconds, the rate the sleep

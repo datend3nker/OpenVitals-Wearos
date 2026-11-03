@@ -11,8 +11,9 @@
     <string name="status_step_minutes_stored">Хвилин кроків на годиннику: %1$d</string>
     <string name="status_steps_not_granted">Підрахунок кроків вимкнено: дозвольте «Фізична активність»</string>
     <string name="status_steps_no_sensor">Цей годинник не має лічильника кроків</string>
-    <string name="status_bedtime_off">Увімкніть уночі режим сну, щоб записувати кожну хвилину сну</string>
+    <string name="status_bedtime_off">Кожна хвилина сну записується, коли ви засинаєте або в режимі сну</string>
     <string name="status_bedtime_holding">Режим сну: записується кожна хвилина</string>
+    <string name="status_sleep_holding">Сон: записується кожна хвилина</string>
     <string name="status_bedtime_paused_off_wrist">Режим сну: призупинено, поки годинник не на зап’ясті</string>
     <string name="status_bedtime_paused_charging">Режим сну: призупинено під час заряджання</string>
     <string name="status_sleep_recording_off">Запис сну вимкнено (увімкніть у застосунку на телефоні)</string>

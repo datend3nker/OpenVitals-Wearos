@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d λεπτά βημάτων στο ρολόι</string>
     <string name="status_steps_not_granted">Η καταμέτρηση βημάτων είναι απενεργοποιημένη: επίτρεψε τη Φυσική δραστηριότητα</string>
     <string name="status_steps_no_sensor">Αυτό το ρολόι δεν έχει μετρητή βημάτων</string>
-    <string name="status_bedtime_off">Ενεργοποίησε τη λειτουργία ώρας ύπνου τη νύχτα, ώστε να καταγράφεται κάθε λεπτό ύπνου</string>
+    <string name="status_bedtime_off">Κάθε λεπτό ύπνου καταγράφεται μόλις κοιμηθείς ή σε λειτουργία ώρας ύπνου</string>
     <string name="status_bedtime_holding">Ώρα ύπνου: καταγραφή κάθε λεπτού</string>
+    <string name="status_sleep_holding">Ύπνος: καταγραφή κάθε λεπτού</string>
     <string name="status_bedtime_paused_off_wrist">Ώρα ύπνου: σε παύση όσο το ρολόι δεν είναι στον καρπό</string>
     <string name="status_bedtime_paused_charging">Ώρα ύπνου: σε παύση κατά τη φόρτιση</string>
     <string name="status_sleep_recording_off">Η καταγραφή ύπνου είναι απενεργοποιημένη (ενεργοποίησέ την στην εφαρμογή του τηλεφώνου)</string>

@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d minutes de pas sur la montre</string>
     <string name="status_steps_not_granted">Le comptage des pas est désactivé : autorise Activité physique</string>
     <string name="status_steps_no_sensor">Cette montre n\'a pas de podomètre</string>
-    <string name="status_bedtime_off">Active le mode coucher la nuit pour enregistrer chaque minute de sommeil</string>
+    <string name="status_bedtime_off">Chaque minute de sommeil est enregistrée dès que tu t\'endors ou en mode coucher</string>
     <string name="status_bedtime_holding">Mode coucher : enregistrement à chaque minute</string>
+    <string name="status_sleep_holding">Sommeil : enregistrement à chaque minute</string>
     <string name="status_bedtime_paused_off_wrist">Mode coucher : en pause hors du poignet</string>
     <string name="status_bedtime_paused_charging">Mode coucher : en pause pendant la charge</string>
     <string name="status_sleep_recording_off">Enregistrement du sommeil désactivé (active-le dans l\'application du téléphone)</string>

@@ -119,6 +119,7 @@ internal fun WatchStatusScreen(
                 when {
                     !link.sleepRecording -> R.string.status_sleep_recording_off
                     link.bedtimeHold == BedtimeHold.HOLDING -> R.string.status_bedtime_holding
+                    link.sleepHoldActive -> R.string.status_sleep_holding
                     link.bedtimeHold == BedtimeHold.PAUSED_OFF_WRIST -> R.string.status_bedtime_paused_off_wrist
                     link.bedtimeHold == BedtimeHold.PAUSED_CHARGING -> R.string.status_bedtime_paused_charging
                     else -> R.string.status_bedtime_off

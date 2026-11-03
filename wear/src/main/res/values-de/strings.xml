@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d Minuten mit Schritten auf der Uhr</string>
     <string name="status_steps_not_granted">Schrittzählung ist aus: Körperliche Aktivität erlauben</string>
     <string name="status_steps_no_sensor">Diese Uhr hat keinen Schrittzähler</string>
-    <string name="status_bedtime_off">Schlafmodus nachts einschalten, um jede Schlafminute aufzuzeichnen</string>
+    <string name="status_bedtime_off">Jede Schlafminute wird aufgezeichnet, sobald du einschläfst oder im Schlafmodus</string>
     <string name="status_bedtime_holding">Schlafmodus: jede Minute wird aufgezeichnet</string>
+    <string name="status_sleep_holding">Schlaf: jede Minute wird aufgezeichnet</string>
     <string name="status_bedtime_paused_off_wrist">Schlafmodus: pausiert, wenn die Uhr abgelegt ist</string>
     <string name="status_bedtime_paused_charging">Schlafmodus: pausiert beim Laden</string>
     <string name="status_sleep_recording_off">Schlafaufzeichnung aus (in der Telefon-App einschalten)</string>

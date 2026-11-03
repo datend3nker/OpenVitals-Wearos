@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d minutter med skritt på klokken</string>
     <string name="status_steps_not_granted">Skritttelling er av: tillat Fysisk aktivitet</string>
     <string name="status_steps_no_sensor">Denne klokken har ingen skritteller</string>
-    <string name="status_bedtime_off">Slå på leggetidsmodus om natten for å registrere hvert minutt av søvn</string>
+    <string name="status_bedtime_off">Hvert minutt av søvn registreres når du sovner eller i leggetidsmodus</string>
     <string name="status_bedtime_holding">Leggetid: registrerer hvert minutt</string>
+    <string name="status_sleep_holding">Søvn: registrerer hvert minutt</string>
     <string name="status_bedtime_paused_off_wrist">Leggetid: pauset mens klokken ikke er på håndleddet</string>
     <string name="status_bedtime_paused_charging">Leggetid: pauset under lading</string>
     <string name="status_sleep_recording_off">Søvnregistrering er av (slå på i telefonappen)</string>

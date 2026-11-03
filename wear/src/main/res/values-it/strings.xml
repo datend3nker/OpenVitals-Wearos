@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d minuti di passi sull\'orologio</string>
     <string name="status_steps_not_granted">Conteggio passi disattivato: consenti Attività fisica</string>
     <string name="status_steps_no_sensor">Questo orologio non ha un contapassi</string>
-    <string name="status_bedtime_off">Attiva la modalità notte di notte per registrare ogni minuto di sonno</string>
+    <string name="status_bedtime_off">Ogni minuto di sonno viene registrato quando ti addormenti o in modalità notte</string>
     <string name="status_bedtime_holding">Ora di dormire: registrazione di ogni minuto</string>
+    <string name="status_sleep_holding">Sonno: registrazione di ogni minuto</string>
     <string name="status_bedtime_paused_off_wrist">Ora di dormire: in pausa mentre l\'orologio non è al polso</string>
     <string name="status_bedtime_paused_charging">Ora di dormire: in pausa durante la ricarica</string>
     <string name="status_sleep_recording_off">Registrazione del sonno disattivata (attivala nell\'app del telefono)</string>

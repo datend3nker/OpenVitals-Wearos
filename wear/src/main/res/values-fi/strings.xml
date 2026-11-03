@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d askelminuuttia kellossa</string>
     <string name="status_steps_not_granted">Askelten laskenta on pois päältä: salli Fyysinen aktiivisuus</string>
     <string name="status_steps_no_sensor">Tässä kellossa ei ole askelmittaria</string>
-    <string name="status_bedtime_off">Kytke yöllä nukkumaanmenotila päälle, jotta jokainen unen minuutti tallentuu</string>
+    <string name="status_bedtime_off">Jokainen unen minuutti tallentuu, kun nukahdat tai nukkumaanmenotilassa</string>
     <string name="status_bedtime_holding">Nukkumaanmeno: tallennetaan joka minuutti</string>
+    <string name="status_sleep_holding">Uni: tallennetaan joka minuutti</string>
     <string name="status_bedtime_paused_off_wrist">Nukkumaanmeno: tauolla, kun kelloa ei ole ranteessa</string>
     <string name="status_bedtime_paused_charging">Nukkumaanmeno: tauolla latauksen aikana</string>
     <string name="status_sleep_recording_off">Unen tallennus on pois päältä (kytke se päälle puhelimen sovelluksessa)</string>

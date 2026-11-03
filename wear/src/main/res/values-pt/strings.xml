@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d minutos de passos no relógio</string>
     <string name="status_steps_not_granted">A contagem de passos está desativada: permite a Atividade física</string>
     <string name="status_steps_no_sensor">Este relógio não tem contador de passos</string>
-    <string name="status_bedtime_off">Ativa o modo de deitar à noite para registar cada minuto de sono</string>
+    <string name="status_bedtime_off">Cada minuto de sono é registado quando adormeces ou no modo de deitar</string>
     <string name="status_bedtime_holding">Modo de deitar: a registar cada minuto</string>
+    <string name="status_sleep_holding">Sono: a registar cada minuto</string>
     <string name="status_bedtime_paused_off_wrist">Modo de deitar: em pausa com o relógio fora do pulso</string>
     <string name="status_bedtime_paused_charging">Modo de deitar: em pausa durante o carregamento</string>
     <string name="status_sleep_recording_off">Registo do sono desativado (ativa-o na app do telemóvel)</string>

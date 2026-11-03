@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d nóiméad de chéimeanna ar an uaireadóir</string>
     <string name="status_steps_not_granted">Comhaireamh céimeanna as: ceadaigh Gníomhaíocht fhisiciúil</string>
     <string name="status_steps_no_sensor">Níl comhaireoir céimeanna ar an uaireadóir seo</string>
-    <string name="status_bedtime_off">Cas air mód codlata san oíche chun gach nóiméad codlata a thaifeadadh</string>
+    <string name="status_bedtime_off">Taifeadtar gach nóiméad codlata nuair a thiteann tú i do chodladh nó i mód codlata</string>
     <string name="status_bedtime_holding">Am codlata: gach nóiméad á thaifeadadh</string>
+    <string name="status_sleep_holding">Codladh: gach nóiméad á thaifeadadh</string>
     <string name="status_bedtime_paused_off_wrist">Am codlata: curtha ar sos agus an uaireadóir as láimh</string>
     <string name="status_bedtime_paused_charging">Am codlata: curtha ar sos le linn luchtaithe</string>
     <string name="status_sleep_recording_off">Taifeadadh codlata as (cas air san aip ar do ghuthán)</string>

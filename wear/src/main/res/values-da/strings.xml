@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d minutter med skridt på uret</string>
     <string name="status_steps_not_granted">Skridttælling er slået fra: tillad Fysisk aktivitet</string>
     <string name="status_steps_no_sensor">Dette ur har ingen skridttæller</string>
-    <string name="status_bedtime_off">Slå sengetidstilstand til om natten for at registrere hvert søvnminut</string>
+    <string name="status_bedtime_off">Hvert søvnminut optages, når du falder i søvn eller i sengetidstilstand</string>
     <string name="status_bedtime_holding">Sengetid: registrerer hvert minut</string>
+    <string name="status_sleep_holding">Søvn: registrerer hvert minut</string>
     <string name="status_bedtime_paused_off_wrist">Sengetid: pauset, når uret ikke er på håndleddet</string>
     <string name="status_bedtime_paused_charging">Sengetid: pauset under opladning</string>
     <string name="status_sleep_recording_off">Søvnregistrering er slået fra (slå den til i telefonappen)</string>

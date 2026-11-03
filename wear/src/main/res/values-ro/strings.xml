@@ -11,8 +11,9 @@
     <string name="status_step_minutes_stored">%1$d minute de pași pe ceas</string>
     <string name="status_steps_not_granted">Numărarea pașilor este dezactivată: permiteți Activitate fizică</string>
     <string name="status_steps_no_sensor">Acest ceas nu are contor de pași</string>
-    <string name="status_bedtime_off">Activați noaptea modul de culcare pentru a înregistra fiecare minut de somn</string>
+    <string name="status_bedtime_off">Fiecare minut de somn se înregistrează când adormiți sau în modul de culcare</string>
     <string name="status_bedtime_holding">Culcare: se înregistrează fiecare minut</string>
+    <string name="status_sleep_holding">Somn: se înregistrează fiecare minut</string>
     <string name="status_bedtime_paused_off_wrist">Culcare: pusă pe pauză cât ceasul nu este la încheietură</string>
     <string name="status_bedtime_paused_charging">Culcare: pusă pe pauză în timpul încărcării</string>
     <string name="status_sleep_recording_off">Înregistrarea somnului este dezactivată (activați-o în aplicația de pe telefon)</string>
