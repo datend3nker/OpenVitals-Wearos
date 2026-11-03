@@ -56,7 +56,7 @@ jobs:
             while IFS= read -r f; do
               case "$f" in
                 wear/*) wear=true ;;
-                wearlink/*|build.gradle.kts|settings.gradle.kts|settings-gradle.lockfile|gradle/*|gradlew|scripts/ci-*|.github/workflows/verify.yml) wear=true; phone=true ;;
+                wearlink/*|healthcalc/*|build.gradle.kts|settings.gradle.kts|settings-gradle.lockfile|gradle/*|gradlew|scripts/ci-*|.github/workflows/verify.yml) wear=true; phone=true ;;
                 *) phone=true ;;
               esac
             done < changed.txt
@@ -85,7 +85,7 @@ jobs:
   # off when the runner already has one with caches in it. A step, since a
   # job-level env cannot read the runner context.
 
-  # verifyCiUnitTest (:wearlink:test, :domain:testCiUnitTest, :app:testCiUnitTest)
+  # verifyCiUnitTest (:wearlink:test, :healthcalc:test, :domain:testCiUnitTest, :app:testCiUnitTest)
   # and verifyCiPreflight (verifyTranslations, :app:checkCiDuplicateClasses,
   # :app:compileCiAndroidTestKotlin). No lint here, so every core gets a test
   # fork (app/build.gradle.kts reads openvitals.testForks).
@@ -112,7 +112,7 @@ jobs:
       - run: scripts/ci-android-gradle.sh verifyCiLint
       - run: git diff --check
 
-  # verifyWearCi (:wearlink:test, :wear:testDebugUnitTest, :wear:lintDebug,
+  # verifyWearCi (:wearlink:test, :healthcalc:test, :wear:testDebugUnitTest, :wear:lintDebug,
   # :wear:assembleDebug, :wear:compileDebugAndroidTestKotlin). One invocation:
   # the watch module is small enough that splitting it would cost more in setup
   # than it saves.

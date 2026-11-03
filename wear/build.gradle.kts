@@ -85,6 +85,7 @@ android {
 
 dependencies {
     implementation(project(":wearlink"))
+    implementation(project(":healthcalc"))
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     implementation(libs.androidx.compose.ui)
