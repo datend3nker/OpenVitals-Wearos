@@ -4,9 +4,14 @@ import kotlin.math.roundToInt
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
+import tech.mmarca.openvitals.domain.insights.EstimatedStage
+import tech.mmarca.openvitals.domain.insights.WearNight
+import tech.mmarca.openvitals.domain.model.WearSleepMinuteMapping
 import tech.mmarca.openvitals.wearlink.AscentCredit
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.AscentMinute
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.HeartRateSample
+import tech.mmarca.openvitals.wearlink.WearLinkProtocol.SleepMinute
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.StepMinute
 
 /**
@@ -26,6 +31,26 @@ internal data class DayReadings(
     val latestHeartRate: HeartRateSample?,
     val hasSteps: Boolean,
     val hasAscent: Boolean,
+    /** The night that ended on the morning of [date], or null when the watch saw none. */
+    val sleep: NightSleep? = null,
+)
+
+/**
+ * One night as the phone estimates it, computed on the watch with the same
+ * code (`WearNight` in `:healthcalc`).
+ */
+internal data class NightSleep(
+    val asleepMinutes: Int,
+    /** Minutes per stage, awake included. */
+    val stageMinutes: Map<SleepStage, Double>,
+    /** Null while the night runs, or when too few minutes had a pulse. */
+    val restingHeartRate: Int?,
+)
+
+/** What the screens read: the tiles and last night's stages. */
+internal data class WearReadingsState(
+    val metrics: Map<MetricTile, MetricUiState> = emptyMap(),
+    val sleepStages: Map<SleepStage, Double> = emptyMap(),
 )
 
 /** The Today tile's figures. */
@@ -46,6 +71,7 @@ internal object WearReadings {
         heartRate: List<HeartRateSample>,
         steps: List<StepMinute>,
         ascent: List<AscentMinute>,
+        sleep: NightSleep? = null,
     ): DayReadings {
         val stepsAt = steps.associate { it.epochMillis to it.steps }
         val stepsByHour = DoubleArray(HOURS)
@@ -70,6 +96,24 @@ internal object WearReadings {
             latestHeartRate = heartRate.maxByOrNull { it.epochMillis },
             hasSteps = steps.isNotEmpty(),
             hasAscent = ascent.isNotEmpty(),
+            sleep = sleep,
+        )
+    }
+
+    /** The night of [date] from the watch's minute rows in its window, or null when they hold no night. */
+    fun night(date: LocalDate, offset: ZoneOffset, rows: List<SleepMinute>): NightSleep? {
+        val minutes = rows.map(WearSleepMinuteMapping::toDomain)
+        val night = WearNight.estimate(minutes, date, offset) ?: return null
+        val session = night.session
+        if (session.sleepMinutes <= 0) return null
+        val stageMinutes = session.stages
+            .mapNotNull { span -> span.stage.toSleepStage()?.let { it to (span.end.toEpochMilli() - span.start.toEpochMilli()) / MINUTE_MILLIS.toDouble() } }
+            .groupBy({ it.first }, { it.second })
+            .mapValues { (_, spans) -> spans.sum() }
+        return NightSleep(
+            asleepMinutes = session.sleepMinutes,
+            stageMinutes = stageMinutes,
+            restingHeartRate = WearNight.restingHeartRate(minutes, night),
         )
     }
 
@@ -104,7 +148,38 @@ internal object WearReadings {
                     ),
                 )
             }
+            if (days.any { it.sleep != null }) {
+                put(
+                    MetricTile.SLEEP,
+                    MetricUiState(
+                        current = today.sleep?.asleepMinutes?.toDouble(),
+                        week = days.map { it.sleep?.asleepMinutes?.toDouble() ?: 0.0 },
+                    ),
+                )
+            }
+            if (days.any { it.sleep?.restingHeartRate != null }) {
+                put(
+                    MetricTile.RESTING_HEART_RATE,
+                    MetricUiState(
+                        current = today.sleep?.restingHeartRate?.toDouble(),
+                        week = days.dropWhile { it.sleep?.restingHeartRate == null }
+                            .map { it.sleep?.restingHeartRate?.toDouble() ?: 0.0 },
+                    ),
+                )
+            }
         }
+    }
+
+    /** Last night's stages, for the sleep detail screen. */
+    fun sleepStages(days: List<DayReadings>): Map<SleepStage, Double> =
+        days.lastOrNull()?.sleep?.stageMinutes.orEmpty()
+
+    private fun EstimatedStage.toSleepStage(): SleepStage? = when (this) {
+        EstimatedStage.AWAKE -> SleepStage.AWAKE
+        EstimatedStage.LIGHT -> SleepStage.LIGHT
+        EstimatedStage.DEEP -> SleepStage.DEEP
+        EstimatedStage.REM -> SleepStage.REM
+        EstimatedStage.UNKNOWN -> null
     }
 
     /** What the Today tile shows: the day's steps and the latest heart rate, each null when there is none. */
