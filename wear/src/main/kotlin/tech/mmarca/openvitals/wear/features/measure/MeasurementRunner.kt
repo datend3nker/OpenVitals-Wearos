@@ -59,6 +59,10 @@ class MeasurementRunner(private val context: Context) {
         emit(MeasureEvent.Result(value))
     }
 
+    /** Every usable heart rate while collected, with no end and no result; the sensor stops with the collector. */
+    fun liveHeartRate(): Flow<Double> =
+        sensorHeartRate().mapNotNull { (it as? HeartRateSample.Reading)?.bpm?.takeIf { bpm -> bpm > 0 } }
+
     private fun hrv(): Flow<MeasureEvent> = flow {
         val beats = mutableListOf<Long>()
         withTimeoutOrNull(Measurement.HRV.durationSeconds * 1000L) {
