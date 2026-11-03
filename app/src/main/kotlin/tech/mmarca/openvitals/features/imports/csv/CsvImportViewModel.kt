@@ -1,5 +1,6 @@
 package tech.mmarca.openvitals.features.imports.csv
 
+import tech.mmarca.openvitals.core.privacy.PrivacyRedactor
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import tech.mmarca.openvitals.data.repository.contract.CsvImportPreferences
 import tech.mmarca.openvitals.data.repository.contract.HealthRepository
 import tech.mmarca.openvitals.domain.model.NutritionNutrient
 import tech.mmarca.openvitals.healthconnect.HealthConnectManager
@@ -37,6 +39,8 @@ data class CsvImportState(
     val mapping: CsvImportMapping? = null,
     /** Set when the picked file is a drip export: the mapping step becomes its option switches. */
     val drip: DripImportPlan? = null,
+    /** Set when the picked file is the app's own workout export: the mapping step becomes its column summary. */
+    val workouts: WorkoutImportPlan? = null,
     val issues: List<CsvMappingIssue> = emptyList(),
     val isLoadingFile: Boolean = false,
     val isImporting: Boolean = false,
@@ -50,20 +54,25 @@ data class CsvImportState(
     /** The write permissions this device can ask for; the request set is intersected with it. */
     val supportedWritePermissions: Set<String> = emptySet(),
 ) {
-    /** Whether the mapping, or the drip options, say enough to import. */
+    /** Whether the mapping, the drip options, or a recognised workout export say enough to import. */
     val canContinue: Boolean
-        get() = drip?.importsAnything ?: (issues.isEmpty() && mapping?.importsAnything == true)
+        get() = drip?.importsAnything ?: (workouts != null || (issues.isEmpty() && mapping?.importsAnything == true))
 
     /** The write permissions this mapping needs, can ask for, and lacks. */
     val missingPermissions: Set<String>
         get() {
-            val required = drip?.requiredWritePermissions ?: mapping?.requiredWritePermissions ?: emptySet()
+            val required = drip?.requiredWritePermissions
+                ?: workouts?.requiredWritePermissions
+                ?: mapping?.requiredWritePermissions
+                ?: emptySet()
             return required.intersect(supportedWritePermissions) - granted
         }
 
     /** What the run reads rows with, or null before a file is understood. */
     val importPlan: CsvImportPlan?
-        get() = drip?.let { CsvImportPlan.Drip(it) } ?: mapping?.let { CsvImportPlan.Columns(it) }
+        get() = drip?.let { CsvImportPlan.Drip(it) }
+            ?: workouts?.let { CsvImportPlan.Workouts(it) }
+            ?: mapping?.let { CsvImportPlan.Columns(it) }
 
     /** Sampled rows, for validation and the preview table. */
     val sampleRows: List<List<String>> get() = sample?.dataRows ?: emptyList()
@@ -75,6 +84,8 @@ class CsvImportViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val importService: CsvImportService,
     private val healthRepository: HealthRepository,
+    private val preferences: CsvImportPreferences,
+    private val bloodPressureLabels: CsvBloodPressureLabelSource,
     healthConnectManager: HealthConnectManager,
 ) : ViewModel() {
 
@@ -124,10 +135,11 @@ class CsvImportViewModel @Inject constructor(
                     return@launch
                 }
 
-                // A drip export needs no mapping: its columns are known by name.
+                // A known export needs no mapping: its columns are known by name.
                 val drip = detectDripExport(sample.headerRow)
-                val mapping = if (drip == null) {
-                    initialCsvMapping(headerRow = sample.headerRow, sample = sample.dataRows)
+                val workouts = if (drip == null) detectWorkoutExport(sample.headerRow) else null
+                val mapping = if (drip == null && workouts == null) {
+                    initialMapping(sample)
                 } else {
                     null
                 }
@@ -140,12 +152,13 @@ class CsvImportViewModel @Inject constructor(
                         sample = sample,
                         mapping = mapping,
                         drip = drip,
+                        workouts = workouts,
                         issues = mapping?.let { validateCsvMapping(it, sample.dataRows) } ?: emptyList(),
                         step = CsvImportStep.MAPPING,
                     )
                 }
             } catch (error: Exception) {
-                _uiState.update { it.copy(isLoadingFile = false, error = error.message ?: error.toString()) }
+                _uiState.update { it.copy(isLoadingFile = false, error = PrivacyRedactor.maskMessage(error.message) ?: error.toString()) }
             }
         }
     }
@@ -161,7 +174,7 @@ class CsvImportViewModel @Inject constructor(
                 val sample = withContext(Dispatchers.IO) {
                     reader.sample(sourceFor(uri), dialect = dialect, hasHeaderRow = header)
                 }
-                val mapping = initialCsvMapping(headerRow = sample.headerRow, sample = sample.dataRows)
+                val mapping = initialMapping(sample)
                 _uiState.update {
                     it.copy(
                         isLoadingFile = false,
@@ -171,7 +184,7 @@ class CsvImportViewModel @Inject constructor(
                     )
                 }
             } catch (error: Exception) {
-                _uiState.update { it.copy(isLoadingFile = false, error = error.message ?: error.toString()) }
+                _uiState.update { it.copy(isLoadingFile = false, error = PrivacyRedactor.maskMessage(error.message) ?: error.toString()) }
             }
         }
     }
@@ -223,6 +236,34 @@ class CsvImportViewModel @Inject constructor(
         )
     }
 
+    /** Points column [columnIndex] at one part of the row's blood pressure reading. */
+    fun setColumnBloodPressurePart(columnIndex: Int, part: CsvBloodPressurePart) {
+        val mapping = _uiState.value.mapping ?: return
+        applyMapping(
+            mapping.withColumn(
+                CsvColumnMapping(
+                    columnIndex = columnIndex,
+                    role = CsvColumnRole.BLOOD_PRESSURE,
+                    bloodPressurePart = part,
+                ),
+            ),
+        )
+    }
+
+    /** The body position a reading takes when its file does not say. Remembered for the next import. */
+    fun setDefaultBodyPosition(position: Int) {
+        val mapping = _uiState.value.mapping ?: return
+        preferences.defaultBodyPosition = position
+        applyMapping(mapping.copy(bloodPressure = mapping.bloodPressure.copy(defaultBodyPosition = position)))
+    }
+
+    /** The cuff location a reading takes when its file does not say. Remembered for the next import. */
+    fun setDefaultCuffLocation(location: Int) {
+        val mapping = _uiState.value.mapping ?: return
+        preferences.defaultCuffLocation = location
+        applyMapping(mapping.copy(bloodPressure = mapping.bloodPressure.copy(defaultCuffLocation = location)))
+    }
+
     /** Changes how one already-mapped column's number is read. */
     fun setColumnInterpretation(columnIndex: Int, interpretation: CsvValueInterpretation) {
         val mapping = _uiState.value.mapping ?: return
@@ -232,7 +273,12 @@ class CsvImportViewModel @Inject constructor(
     }
 
     fun setDateTimeSettings(settings: CsvDateTimeSettings) {
-        val mapping = _uiState.value.mapping ?: return
+        val state = _uiState.value
+        state.workouts?.let { workouts ->
+            _uiState.update { it.copy(workouts = workouts.withDateTime(settings)) }
+            return
+        }
+        val mapping = state.mapping ?: return
         applyMapping(mapping.copy(dateTime = settings))
     }
 
@@ -299,15 +345,14 @@ class CsvImportViewModel @Inject constructor(
     fun reportText(): String? {
         val state = _uiState.value
         val result = state.result ?: return null
-        if (state.mapping == null && state.drip == null) return null
+        if (state.mapping == null && state.drip == null && state.workouts == null) return null
         return buildCsvImportReport(
-            fileName = state.fileName,
             mapping = state.mapping,
             result = result,
-            headerRow = state.sample?.headerRow ?: emptyList(),
             fieldDelimiter = state.sample?.dialect?.fieldDelimiter,
             hasHeaderRow = state.sample?.hasHeaderRow,
             drip = state.drip,
+            workouts = state.workouts,
         )
     }
 
@@ -329,6 +374,16 @@ class CsvImportViewModel @Inject constructor(
             )
         }
     }
+
+    /** The first guess at a mapping, with the blood pressure words in the app language and the saved defaults. */
+    private fun initialMapping(sample: CsvSample): CsvImportMapping =
+        initialCsvMapping(headerRow = sample.headerRow, sample = sample.dataRows).copy(
+            bloodPressure = CsvBloodPressureSettings(
+                labels = bloodPressureLabels.labels(),
+                defaultBodyPosition = preferences.defaultBodyPosition,
+                defaultCuffLocation = preferences.defaultCuffLocation,
+            ),
+        )
 
     private fun headerUnit(columnIndex: Int): CsvUnit? {
         val header = _uiState.value.sample?.headerRow ?: return null

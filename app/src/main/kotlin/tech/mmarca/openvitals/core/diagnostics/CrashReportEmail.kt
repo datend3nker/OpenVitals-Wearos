@@ -1,5 +1,9 @@
 package tech.mmarca.openvitals.core.diagnostics
 
+import java.util.Collections
+import java.util.IdentityHashMap
+import tech.mmarca.openvitals.core.privacy.PrivacyRedactor
+
 internal const val CrashReportEmailRecipient = "manuel@mmarca.tech"
 
 internal data class CrashReportAppInfo(
@@ -23,6 +27,34 @@ internal data class CrashReportDetails(
     val stackTrace: String? = null,
 )
 
+/**
+ * What a crash says about itself, as Android's crash dialog would put it, with
+ * the message and the trace masked: the root cause's class and throw site, the
+ * deepest non-empty message, the whole trace without any message's later lines.
+ */
+internal fun crashReportDetails(throwable: Throwable, source: String): CrashReportDetails {
+    var root = throwable
+    var message = throwable.message
+    val seen = Collections.newSetFromMap(IdentityHashMap<Throwable, Boolean>()).apply { add(throwable) }
+    var cause = throwable.cause
+    while (cause != null && seen.add(cause)) {
+        if (cause.stackTrace.isNotEmpty()) root = cause
+        if (!cause.message.isNullOrEmpty()) message = cause.message
+        cause = cause.cause
+    }
+    val site = root.stackTrace.firstOrNull()
+    return CrashReportDetails(
+        source = source,
+        exceptionClassName = root.javaClass.name,
+        exceptionMessage = PrivacyRedactor.maskMessage(message),
+        throwClassName = site?.className,
+        throwFileName = site?.fileName,
+        throwMethodName = site?.methodName,
+        throwLineNumber = site?.lineNumber,
+        stackTrace = PrivacyRedactor.maskThrowable(throwable),
+    )
+}
+
 internal data class CrashReportEmailDraft(
     val subject: String,
     val body: String,
@@ -30,6 +62,12 @@ internal data class CrashReportEmailDraft(
 
 internal object CrashReportEmail {
     private const val MaxEmailSectionChars = 80_000
+
+    // The draft carries the masked log; the error text below it is masked the same way.
+    private const val PrivacyNote =
+        "Please don't add health data (values, dates, names, files) to this email. In the report below, " +
+            "numbers, dates, addresses and identifiers in the error text are masked, and the app's log has " +
+            "addresses, identifiers, file locations and dates masked and error messages masked whole."
 
     fun buildShareText(draft: CrashReportEmailDraft): String = buildString {
         appendLine("To: $CrashReportEmailRecipient")
@@ -40,12 +78,12 @@ internal object CrashReportEmail {
 
     fun buildDraft(
         appInfo: CrashReportAppInfo,
-        reportDetails: CrashReportDetails?,
         savedCrashReport: String,
         diagnosticsLog: String,
         anrReports: String = "",
+        healthConnectCalls: String = "",
     ): CrashReportEmailDraft {
-        val hasCrash = reportDetails != null || savedCrashReport.isNotBlank()
+        val hasCrash = savedCrashReport.isNotBlank()
         val subject = if (hasCrash) {
             "OpenVitals crash report"
         } else {
@@ -67,25 +105,22 @@ internal object CrashReportEmail {
                 appendLine()
                 appendLine("Can Manuel follow up with questions? yes/no")
                 appendLine()
+                appendLine(PrivacyNote)
+                appendLine()
                 appendLine("App/device:")
                 appendAppInfo(appInfo)
                 appendLine()
-                appendLine("Crash details:")
-                if (reportDetails != null) {
-                    appendCrashDetails(reportDetails)
-                } else {
-                    appendLine("No Android crash report was included with this email draft.")
-                }
-                if (savedCrashReport.isNotBlank()) {
-                    appendLine()
-                    appendLine("Last saved OpenVitals crash report:")
-                    appendLine(savedCrashReport.emailSection())
-                }
+                // Counts by operation name: how many calls a load made and how many were refused.
+                appendLine("Health Connect calls this process (counts only):")
+                appendLine(healthConnectCalls.ifBlank { "none" }.emailSection())
+                appendLine()
+                appendLine("Last saved OpenVitals crash report:")
+                appendLine(savedCrashReport.ifBlank { "No crash in the last seven days." }.emailSection())
                 appendLine()
                 appendLine("Recent \"not responding\" records (stack traces only):")
                 appendLine(anrReports.ifBlank { "none" }.emailSection())
                 appendLine()
-                appendLine("Current diagnostics log:")
+                appendLine("Current diagnostics log (masked):")
                 appendLine(diagnosticsLog.ifBlank { "No diagnostics log available." }.emailSection())
             },
         )
@@ -108,7 +143,7 @@ internal object CrashReportEmail {
         appendLine("Crash details:")
         appendCrashDetails(reportDetails)
         appendLine()
-        appendLine("Sanitized diagnostics log:")
+        appendLine("Diagnostics log at the crash (masked):")
         appendLine(diagnosticsLog.ifBlank { "No diagnostics log available." }.emailSection())
     }
 

@@ -47,7 +47,7 @@ Beyond the metric screens, the app now carries three subsystems that are not met
 - `devices/` — the device layer: the Garmin GFDI protocol stack, the shared BLE radio lease, companion-device pairing, notification forwarding, and the listener for a bathroom scale that only broadcasts (`devices/xiaomi`: woken by Android as a companion device, it holds a short foreground service for the two seconds the result is on the air). `features/watches` and `features/scales` are its UI.
 - `features/devicesync/` — phone-to-phone Health Connect sync over Bluetooth Classic RFCOMM.
 - `wearlink/` — the `:wearlink` Gradle module: the phone-to-watch line protocol, framing and trust token, pure Kotlin, compiled into both `:app` and `:wear`. Protocol changes go there, never into a copy.
-- `domain/` — the `:domain` Gradle module: the app-local pure code (`domain/model`, `domain/insights`, `domain/preferences`, `domain/cycle`, `domain/dashboard`, `domain/report`, `domain/medical`, and `core/period`, `core/fit`, `core/geo`, `core/stats`, `core/export`), with the same package names as the app. It exists so its lint and tests run beside the app's. Nothing in it may import `data/`, `healthconnect/`, `features/` or `ui/`; `domain/query` and `domain/usecase` stay in `:app` because they do.
+- `domain/` — the `:domain` Gradle module: the app-local pure code (`domain/model`, `domain/insights`, `domain/preferences`, `domain/cycle`, `domain/dashboard`, `domain/report`, `domain/medical`, and `core/period`, `core/fit`, `core/geo`, `core/stats`, `core/export`, `core/privacy`), with the same package names as the app. It exists so its lint and tests run beside the app's. Nothing in it may import `data/`, `healthconnect/`, `features/` or `ui/`; `domain/query` and `domain/usecase` stay in `:app` because they do.
 - `data/migration/` — a one-time Flutter-to-Kotlin data importer that runs in two phases from `OpenVitalsApp.onCreate()`. Its ordering around `super.onCreate()` is load-bearing; read the architecture doc before touching startup.
 
 The following areas are still transitional and should not be copied as the default pattern:
@@ -94,7 +94,9 @@ Do not break these without an explicit decision. They are app-wide, and each has
 - **One foreground service at a time.** Activity recording, the Apple Health import, and phone sync contend for the single foreground slot and refuse rather than queue. The one service the app starts without a tap is the scale's 45-second `ScaleListeningService`, when Android reports the associated scale awake; it starts nothing while the app is already in the foreground.
 - **One BLE radio, leased per address.** Everything that opens a BLE link takes a lease from `devices/core/RadioLease.kt` under one of the four owner tags: `SYNC`, `FIND`, `SETTINGS`, `NOTIFICATIONS`. A lease is re-entrant per tag, so `SYNC` work (a sync, a file upload) also serialises on `GarminWatchSyncService.syncMutex`. A scan opens no link and takes no lease.
 - **A missing permission is `ScreenError.PermissionDenied`.** Use `isPermissionFailure()` / `toScreenError()`; never pattern-match exception messages. The screens render this as a grant affordance.
+- **One Health Connect backoff, one pacer, one tally.** A refusal is process-wide state in `HealthConnectRateLimitBackoff`, read under the reader semaphore, climbing 1, 2, 5, 15 minutes; `HealthConnectCallPacer` spaces call starts; `HealthConnectCallCounters` counts every call by operation name for the report email. A screen read that is skipped or refused marks `HealthConnectReadOutcome`, and the dashboard reloads those tiles alone when the deadline passes. Never add a second backoff, a retry loop around a reader, or a toast for a rate limit.
 - **Health Connect reads and record mapping live behind `healthconnect/*HealthReader`.** Writes go through `AppleHealthImportRepository.insertImportedRecords` with a deterministic `clientRecordId`. Medical records (FHIR) have no `clientRecordId`: they go through `healthconnect/MedicalRecordsWriter`, where a record's data source, type and id make a rewrite an update.
+- **Text that leaves the app is structure, not data.** Reports, the crash draft and the diagnostics log hold counts, types, reasons and masked error text, never a value, a record's time, a name or a file name. Exception text goes through `core/privacy/PrivacyRedactor`; a copy goes through `sensitiveTextClip`; a log line logs a count or passes the throwable, never a value. Seed `PrivacySentinels` in a test of any new report.
 - **Nothing waits on the main thread.** No `runBlocking` in `app/src/main` (`NoRunBlockingRatchetTest` holds the allow-list). A receiver never holds a broadcast for a Health Connect read. Composables `remember` any pass over samples.
 - **Every locale ships complete.** A new string goes to `values/strings.xml` and to every `values-*/strings.xml`, with the plural shape each locale needs; `python3 scripts/verify-translations.py` checks them. See [translations.md](docs/engineering/translations.md) and the translation-gate note in [development.md](docs/engineering/development.md).
 - **Room is at version 17.** A new entity means a `MIGRATION_17_18` and a bump, not `fallbackToDestructiveMigration`.
@@ -174,6 +176,8 @@ Health Connect-backed destinations should use the shared shell instead of wiring
 
 Do not add per-screen `PermissionCallout`, inline `HealthConnectSyncStatusBanner`, or duplicate `HealthConnectAccessGate` wiring.
 
+A grant missing for one part of a card (a write a sync skipped, a background read an option needs) uses `ui/components/InlineGrantPrompt`: the card's own message and a button, no hand-built text-plus-button.
+
 ### Do not copy these patterns
 
 - local coroutine loading directly in screens for new feature work
@@ -183,6 +187,7 @@ Do not add per-screen `PermissionCallout`, inline `HealthConnectSyncStatusBanner
 - a universal chart abstraction that hides metric semantics
 - ad-hoc Health Connect permission UI outside the shared shell
 - a second FIT decoder, or a second radio-arbitration scheme
+- a second Health Connect rate-limit backoff, pacer or call tally; a permission check or feature status cached after it failed
 - opening a BLE connection without taking a lease
 - editing `values-*/strings.xml` by hand to make `verifyTranslations` pass
 

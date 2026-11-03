@@ -3,9 +3,10 @@ package tech.mmarca.openvitals.features.imports.csv
 import com.google.common.truth.Truth.assertThat
 import java.time.ZoneOffset
 import org.junit.Test
+import tech.mmarca.openvitals.core.privacy.PrivacyRedactor
+import tech.mmarca.openvitals.core.privacy.PrivacySentinels
+import tech.mmarca.openvitals.domain.model.BpRecordValues
 import tech.mmarca.openvitals.domain.model.NutritionNutrient
-
-private val HeaderRow = listOf("Date", "Weight (kg)", "Fat mass (kg)", "Comments")
 
 private fun reportMapping(
     bodyFat: CsvValueInterpretation = CsvMassShareOfWeight(CsvUnit.KILOGRAMS),
@@ -53,33 +54,36 @@ private fun runResult(
 )
 
 private fun report(
-    mapping: CsvImportMapping = reportMapping(),
+    mapping: CsvImportMapping? = reportMapping(),
     result: CsvImportResult = runResult(),
-    fileName: String? = "withings.csv",
     delimiter: String? = ",",
     hasHeader: Boolean? = true,
+    workouts: WorkoutImportPlan? = null,
 ): String = buildCsvImportReport(
-    fileName = fileName,
     mapping = mapping,
     result = result,
-    headerRow = HeaderRow,
     fieldDelimiter = delimiter,
     hasHeaderRow = hasHeader,
+    workouts = workouts,
 )
+
+/** The export header with one column the app has never heard of. */
+private val WorkoutHeader = listOf(
+    "title", "activity_type", "start_time", "end_time", "distance_meters", "average_heart_rate_bpm",
+    "max_heart_rate_bpm", "my secret column", "notes",
+)
+
+private fun workoutPlan(): WorkoutImportPlan =
+    detectWorkoutExport(WorkoutHeader, CsvDateTimeSettings(zone = CsvTimeZoneMode.UTC))!!
 
 class CsvImportReportTest {
 
     @Test
-    fun `the report names the file and the outcome`() {
+    fun `the report gives the outcome and never the file's name`() {
         val report = report()
 
-        assertThat(report).contains("File: withings.csv")
         assertThat(report).contains("Outcome: completed")
-    }
-
-    @Test
-    fun `an unnamed file is reported rather than left blank`() {
-        assertThat(report(fileName = null)).contains("File: (unnamed)")
+        assertThat(report).doesNotContain("File:")
     }
 
     @Test
@@ -131,12 +135,12 @@ class CsvImportReportTest {
     }
 
     @Test
-    fun `every column is listed with the role it was given`() {
+    fun `every column is listed with the role it was given, not its header`() {
         val report = report()
 
-        assertThat(report).contains("[0] Date -> date and time")
-        assertThat(report).contains("[1] Weight (kg) -> weight (kilograms)")
-        assertThat(report).contains("[3] Comments -> not imported")
+        assertThat(report).contains("[0] -> date and time")
+        assertThat(report).contains("[1] -> weight (kilograms)")
+        assertThat(report).contains("[3] -> not imported")
     }
 
     @Test
@@ -154,21 +158,45 @@ class CsvImportReportTest {
         )
 
         val report = buildCsvImportReport(
-            fileName = "meals.csv",
             mapping = mapping,
             result = runResult(),
-            headerRow = listOf("Date", "Food", "B12"),
         )
 
-        assertThat(report).contains("[1] Food -> food name")
-        assertThat(report).contains("[2] B12 -> nutrient vitaminB12 (micrograms)")
+        assertThat(report).contains("[1] -> food name")
+        assertThat(report).contains("[2] -> nutrient vitaminB12 (micrograms)")
+    }
+
+    @Test
+    fun `blood pressure columns name their part, and the defaults a reading fell back to are recorded`() {
+        val mapping = CsvImportMapping(
+            columns = listOf(
+                CsvColumnMapping(columnIndex = 0, role = CsvColumnRole.TIMESTAMP),
+                CsvColumnMapping(1, CsvColumnRole.BLOOD_PRESSURE, bloodPressurePart = CsvBloodPressurePart.SYSTOLIC),
+                CsvColumnMapping(2, CsvColumnRole.BLOOD_PRESSURE, bloodPressurePart = CsvBloodPressurePart.DIASTOLIC),
+                CsvColumnMapping(3, CsvColumnRole.BLOOD_PRESSURE, bloodPressurePart = CsvBloodPressurePart.CUFF_LOCATION),
+            ),
+            bloodPressure = CsvBloodPressureSettings(
+                defaultBodyPosition = BpRecordValues.BODY_POSITION_SITTING_DOWN,
+            ),
+        )
+
+        val report = buildCsvImportReport(
+            mapping = mapping,
+            result = runResult(counts = mapOf(CsvImportDiagnosticReason.SYSTOLIC_NOT_ABOVE_DIASTOLIC to 1)),
+        )
+
+        assertThat(report).contains("[1] -> blood pressure systolic (millimetersOfMercury)")
+        assertThat(report).contains("[3] -> blood pressure cuff location")
+        assertThat(report).contains("Default body position: sitting down")
+        assertThat(report).contains("Default cuff location: not specified")
+        assertThat(report).contains("systolic not above diastolic: 1")
     }
 
     @Test
     fun `a derived body fat says what it was derived from, not just its unit`() {
         // "kilograms" alone on a body-fat column would misdescribe what was written.
         assertThat(report()).contains(
-            "[2] Fat mass (kg) -> bodyFat (kilograms as a share of the weight column)",
+            "[2] -> bodyFat (kilograms as a share of the weight column)",
         )
     }
 
@@ -188,7 +216,7 @@ class CsvImportReportTest {
     }
 
     @Test
-    fun `individual rejected rows name the row, column and value`() {
+    fun `individual rejected rows name the row, column and the cell's shape`() {
         val report = report(
             result = runResult(
                 diagnostics = listOf(
@@ -196,14 +224,14 @@ class CsvImportReportTest {
                         rowNumber = 7,
                         reason = CsvImportDiagnosticReason.UNPARSABLE_NUMBER,
                         columnIndex = 2,
-                        detail = "n/a",
+                        detail = PrivacyRedactor.shapeOf("n/a"),
                     ),
                 ),
                 counts = mapOf(CsvImportDiagnosticReason.UNPARSABLE_NUMBER to 1),
             ),
         )
 
-        assertThat(report).contains("Row 7 column 2: value not a number (n/a)")
+        assertThat(report).contains("Row 7 column 2: value not a number (a/a)")
     }
 
     @Test
@@ -288,5 +316,99 @@ class CsvImportReportTest {
 
         assertThat(report(result = result)).contains("Quota pauses:        3 (waited 1 min 45 s)")
         assertThat(report()).doesNotContain("Quota pauses")
+    }
+    @Test
+    fun `a workout export is reported by format, column indexes and sessions written, never by its header text`() {
+        val report = report(mapping = null, workouts = workoutPlan())
+
+        assertThat(report).contains("Format:     OpenVitals workout export")
+        assertThat(report).contains("Date format: auto")
+        assertThat(report).contains("Time zone:   UTC")
+        assertThat(report).contains("Workouts written:    118, of which 4 replaced an earlier import")
+        assertThat(report).doesNotContain("Records written")
+        assertThat(report).contains("Workout columns")
+        assertThat(report).contains("[0] -> title")
+        assertThat(report).contains("[1] -> activity type")
+        assertThat(report).contains("[2] -> start date and time")
+        assertThat(report).contains("[4] -> distance (meters)")
+        assertThat(report).contains("[5] -> average heart rate (beatsPerMinute, as a flat series)")
+        assertThat(report).contains("[6] -> not imported (max_heart_rate_bpm)")
+        assertThat(report).contains("[7] -> not imported\n")
+        assertThat(report).contains("[8] -> notes")
+        assertThat(report).doesNotContain("my secret column")
+        assertThat(report).doesNotContain("Column mapping")
+    }
+
+    @Test
+    fun `the workout reasons read as sentences`() {
+        val counts = mapOf(
+            CsvImportDiagnosticReason.ACTIVITY_TYPE_DEFAULTED to 2,
+            CsvImportDiagnosticReason.MISSING_END to 1,
+            CsvImportDiagnosticReason.UNSUPPORTED_FOR_ACTIVITY_TYPE to 3,
+            CsvImportDiagnosticReason.ACTIVE_ABOVE_TOTAL_CALORIES to 1,
+        )
+
+        val report = report(mapping = null, workouts = workoutPlan(), result = runResult(counts = counts))
+
+        assertThat(report).contains("activity type not recognised, stored as a workout: 2")
+        assertThat(report).contains("no end time or duration: 1")
+        assertThat(report).contains("not kept for this activity type: 3")
+        assertThat(report).contains("active calories above total calories: 1")
+    }
+
+    @Test
+    fun `a workout row's title, notes, type and values never reach the report`() {
+        val plan = workoutPlan()
+        val rows = listOf(
+            // A fine row with health data in every text cell: it produces no diagnostic, so nothing of it is reported.
+            CsvRow(2, listOf(PrivacySentinels.Name, "running", PrivacySentinels.Instant, "2026-05-26T09:30:00Z", "10000", "150", "", "", PrivacySentinels.Sentence)),
+            // The type is health data and not a type: its shape is reported, never the text.
+            CsvRow(3, listOf("", PrivacySentinels.Name, PrivacySentinels.Instant, "2026-05-26T09:30:00Z", "", "", "", "", "")),
+            // A start that will not read, carrying a name.
+            CsvRow(4, listOf("", "yoga", "when ${PrivacySentinels.Name}", "", "", "", "", "", "")),
+            // A value that is not a number, in the distance column.
+            CsvRow(5, listOf("", "running", PrivacySentinels.Instant, "2026-05-26T09:30:00Z", "${PrivacySentinels.Value} km", "", "", "", "")),
+        )
+        val diagnostics = rows.flatMap { convertWorkoutRow(it, plan).diagnostics }
+
+        val report = report(
+            mapping = null,
+            workouts = plan,
+            result = runResult(
+                diagnostics = diagnostics,
+                counts = diagnostics.groupingBy { it.reason }.eachCount(),
+                outcome = CsvImportOutcome.FAILED,
+                error = PrivacyRedactor.maskMessage(PrivacySentinels.Sentence),
+            ),
+        )
+
+        assertThat(diagnostics).isNotEmpty()
+        // The masked error may still carry the name, as in the mapped report; the rows and columns never do.
+        PrivacySentinels.assertNoneIn(report, except = setOf(PrivacySentinels.Name))
+        assertThat(report.substringAfter("Workout columns")).doesNotContain(PrivacySentinels.Name)
+    }
+
+    @Test
+    fun `cells and errors carrying health data come out as shapes, reasons and masked text`() {
+        val cell = "${PrivacySentinels.Value} kg ${PrivacySentinels.Date}"
+        val rows = listOf(
+            CsvRow(rowNumber = 2, fields = listOf(PrivacySentinels.Instant, cell, "", PrivacySentinels.Name)),
+            CsvRow(rowNumber = 3, fields = listOf("not a date ${PrivacySentinels.Name}", "70", "", "")),
+            CsvRow(rowNumber = 4, fields = listOf(PrivacySentinels.Instant, "9999", "", "")),
+        )
+        val diagnostics = rows.flatMap { convertCsvRow(it, reportMapping(bodyFat = CsvDirectValue(CsvUnit.PERCENT))).diagnostics }
+
+        val report = report(
+            result = runResult(
+                diagnostics = diagnostics,
+                counts = diagnostics.groupingBy { it.reason }.eachCount(),
+                outcome = CsvImportOutcome.FAILED,
+                error = PrivacySentinels.Sentence,
+            ).let { it.copy(error = PrivacyRedactor.maskMessage(it.error)) },
+        )
+
+        assertThat(diagnostics).isNotEmpty()
+        PrivacySentinels.assertNoneIn(report, except = setOf(PrivacySentinels.Name))
+        assertThat(report.substringAfter("Rejected rows")).doesNotContain(PrivacySentinels.Name)
     }
 }

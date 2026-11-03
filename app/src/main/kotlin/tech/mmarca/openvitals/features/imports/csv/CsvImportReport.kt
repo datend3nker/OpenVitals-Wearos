@@ -1,31 +1,33 @@
 package tech.mmarca.openvitals.features.imports.csv
 
 import java.util.Locale
+import tech.mmarca.openvitals.domain.model.BpRecordValues
 import tech.mmarca.openvitals.domain.model.NutritionNutrient
 
 /**
- * The text report of a finished CSV import. Pure. Not sanitised, like the
- * Apple Health report: it names the file, columns and rejected values.
+ * The text report of a finished CSV import, to copy, save or send. Pure.
+ * Structure only: counts, roles, units, reasons, row and column numbers, and
+ * the shape of a cell that could not be read. Never a cell's text, a value,
+ * the file's name or its header names.
  */
 
 /** The suggested file name for a saved CSV import report. */
 const val CSV_IMPORT_REPORT_FILE_NAME = "openvitals-csv-import-report.txt"
 
-/** Renders [result] as text. File name and dialect come from the run, not a fresh sniff. */
+/** Renders [result] as text. The dialect comes from the run, not a fresh sniff. */
 fun buildCsvImportReport(
-    fileName: String?,
     /** The column mapping, or null for a drip export read through [drip]. */
     mapping: CsvImportMapping?,
     result: CsvImportResult,
-    headerRow: List<String>,
     fieldDelimiter: String? = null,
     hasHeaderRow: Boolean? = null,
     drip: DripImportPlan? = null,
+    /** Set for the app's own workout export, read through its plan instead of a mapping. */
+    workouts: WorkoutImportPlan? = null,
 ): String = buildString {
     appendLine("OpenVitals CSV import report")
     appendLine("===========================")
     appendLine()
-    appendLine("File: ${fileName ?: "(unnamed)"}")
     appendLine("Outcome: ${outcomeLabel(result.outcome)}")
     result.error?.let { appendLine("Error: $it") }
 
@@ -35,10 +37,12 @@ fun buildCsvImportReport(
     // Rows partition three ways and add up to rows read. Records do not: a row can make several.
     val progress = result.progress
     appendLine("Rows read:           ${progress.rowsRead}")
-    appendLine("  Imported:          ${progress.rowsImported} (rows that produced a record or a journal entry)")
+    appendLine("  Imported:          ${progress.rowsImported} (rows that produced a record, a workout or a journal entry)")
     appendLine("  Rejected:          ${progress.rowsRejected}")
     appendLine("  Nothing to import: ${progress.emptyRows}")
-    appendLine("Records written:     ${progress.written}, of which ${progress.alreadyPresent} replaced an earlier import")
+    // A workout row writes a session plus its totals; the count is sessions, one per row.
+    val writtenLabel = if (workouts != null) "Workouts written:   " else "Records written:    "
+    appendLine("$writtenLabel ${progress.written}, of which ${progress.alreadyPresent} replaced an earlier import")
     if (progress.presenceUnchecked > 0) {
         appendLine("  Not checked first: ${progress.presenceUnchecked} (Health Connect could not be read for them; written all the same)")
     }
@@ -64,10 +68,23 @@ fun buildCsvImportReport(
         mapping.dateTime.customPattern?.takeIf { it.isNotEmpty() }?.let {
             appendLine("Custom pattern: $it")
         }
+        // What a reading took when its file gave no position or location, or an unrecognised one.
+        if (mapping.bloodPressureColumns.isNotEmpty()) {
+            appendLine("Default body position: ${bodyPositionReportLabel(mapping.bloodPressure.defaultBodyPosition)}")
+            appendLine("Default cuff location: ${cuffLocationReportLabel(mapping.bloodPressure.defaultCuffLocation)}")
+        }
     }
     if (drip != null) {
         appendLine("Format:     drip export")
         appendLine("Time zone:  ${drip.zone.id}")
+    }
+    if (workouts != null) {
+        appendLine("Format:     OpenVitals workout export")
+        appendLine("Date format: ${workouts.dateTime.format.reportName}")
+        appendLine("Time zone:   ${zoneLabel(workouts.dateTime)}")
+        workouts.dateTime.customPattern?.takeIf { it.isNotEmpty() }?.let {
+            appendLine("Custom pattern: $it")
+        }
     }
 
     if (drip != null) {
@@ -77,13 +94,25 @@ fun buildCsvImportReport(
         for (option in DripImportOption.entries) {
             appendLine("${dripOptionReportLabel(option)}: ${if (option in drip.enabled) "yes" else "no"}")
         }
+    } else if (workouts != null) {
+        appendLine()
+        appendLine("Workout columns")
+        appendLine("---------------")
+        // Every column by index and the app's own name for it, never the file's header text.
+        val recognised = workouts.recognisedColumns.entries.associate { (name, index) -> index to name }
+        val ignored = workouts.ignoredColumns.entries.associate { (name, index) -> index to name }
+        for (index in 0 until workouts.columnCount) {
+            val label = recognised[index]?.let(::workoutColumnReportLabel)
+                ?: ignored[index]?.let { "not imported ($it)" }
+                ?: "not imported"
+            appendLine("[$index] -> $label")
+        }
     } else if (mapping != null) {
         appendLine()
         appendLine("Column mapping")
         appendLine("--------------")
         for (column in mapping.columns) {
-            val header = headerRow.getOrNull(column.columnIndex) ?: "Column ${column.columnIndex + 1}"
-            appendLine("[${column.columnIndex}] $header -> ${roleLabel(column)}")
+            appendLine("[${column.columnIndex}] -> ${roleLabel(column)}")
         }
     }
 
@@ -188,6 +217,25 @@ private val CsvUnit.reportName: String
         CsvUnit.MICROGRAMS -> "micrograms"
     }
 
+/** A recognised workout column as the report names it: what it becomes, and the unit the export writes. */
+private fun workoutColumnReportLabel(name: String): String = when (name) {
+    WorkoutCsvColumns.Title -> "title"
+    WorkoutCsvColumns.ActivityType -> "activity type"
+    WorkoutCsvColumns.StartTime -> "start date and time"
+    WorkoutCsvColumns.EndTime -> "end date and time"
+    WorkoutCsvColumns.DurationSeconds -> "duration (seconds)"
+    WorkoutCsvColumns.DistanceMeters -> "distance (meters)"
+    WorkoutCsvColumns.ElevationGainedMeters -> "elevation gained (meters)"
+    WorkoutCsvColumns.Steps -> "steps (count)"
+    WorkoutCsvColumns.TotalCaloriesKcal -> "total calories (kilocalories)"
+    WorkoutCsvColumns.ActiveCaloriesKcal -> "active calories (kilocalories)"
+    WorkoutCsvColumns.AverageHeartRateBpm -> "average heart rate (beatsPerMinute, as a flat series)"
+    WorkoutCsvColumns.FloorsClimbed -> "floors climbed (count)"
+    WorkoutCsvColumns.WheelchairPushes -> "wheelchair pushes (count)"
+    WorkoutCsvColumns.Notes -> "notes"
+    else -> "not imported"
+}
+
 private fun dripOptionReportLabel(option: DripImportOption): String = when (option) {
     DripImportOption.BLEEDING -> "Bleeding"
     DripImportOption.TEMPERATURE -> "Basal body temperature"
@@ -258,6 +306,30 @@ private fun roleLabel(column: CsvColumnMapping): String = when (column.role) {
             "${metric.reportName} (${interpretationLabel(column.effectiveInterpretation)})"
         }
     }
+    CsvColumnRole.BLOOD_PRESSURE -> when (column.bloodPressurePart) {
+        CsvBloodPressurePart.SYSTOLIC -> "blood pressure systolic (millimetersOfMercury)"
+        CsvBloodPressurePart.DIASTOLIC -> "blood pressure diastolic (millimetersOfMercury)"
+        CsvBloodPressurePart.BODY_POSITION -> "blood pressure body position"
+        CsvBloodPressurePart.CUFF_LOCATION -> "blood pressure cuff location"
+        null -> "not imported"
+    }
+}
+
+/** A default as the report names it: Health Connect's constant names, in words. */
+private fun bodyPositionReportLabel(position: Int): String = when (position) {
+    BpRecordValues.BODY_POSITION_STANDING_UP -> "standing up"
+    BpRecordValues.BODY_POSITION_SITTING_DOWN -> "sitting down"
+    BpRecordValues.BODY_POSITION_LYING_DOWN -> "lying down"
+    BpRecordValues.BODY_POSITION_RECLINING -> "reclining"
+    else -> "not specified"
+}
+
+private fun cuffLocationReportLabel(location: Int): String = when (location) {
+    BpRecordValues.MEASUREMENT_LOCATION_LEFT_WRIST -> "left wrist"
+    BpRecordValues.MEASUREMENT_LOCATION_RIGHT_WRIST -> "right wrist"
+    BpRecordValues.MEASUREMENT_LOCATION_LEFT_UPPER_ARM -> "left upper arm"
+    BpRecordValues.MEASUREMENT_LOCATION_RIGHT_UPPER_ARM -> "right upper arm"
+    else -> "not specified"
 }
 
 private fun interpretationLabel(interpretation: CsvValueInterpretation?): String =
@@ -276,6 +348,12 @@ private fun reasonLabel(reason: CsvImportDiagnosticReason): String = when (reaso
     CsvImportDiagnosticReason.DERIVATION_MISSING_WEIGHT -> "no weight to derive the percentage from"
     CsvImportDiagnosticReason.UNPARSABLE_END_TIMESTAMP -> "end date not understood"
     CsvImportDiagnosticReason.END_NOT_AFTER_START -> "end is not after the start"
+    CsvImportDiagnosticReason.MISSING_BLOOD_PRESSURE_VALUE -> "systolic or diastolic missing"
+    CsvImportDiagnosticReason.SYSTOLIC_NOT_ABOVE_DIASTOLIC -> "systolic not above diastolic"
     CsvImportDiagnosticReason.WRITE_FAILED -> "Health Connect refused the record"
     CsvImportDiagnosticReason.EXCLUDED_IN_SOURCE -> "Excluded in the source app"
+    CsvImportDiagnosticReason.ACTIVITY_TYPE_DEFAULTED -> "activity type not recognised, stored as a workout"
+    CsvImportDiagnosticReason.MISSING_END -> "no end time or duration"
+    CsvImportDiagnosticReason.UNSUPPORTED_FOR_ACTIVITY_TYPE -> "not kept for this activity type"
+    CsvImportDiagnosticReason.ACTIVE_ABOVE_TOTAL_CALORIES -> "active calories above total calories"
 }

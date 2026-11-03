@@ -1,5 +1,6 @@
 package tech.mmarca.openvitals.features.imports.csv
 
+import tech.mmarca.openvitals.core.privacy.PrivacyRedactor
 import androidx.health.connect.client.records.BasalBodyTemperatureRecord
 import androidx.health.connect.client.records.BasalMetabolicRateRecord
 import androidx.health.connect.client.records.BloodGlucoseRecord
@@ -32,6 +33,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.util.Locale
 import kotlin.math.roundToLong
+import tech.mmarca.openvitals.domain.model.ActivityWriteRequest
 import tech.mmarca.openvitals.domain.model.CycleJournalEntry
 import tech.mmarca.openvitals.domain.model.NutritionNutrient
 
@@ -40,9 +42,12 @@ import tech.mmarca.openvitals.domain.model.NutritionNutrient
 /** The `clientRecordId` namespace for CSV imports. Distinct from the Apple importer's. */
 const val CSV_CLIENT_RECORD_ID_NAMESPACE = "csv"
 
-/** A record built from one CSV cell, or from a row's nutrient cells, with everything the import loop needs. */
+/**
+ * A record built from one CSV cell, or from a row's nutrient or blood pressure
+ * cells, with everything the import loop needs.
+ */
 data class CsvConvertedRecord(
-    /** Null for a nutrition record, which no single metric makes. */
+    /** Null for a nutrition or blood pressure record, which no single metric makes. */
     val metric: CsvImportMetric?,
     /** Mirrors [CsvMetricSpec.targetType]; a segment of [clientRecordId]. */
     val targetType: String,
@@ -50,7 +55,7 @@ data class CsvConvertedRecord(
     val clientRecordId: String,
     /** The measurement's instant, used to bound the duplicate-lookup window. */
     val instant: Instant,
-    /** The value in the metric's canonical unit, for the confirm-step preview. Null for nutrition. */
+    /** The value in the metric's canonical unit, for the confirm-step preview. Null for nutrition and blood pressure. */
     val canonicalValue: Double?,
     val record: Record,
     /** A nutrition record's amounts, grams or kcal, for the confirm-step preview. Empty for a metric. */
@@ -63,12 +68,15 @@ data class CsvRowConversion(
     val diagnostics: List<CsvImportDiagnostic> = emptyList(),
     /** The day's cycle journal entry, from a drip export; Room, not Health Connect. */
     val journalEntry: CycleJournalEntry? = null,
+    /** The workout a row of the app's own export describes; written through the activity repository. */
+    val activity: ActivityWriteRequest? = null,
 )
 
 /**
  * Converts [row] under [mapping]. A bad timestamp costs the row, a bad value
- * only that metric or nutrient, a bad end timestamp only the interval records.
- * [nutritionOccurrences] numbers nutrition records across one run.
+ * only that metric, nutrient or blood pressure reading, a bad end timestamp
+ * only the interval records. [nutritionOccurrences] numbers nutrition records
+ * across one run.
  */
 fun convertCsvRow(
     row: CsvRow,
@@ -81,10 +89,12 @@ fun convertCsvRow(
     if (!mapping.importsAnything) return CsvRowConversion()
 
     // "Too short" is relative to what the mapping reads: trailing empty columns
-    // are normal. The end and food-name columns are not counted; a missing end
-    // falls back to the one-minute span, a missing name to none.
+    // are normal. The end, food-name, body position and cuff location columns
+    // are not counted; a missing end falls back to the one-minute span, a
+    // missing name to none, a missing position or location to its default.
     val endTimestampColumn = mapping.endTimestampColumn
-    val readColumns = metricColumns + mapping.nutrientColumns + timestampColumn
+    val pressureColumns = mapping.bloodPressureColumns.filter { it.bloodPressurePart?.isPressure == true }
+    val readColumns = metricColumns + mapping.nutrientColumns + pressureColumns + timestampColumn
     val highestIndex = readColumns.maxOf { it.columnIndex }
     if (row.fields.size <= highestIndex) {
         return CsvRowConversion(
@@ -116,7 +126,7 @@ fun convertCsvRow(
                     rowNumber = row.rowNumber,
                     reason = CsvImportDiagnosticReason.UNPARSABLE_TIMESTAMP,
                     columnIndex = timestampColumn.columnIndex,
-                    detail = timestampText,
+                    detail = PrivacyRedactor.shapeOf(timestampText),
                 ),
             ),
         )
@@ -153,7 +163,7 @@ fun convertCsvRow(
                 rowNumber = row.rowNumber,
                 reason = CsvImportDiagnosticReason.UNPARSABLE_NUMBER,
                 columnIndex = column.columnIndex,
-                detail = text,
+                detail = PrivacyRedactor.shapeOf(text),
             )
             continue
         }
@@ -179,7 +189,6 @@ fun convertCsvRow(
                 rowNumber = row.rowNumber,
                 reason = CsvImportDiagnosticReason.OUT_OF_RANGE,
                 columnIndex = column.columnIndex,
-                detail = String.format(Locale.US, "%.2f", canonical),
             )
             continue
         }
@@ -194,6 +203,7 @@ fun convertCsvRow(
 
     convertCsvNutritionRow(row, mapping, instant, endText, endInstant, nutritionOccurrences, diagnostics)
         ?.let { records += it }
+    convertCsvBloodPressureRow(row, mapping, instant, diagnostics)?.let { records += it }
 
     return CsvRowConversion(records = records, diagnostics = diagnostics)
 }
@@ -221,7 +231,8 @@ internal fun csvIntervalEnd(
         rowNumber = row.rowNumber,
         reason = reason,
         columnIndex = columnIndex,
-        detail = endText,
+        // An end that is a date, only later than it should be, says nothing a shape would add.
+        detail = if (reason == CsvImportDiagnosticReason.UNPARSABLE_END_TIMESTAMP) PrivacyRedactor.shapeOf(endText) else null,
     )
     return null
 }
@@ -384,15 +395,19 @@ fun buildCsvClientRecordId(targetType: String, utc: Instant, occurrence: Int = 0
     } else {
         "$targetType|${utc.toEpochMilli()}|$occurrence"
     }
+    return "${CSV_CLIENT_RECORD_ID_NAMESPACE}_${toCsvStableIdSegment(targetType)}_${csvStableDigest(parts)}"
+}
+
+/** SHA-256 of [parts], its first 16 bytes as lowercase hex. The digest every CSV identity is built on. */
+internal fun csvStableDigest(parts: String): String {
     val bytes = MessageDigest.getInstance("SHA-256").digest(parts.toByteArray(Charsets.UTF_8))
-    val digest = buildString(32) {
+    return buildString(32) {
         for (index in 0 until 16) {
             val byte = bytes[index].toInt() and 0xFF
             append(HexDigits[byte ushr 4])
             append(HexDigits[byte and 0x0F])
         }
     }
-    return "${CSV_CLIENT_RECORD_ID_NAMESPACE}_${toCsvStableIdSegment(targetType)}_$digest"
 }
 
 private const val HexDigits = "0123456789abcdef"

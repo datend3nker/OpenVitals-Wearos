@@ -35,6 +35,13 @@ class HealthConnectSyncStore(
     /** The inclusive sync window the user chose ("how far back"). */
     private val windowStart: Instant,
     private val windowEnd: Instant,
+    /**
+     * Set when the user chose to write records this phone already has: the
+     * clientRecordVersion every written record carries. The sync's start in
+     * epoch millis, so it is above any earlier write and Health Connect updates
+     * a record this app owns instead of refusing it. Null writes at version 0.
+     */
+    private val rewriteVersion: Long? = null,
     /** Overridable so a test can hit the byte cap without megabyte fixtures. */
     private val chunkPayloadByteCap: Int = ChunkPayloadByteCap,
 ) : SyncRecordStore {
@@ -130,7 +137,7 @@ class HealthConnectSyncStore(
                 throw e
             } catch (e: Exception) {
                 // One malformed item must not stall the receive loop. Skipped, so not written.
-                Log.w(TAG, "skipping undecodable ${item.recordType}: ${e.message}")
+                Log.w(TAG, "skipping undecodable ${item.recordType}: ${e::class.java.simpleName}")
                 continue
             }
             // Keyed on the recomputed fingerprint, not the peer-claimed key.
@@ -146,7 +153,7 @@ class HealthConnectSyncStore(
             val keys = keysByType.getValue(type)
             try {
                 val outcomes = importRepository.insertWithOutcomes(records) { _, e ->
-                    Log.w(TAG, "single write failed for $type: ${e.message}")
+                    Log.w(TAG, "single write failed for $type: ${e::class.java.simpleName}")
                 }
                 // A record already present has converged, so it counts as written.
                 outcomes.forEachIndexed { index, outcome -> if (outcome != RecordWrite.FAILED) written += keys[index] }
@@ -155,7 +162,7 @@ class HealthConnectSyncStore(
                 throw e
             } catch (e: Exception) {
                 // Rejected: its keys are not reported as written.
-                Log.w(TAG, "WRITE FAILED for ${records.size} $type: ${e.message}")
+                Log.w(TAG, "WRITE FAILED for ${records.size} $type", e)
             }
         }
         // Remember each landed record's original source app, for display.
@@ -167,7 +174,7 @@ class HealthConnectSyncStore(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Log.w(TAG, "failed to persist ${landedOrigins.size} record origins: ${e.message}")
+                Log.w(TAG, "failed to persist ${landedOrigins.size} record origins", e)
             }
         }
         return written
@@ -178,10 +185,12 @@ class HealthConnectSyncStore(
      * a hostile peer cannot address an unrelated record through the key.
      */
     private fun ownedRecord(item: SyncItem): Record {
+        val version = rewriteVersion ?: 0L
         val decoded = decodeSyncRecord(
             recordType = item.recordType,
             clientRecordId = item.key,
             payload = item.payload,
+            clientRecordVersion = version,
         )
         val ownKey = syncFingerprint(decoded)
         if (ownKey == item.key) return decoded
@@ -189,6 +198,7 @@ class HealthConnectSyncStore(
             recordType = item.recordType,
             clientRecordId = ownKey,
             payload = item.payload,
+            clientRecordVersion = version,
         )
     }
 

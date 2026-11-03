@@ -1,6 +1,5 @@
 package tech.mmarca.openvitals.features.imports.medical
 
-import android.content.ClipData
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,11 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import tech.mmarca.openvitals.R
+import tech.mmarca.openvitals.core.presentation.setSensitiveText
 import tech.mmarca.openvitals.core.performance.offMainIo
 import tech.mmarca.openvitals.domain.medical.FhirRejection
 import tech.mmarca.openvitals.domain.medical.MedicalImportGroupPlan
@@ -70,6 +69,10 @@ internal fun MedicalImportReviewStep(state: MedicalImportUiState, viewModel: Med
             }
             itemsIndexed(state.plans) { index, plan ->
                 GroupReviewCard(plan = plan, onIncludedChange = { viewModel.setIncluded(index, it) })
+            }
+            // Nothing here can be written, so the wizard ends here: the report says why, held-back records and all.
+            if (state.canReportFailure) {
+                item { MedicalImportReportActions(note = stringResource(R.string.medical_import_report_warning), report = viewModel::reportText) }
             }
         }
         StepBar(
@@ -163,25 +166,6 @@ internal fun accessLabelRes(canWrite: Boolean, accessBlocked: Boolean, @StringRe
 @Composable
 internal fun MedicalImportDoneStep(state: MedicalImportUiState, viewModel: MedicalImportViewModel, onDone: () -> Unit) {
     val result = state.result ?: return
-    val context = LocalContext.current
-    val clipboard = LocalClipboard.current
-    val scope = rememberCoroutineScope()
-    val copied = stringResource(R.string.medical_import_report_copied)
-    val saved = stringResource(R.string.medical_import_report_saved)
-    val saveFailed = stringResource(R.string.medical_import_report_save_failed)
-    val saver = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
-        val text = viewModel.reportText()
-        if (uri != null && text != null) {
-            scope.launch {
-                offMainIo {
-                    context.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) } ?: error("No stream")
-                }.fold(
-                    onSuccess = { Toast.makeText(context, saved, Toast.LENGTH_SHORT).show() },
-                    onFailure = { Toast.makeText(context, saveFailed, Toast.LENGTH_SHORT).show() },
-                )
-            }
-        }
-    }
     Column(modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -227,28 +211,7 @@ internal fun MedicalImportDoneStep(state: MedicalImportUiState, viewModel: Medic
                     }
                 }
             }
-            item {
-                Text(
-                    text = stringResource(R.string.medical_import_report_warning),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.sm)) {
-                    OpenVitalsOutlinedButton(
-                        onClick = {
-                            val text = viewModel.reportText() ?: return@OpenVitalsOutlinedButton
-                            scope.launch {
-                                clipboard.setClipEntry(ClipData.newPlainText("OpenVitals", text).toClipEntry())
-                                Toast.makeText(context, copied, Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                        modifier = Modifier.weight(1f),
-                    ) { Text(stringResource(R.string.medical_import_copy_report)) }
-                    OpenVitalsOutlinedButton(onClick = { saver.launch(ReportFileName) }, modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.medical_import_save_report))
-                    }
-                }
-            }
+            item { MedicalImportReportActions(note = stringResource(R.string.medical_import_report_warning), report = viewModel::reportText) }
         }
         StepBar(
             nextLabel = stringResource(R.string.medical_import_done),
@@ -359,6 +322,51 @@ private fun UnverifiedCardNotice() {
         Column(modifier = Modifier.padding(Spacing.lg), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             Text(text = stringResource(R.string.medical_import_card_title), style = MaterialTheme.typography.titleSmall)
             Text(text = stringResource(R.string.medical_import_card_unverified), style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+/**
+ * Copy and save for the report, under [note], which says what the report holds and what to
+ * check before sharing it. After an import, and when a file could not be imported.
+ */
+@Composable
+internal fun MedicalImportReportActions(note: String, report: () -> String?, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+    val copied = stringResource(R.string.medical_import_report_copied)
+    val saved = stringResource(R.string.medical_import_report_saved)
+    val saveFailed = stringResource(R.string.medical_import_report_save_failed)
+    val saver = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
+        val text = report()
+        if (uri != null && text != null) {
+            scope.launch {
+                offMainIo {
+                    context.contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray()) } ?: error("No stream")
+                }.fold(
+                    onSuccess = { Toast.makeText(context, saved, Toast.LENGTH_SHORT).show() },
+                    onFailure = { Toast.makeText(context, saveFailed, Toast.LENGTH_SHORT).show() },
+                )
+            }
+        }
+    }
+    Column(modifier = modifier) {
+        Text(text = note, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm), modifier = Modifier.padding(top = Spacing.sm)) {
+            OpenVitalsOutlinedButton(
+                onClick = {
+                    val text = report() ?: return@OpenVitalsOutlinedButton
+                    scope.launch {
+                        clipboard.setSensitiveText("OpenVitals", text)
+                        Toast.makeText(context, copied, Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.weight(1f),
+            ) { Text(stringResource(R.string.medical_import_copy_report)) }
+            OpenVitalsOutlinedButton(onClick = { saver.launch(ReportFileName) }, modifier = Modifier.weight(1f)) {
+                Text(stringResource(R.string.medical_import_save_report))
+            }
         }
     }
 }

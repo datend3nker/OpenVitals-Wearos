@@ -22,7 +22,7 @@ class WearLinkLoopbackTest {
 
         val session = (WearLinkClient.hello(link.clientConnection, hello()) as WearLinkOutcome.Ok).value
         assertEquals("Galaxy Watch8 (89FZ)", session.peer.name)
-        assertEquals(setOf("hr", "sm", "st"), session.peer.capabilities)
+        assertEquals(setOf("as", "hr", "sm", "st"), session.peer.capabilities)
         assertEquals(WearLinkOutcome.Ok(Unit), session.ping())
         assertFalse(link.serverReturned())
         session.close()
@@ -49,16 +49,19 @@ class WearLinkLoopbackTest {
     }
 
     @Test
-    fun `a different token for a known phone is a mismatch, a blocked phone is blocked`() {
+    fun `a known phone with another token is asked about again and the old token still works, a blocked phone is blocked`() {
         val loopback = trusted()
-        val mismatch = loopback.connect()
-        assertEquals(
-            WearLinkOutcome.Unauthorized(WearLinkProtocol.UnauthorizedReason.MISMATCH),
-            WearLinkClient.hello(mismatch.clientConnection, hello(token = WearLinkToken.generate())),
-        )
-        mismatch.clientConnection.close()
-        assertEquals(WearLinkServer.Outcome.UNAUTHORIZED, mismatch.serverOutcome())
-        assertEquals(listOf(loopback.phoneAddress to "Pixel 6 Pro"), loopback.trust.mismatches)
+        val newToken = WearLinkToken.generate()
+        val reinstalled = loopback.connect()
+        assertEquals(WearLinkOutcome.Pending, WearLinkClient.hello(reinstalled.clientConnection, hello(token = newToken)))
+        reinstalled.clientConnection.close()
+        assertEquals(WearLinkServer.Outcome.PENDING, reinstalled.serverOutcome())
+        assertEquals(listOf(Triple(loopback.phoneAddress, newToken, "Pixel 6 Pro")), loopback.trust.pending)
+
+        val old = loopback.connect()
+        assertTrue(WearLinkClient.hello(old.clientConnection, hello()) is WearLinkOutcome.Ok)
+        old.clientConnection.close()
+        assertEquals(WearLinkServer.Outcome.SERVED, old.serverOutcome())
 
         loopback.trust.blocked += loopback.phoneAddress
         val blocked = loopback.connect()
@@ -86,6 +89,7 @@ class WearLinkLoopbackTest {
         }
         loopback.handler.heartRate = List(10) { WearLinkProtocol.HeartRateSample(1_700_000_000_000L + it * 10_000L, 60 + it) }
         loopback.handler.steps = List(3) { WearLinkProtocol.StepMinute(1_700_000_040_000L + it * 60_000L, 90 + it) }
+        loopback.handler.ascent = listOf(WearLinkProtocol.AscentMinute(1_700_000_040_000L, 2))
         val link = loopback.connect()
         val session = (WearLinkClient.hello(link.clientConnection, hello()) as WearLinkOutcome.Ok).value
 
@@ -99,7 +103,28 @@ class WearLinkLoopbackTest {
         assertEquals(10, heart.items.size)
         val steps = (session.pullSteps(0, 2000) as WearLinkOutcome.Ok).value
         assertEquals(loopback.handler.steps, steps.items)
+        val ascent = (session.pullAscent(0, 2000) as WearLinkOutcome.Ok).value
+        assertEquals(loopback.handler.ascent, ascent.items)
         assertFalse(link.serverReturned())
+        session.close()
+        assertEquals(WearLinkServer.Outcome.SERVED, link.serverOutcome())
+    }
+
+    @Test
+    fun `live windows hand out each reading and can repeat on one connection`() {
+        val loopback = trusted()
+        val readings = List(3) { WearLinkProtocol.HeartRateSample(1_700_000_000_000L + it * 1000L, 70 + it) }
+        loopback.handler.live = readings
+        val link = loopback.connect()
+        val session = (WearLinkClient.hello(link.clientConnection, hello()) as WearLinkOutcome.Ok).value
+
+        val seen = ArrayList<WearLinkProtocol.HeartRateSample>()
+        assertEquals(3, (session.liveHeartRate(5) { seen += it } as WearLinkOutcome.Ok).value)
+        assertEquals(readings, seen)
+        // Off the wrist: the window ends at once, empty, and the connection stays usable.
+        loopback.handler.live = emptyList()
+        assertEquals(0, (session.liveHeartRate(5) { seen += it } as WearLinkOutcome.Ok).value)
+        assertEquals(3, seen.size)
         session.close()
         assertEquals(WearLinkServer.Outcome.SERVED, link.serverOutcome())
     }

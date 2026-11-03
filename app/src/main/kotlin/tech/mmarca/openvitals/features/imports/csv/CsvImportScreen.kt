@@ -1,6 +1,5 @@
 package tech.mmarca.openvitals.features.imports.csv
 
-import android.content.ClipData
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLocale
-import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -38,6 +36,7 @@ import java.util.Locale
 import kotlinx.coroutines.launch
 import tech.mmarca.openvitals.core.performance.offMainIo
 import tech.mmarca.openvitals.R
+import tech.mmarca.openvitals.core.presentation.setSensitiveText
 import tech.mmarca.openvitals.domain.model.NutritionNutrient
 import tech.mmarca.openvitals.features.nutrition.titleRes
 import tech.mmarca.openvitals.healthconnect.HealthConnectFeature
@@ -92,19 +91,23 @@ fun CsvImportScreen(
                 state = state,
                 onPick = { filePicker.launch(CsvMimeTypes) },
             )
-            CsvImportStep.MAPPING -> if (state.drip != null) {
-                DripOptionsStep(state = state, viewModel = viewModel)
-            } else {
-                CsvMappingStep(state = state, viewModel = viewModel)
+            CsvImportStep.MAPPING -> when {
+                state.drip != null -> DripOptionsStep(state = state, viewModel = viewModel)
+                state.workouts != null -> WorkoutOptionsStep(state = state, viewModel = viewModel)
+                else -> CsvMappingStep(state = state, viewModel = viewModel)
             }
-            CsvImportStep.CONFIRM -> if (state.drip != null) {
-                DripConfirmStep(
+            CsvImportStep.CONFIRM -> when {
+                state.drip != null -> DripConfirmStep(
                     state = state,
                     viewModel = viewModel,
                     onGrantPermissions = { permissionLauncher.launch(state.missingPermissions) },
                 )
-            } else {
-                CsvConfirmStep(
+                state.workouts != null -> WorkoutConfirmStep(
+                    state = state,
+                    viewModel = viewModel,
+                    onGrantPermissions = { permissionLauncher.launch(state.missingPermissions) },
+                )
+                else -> CsvConfirmStep(
                     state = state,
                     viewModel = viewModel,
                     onGrantPermissions = { permissionLauncher.launch(state.missingPermissions) },
@@ -213,8 +216,8 @@ internal fun CsvMappingStep(
                 CsvPreviewTable(sample = sample)
                 Spacer(Modifier.height(Spacing.md))
                 CsvDateTimeSection(
-                    sample = sample,
-                    mapping = mapping,
+                    settings = mapping.dateTime,
+                    firstValue = mapping.timestampColumn?.let { sample.columnValues(it.columnIndex).firstOrNull() },
                     onSettingsChange = viewModel::setDateTimeSettings,
                 )
                 Spacer(Modifier.height(Spacing.md))
@@ -225,16 +228,32 @@ internal fun CsvMappingStep(
                 Spacer(Modifier.height(Spacing.sm))
             }
             items(count = sample.columnCount) { index ->
+                val column = mapping.columns.firstOrNull { it.columnIndex == index }
+                    ?: CsvColumnMapping(columnIndex = index)
+                val labelHint = remember(sample, column, mapping.bloodPressure.labels) {
+                    csvBloodPressureLabelHint(column, sample.columnValues(index), mapping.bloodPressure.labels)
+                }
                 CsvColumnMappingTile(
                     header = sample.headerRow[index],
                     samples = sample.columnValues(index).take(3),
-                    mapping = mapping.columns.firstOrNull { it.columnIndex == index }
-                        ?: CsvColumnMapping(columnIndex = index),
+                    mapping = column,
                     onSetRole = { role, metric -> viewModel.setColumnRole(index, role, metric) },
                     onSetNutrient = { nutrient -> viewModel.setColumnNutrient(index, nutrient) },
+                    onSetBloodPressurePart = { part -> viewModel.setColumnBloodPressurePart(index, part) },
                     onSetInterpretation = { viewModel.setColumnInterpretation(index, it) },
                     modifier = Modifier.padding(bottom = Spacing.sm),
+                    labelHint = labelHint,
                 )
+            }
+            if (mapping.bloodPressureColumns.isNotEmpty()) {
+                item {
+                    CsvBloodPressureDefaultsCard(
+                        settings = mapping.bloodPressure,
+                        onBodyPositionChange = viewModel::setDefaultBodyPosition,
+                        onCuffLocationChange = viewModel::setDefaultCuffLocation,
+                        modifier = Modifier.padding(top = Spacing.sm),
+                    )
+                }
             }
             if (state.issues.isNotEmpty()) {
                 item {
@@ -312,7 +331,7 @@ internal fun CsvConfirmStep(
                             text = stringResource(
                                 R.string.settings_csv_import_confirm_summary,
                                 state.fileName.orEmpty(),
-                                mapping.metricColumns.size + mapping.nutrientColumns.size,
+                                mapping.recordsPerRow,
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(top = Spacing.sm),
@@ -329,6 +348,8 @@ internal fun CsvConfirmStep(
                             val nutrient = column.nutrient ?: return@forEach
                             CsvNutrientRangeLine(nutrient = nutrient, values = nutrientValues[nutrient].orEmpty())
                         }
+                        // Readings that will be written: a swapped pair is rejected, so it shows no range.
+                        CsvBloodPressureRangeLines(sample = sample, mapping = mapping)
                     }
                 }
                 if (missing.isNotEmpty()) {
@@ -495,10 +516,15 @@ private fun CsvDoneStep(
 
     CsvImportResultView(
         result = result,
+        recordsTitleRes = if (state.workouts != null) {
+            R.string.settings_csv_import_tally_workouts_title
+        } else {
+            R.string.settings_csv_import_tally_records_title
+        },
         onCopyReport = {
             val text = viewModel.reportText() ?: return@CsvImportResultView
             scope.launch {
-                clipboard.setClipEntry(ClipData.newPlainText("OpenVitals", text).toClipEntry())
+                clipboard.setSensitiveText("OpenVitals", text)
                 Toast.makeText(context, reportCopied, Toast.LENGTH_SHORT).show()
             }
         },

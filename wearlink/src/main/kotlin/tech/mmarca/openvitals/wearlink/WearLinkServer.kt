@@ -128,13 +128,11 @@ class WearLinkServer(
             return WearLinkProtocol.HelloReply.Unauthorized(WearLinkProtocol.UnauthorizedReason.BLOCKED)
         }
         val stored = trust.tokenFor(peerAddress)
-        if (stored == null) {
+        // Another token from a known phone is most often its app reinstalled or reset: ask the
+        // wearer, as for a new phone. The stored token keeps working until the wearer allows.
+        if (stored == null || !WearLinkToken.matches(stored, hello.token)) {
             trust.notePending(peerAddress, hello.token, hello.name)
             return WearLinkProtocol.HelloReply.Pending
-        }
-        if (!WearLinkToken.matches(stored, hello.token)) {
-            trust.noteMismatch(peerAddress, hello.name)
-            return WearLinkProtocol.HelloReply.Unauthorized(WearLinkProtocol.UnauthorizedReason.MISMATCH)
         }
         return WearLinkProtocol.HelloReply.Ok(WearLinkProtocol.VERSION, handler.capabilities(), handler.localName())
     }
@@ -157,6 +155,19 @@ class WearLinkServer(
                 val page = handler.stepsSince(request.sinceEpochMillis, request.limit)
                 for (minute in page.items) writer.line(WearLinkProtocol.formatStepMinute(minute))
                 writer.line(WearLinkProtocol.formatEnd(page.items.size, page.more))
+            }
+            is WearLinkProtocol.Request.AscentSince -> {
+                val page = handler.ascentSince(request.sinceEpochMillis, request.limit)
+                for (minute in page.items) writer.line(WearLinkProtocol.formatAscentMinute(minute))
+                writer.line(WearLinkProtocol.formatEnd(page.items.size, page.more))
+            }
+            is WearLinkProtocol.Request.LiveHeartRate -> {
+                // Each reading goes out at once; the phone shows it as it comes.
+                val count = handler.liveHeartRate(request.seconds) { sample ->
+                    writer.line(WearLinkProtocol.formatSample(sample.epochMillis, sample.bpm))
+                    writer.flush()
+                }
+                writer.line(WearLinkProtocol.formatEnd(count, false))
             }
         }
     }

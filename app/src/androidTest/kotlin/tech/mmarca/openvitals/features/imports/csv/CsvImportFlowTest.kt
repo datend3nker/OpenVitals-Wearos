@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -29,7 +30,9 @@ import org.junit.Test
 import tech.mmarca.openvitals.R
 import tech.mmarca.openvitals.core.performance.AppForegroundGate
 import tech.mmarca.openvitals.core.performance.DefaultDispatcherProvider
+import tech.mmarca.openvitals.data.repository.ActivityRepositoryImpl
 import tech.mmarca.openvitals.data.repository.AppleHealthImportRepository
+import tech.mmarca.openvitals.data.repository.CsvImportPreferencesRepository
 import tech.mmarca.openvitals.data.repository.PreferencesRepository
 import tech.mmarca.openvitals.data.repository.contract.CycleJournalRepository
 import tech.mmarca.openvitals.data.repository.contract.HealthRepository
@@ -274,8 +277,11 @@ class CsvImportFlowTest {
             importService = CsvImportService(
                 AppleHealthImportRepository(hc = manager, dispatchers = DefaultDispatcherProvider),
                 InMemoryCycleJournal(),
+                ActivityRepositoryImpl(hc = manager),
             ),
             healthRepository = NothingGrantedHealthRepository,
+            preferences = CsvImportPreferencesRepository(context),
+            bloodPressureLabels = CsvBloodPressureLabelSource(context),
             healthConnectManager = manager,
         )
     }
@@ -334,6 +340,8 @@ class CsvImportFlowTest {
         override fun availability() = error("unused")
 
         override fun rateLimitRetryAfterMillis(): Long = error("unused")
+
+        override val rateLimitDeadlineEpochMillis: StateFlow<Long> get() = error("unused")
 
         override fun permissionContract() = error("unused")
 

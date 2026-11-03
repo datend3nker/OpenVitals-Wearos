@@ -57,3 +57,6 @@ OpenVitals Design System/
 __pycache__/
 # Local FHIR corpora for FhirCorpusCheck, too large to commit. Anchored, so the test fixtures named fhir/ stay tracked.
 /fhir/
+testData/
+# Local scratch files (sample CSVs, notes) that never ship
+local/

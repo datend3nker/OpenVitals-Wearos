@@ -1,5 +1,6 @@
 package tech.mmarca.openvitals.features.devicesync.protocol
 
+import tech.mmarca.openvitals.core.privacy.PrivacyRedactor
 import java.time.Instant
 
 /** Outcome and progress models for a session, mirroring the Apple Health import's counters. */
@@ -58,6 +59,8 @@ data class SyncReport(
     val typeSummaries: List<SyncTypeSummary>,
     /** Set when [completed] is false — why the session ended early. */
     val abortReason: String? = null,
+    /** True when this phone chose to write records it already held, so [duplicateSkipped] counts only repeats within the session. */
+    val rewroteExisting: Boolean = false,
 )
 
 /** Accumulates per-type tallies during a run and folds them into a [SyncReport]. */
@@ -102,6 +105,7 @@ class SyncReportBuilder {
         peerDeviceName: String,
         negotiatedTypes: List<String>,
         abortReason: String? = null,
+        rewroteExisting: Boolean = false,
     ): SyncReport = SyncReport(
         completed = completed,
         peerDeviceName = peerDeviceName,
@@ -113,17 +117,22 @@ class SyncReportBuilder {
         refused = refused,
         typeSummaries = byType.values.sortedBy { it.recordType },
         abortReason = abortReason,
+        rewroteExisting = rewroteExisting,
     )
 }
 
-/** Formats a [SyncReport] as shareable text. English by design: a technical artifact. */
+/**
+ * Formats a [SyncReport] as shareable text. English by design: a technical artifact.
+ * The abort reason is masked like an exception message: it carries one, or the
+ * other phone's own words.
+ */
 fun buildSyncReportText(report: SyncReport, generatedAt: Instant): String = buildString {
     appendLine("OpenVitals — Sync With Another Phone report")
     appendLine("Generated: $generatedAt")
-    appendLine("Peer: ${report.peerDeviceName}")
+    appendLine("Peer: ${PrivacyRedactor.maskIdentifiers(report.peerDeviceName)}")
     appendLine("Status: ${if (report.completed) "completed" else "aborted"}")
     if (!report.completed && report.abortReason != null) {
-        appendLine("Reason: ${report.abortReason}")
+        appendLine("Reason: ${PrivacyRedactor.maskMessage(report.abortReason)}")
     }
     appendLine()
     appendLine("Summary")
@@ -132,6 +141,7 @@ fun buildSyncReportText(report: SyncReport, generatedAt: Instant): String = buil
     appendLine("Imported: ${report.imported}")
     appendLine("Already had (skipped): ${report.duplicateSkipped}")
     appendLine("Not accepted (type or date not chosen here): ${report.refused}")
+    if (report.rewroteExisting) appendLine("Existing records written again: yes")
     appendLine()
     appendLine("By data type")
     if (report.typeSummaries.isEmpty()) {

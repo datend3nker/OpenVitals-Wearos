@@ -18,7 +18,9 @@ Health Connect offers medical records on Android 14 and newer, once its module h
 
 A **Medical records** tile on the dashboard opens the records home. The tile is static: a glyph, the title and "Tap to browse". It reads nothing.
 
-The first time the area opens, OpenVitals asks for all thirteen medical permissions in one Health Connect request: one read permission per category, and write. The request holds only medical permissions, so Health Connect shows its own medical screen, where any of them can be turned off. OpenVitals does not ask again by itself.
+The first time the records home opens, a notice marked **Beta** says the area is still under development, that bugs may arise, and asks the user to use it with care and review the data they import. It shows once: closing it, with its button or Back, stores that it was seen. A tap beside it does not close it. Someone who used the area before the notice existed sees it once, on their next visit.
+
+Once the notice is closed, the first visit asks for all thirteen medical permissions in one Health Connect request: one read permission per category, and write. The request holds only medical permissions, so Health Connect shows its own medical screen, where any of them can be turned off. OpenVitals does not ask again by itself.
 
 ## The records home
 
@@ -51,13 +53,17 @@ A record OpenVitals added can be deleted, after a confirmation. A record another
 
 ## Importing
 
-The import wizard is reached from Settings, Import & export, and from the records home. It reads a FHIR file: one resource, a Bundle, or NDJSON with one resource per line. It also reads a CDA document (XML), an Apple Health export zip, taking the clinical records from it, the zip the Estonian health portal hands out, and SMART Health Cards. Files over 8 MB are refused, except card photos and PDFs, up to 32 MB.
+The import wizard is reached from Settings, Import & export, and from the records home. It reads a FHIR file: one resource, a Bundle, or NDJSON with one resource per line. It also reads a CDA document (XML), an Apple Health export zip, taking the clinical records from it, the zip the Estonian health portal hands out, a zip of FHIR files, as CommonHealth exports, and SMART Health Cards. Files over 8 MB are refused, except card photos and PDFs, up to 32 MB; in a zip, the FHIR files together.
+
+In a zip of FHIR files, each JSON, NDJSON or text file is read as one picked file is, whatever the folders. A file that is not FHIR is left out and listed in the report by its place in the zip and its extension, with what it holds instead, such as a JSON array or a field list, and the rest still import. The `__MACOSX` folder and the dot files macOS adds to a zip are passed over. A Bundle that names DSTU2 in its profile converts its own records, not the other files'.
 
 1. **Pick.** Write access is asked for first, because matching the sources already in Health Connect needs it.
-2. **Review.** Records are grouped by where they came from. Each group shows its counts per category, the types Health Connect does not store, and records that would be refused. Nothing is written yet.
+2. **Review.** Records are grouped by where they came from. Each group shows its counts per category, the types Health Connect does not store, and records that would be refused. Nothing is written yet. An Observation is counted where Health Connect files it, by the platform's own rules: pregnancy by its LOINC code, then social history and vital signs by LOINC code or category, then lab results by the `laboratory` category. One that matches none would be refused, and is held back.
 3. **Confirm.** Each group goes to one Health Connect source. A group from a source OpenVitals made before adds to it, so importing the same file again updates the same records. A new source can be renamed. A switch keeps a copy of the file on the phone; it is off on every import. See [Saved documents](#saved-documents).
 4. **Import.** Records are written in batches. A refused record is reported with Health Connect's reason, and the rest are written.
-5. **Result.** Counts of added, updated, skipped and refused records, and a report that can be copied or saved. The report includes record content, so the screen says to review it before sharing.
+5. **Result.** Counts of added, updated, skipped and refused records, and a report that can be copied or saved. The report counts what was written, held back or refused, per source, by record type and reason. It holds no record's content or id, no file, source or app name and no address, and Health Connect's reason for a refusal is masked.
+
+A file that cannot be imported offers a report too, on the Pick step: what stopped it, and what the file holds, each file of a zip on a line of its own with its place, extension, size and kind. For JSON that is its shape and record types, such as "a JSON array of 12: 12 records: Observation 12", or where the parser stopped; for XML, its root element. No value from the file is in it, only sizes and structure, and no file name, so it can be shared to get the problem looked into without sharing the records. An error names only its class: its message can quote the file. A file whose every record is held back stops at the Review step, which offers the report of what was held back and why, by record type and reason.
 
 Before the review, the wizard compares the person named in the file with the personal details already in Health Connect. A file about someone else stops until the user confirms the records are theirs.
 
@@ -111,14 +117,32 @@ The zip from terviseportaal.ee holds each document twice: as XML and as a PDF. T
 
 ## Adding a record by hand
 
-The **+** button on the records home adds a vaccine, an allergy, a medication or a condition. The vaccines, allergies, medications and conditions lists have their own **+** for that kind.
+Every kind of record Health Connect holds can be typed in. The **+** button on the records home offers them all. The **+** on a category's list adds that category's kind, or offers a choice where a category holds more than one: a visit, a clinic or a place under visits; a medication or a prescription under medications; a doctor or a doctor's role under practitioner details.
 
 - **Vaccine:** the name, completed or not done, the date given, and a lot number.
 - **Allergy:** the substance, active, inactive or resolved, when it began, the reaction, and how serious it is.
-- **Medication:** the name, active, completed, stopped or on hold, since when, and the dosage.
-- **Condition:** the name, active, in remission, resolved or inactive, and when it began.
+- **Medication:** the name, active, completed, intended, stopped, on hold or not taken, since when, and the dosage. It is a FHIR MedicationStatement: what the person takes.
+- **Prescription:** the medication, active, on hold, completed, stopped, cancelled or draft, the day it was prescribed, how to take it, and who prescribed it. It is a FHIR MedicationRequest with the intent `order`.
+- **Condition:** the name, active, recurrence, relapse, in remission, resolved or inactive, and when it began.
+- **Visit:** what it was, its status (finished, planned, arrived, triaged, in progress, on leave or cancelled), the setting (outpatient, emergency, inpatient, acute or non-acute inpatient, observation stay, short stay, pre-admission, home visit, virtual or in the field), the date, the reason, the doctor, the clinic or hospital, and the place. It is a FHIR Encounter.
+- **Procedure:** the name, completed, in preparation, in progress, on hold, stopped or not done, the date, the reason, who performed it, the clinic or hospital, and the place.
+- **Lab result:** the test, final, registered, preliminary, amended, corrected or cancelled, the date the sample was taken, the result and its unit, whether the report flags it high, low, normal or abnormal, the reference range, and the laboratory. A number, also one with a bound such as `<0.5`, is saved as a quantity; anything else, such as "Negative", as text. The record carries the `laboratory` category, which is how Health Connect files it under lab results.
+- **Vital sign:** blood pressure (systolic and diastolic, as one panel), heart rate, breathing rate, oxygen saturation, body temperature, weight, height, body mass index, or head circumference, with the day it was measured. Temperature, weight, height and head circumference take either unit, °C or °F, kg or lb, cm or in, and keep the one typed. These are medical records, apart from the vitals OpenVitals reads from Health Connect's own data types.
+- **Social history:** smoking status (daily, occasional, former, never, or unknown), alcoholic drinks per day, or anything else as a topic and free text.
+- **Pregnancy:** pregnancy status, the estimated due date (by examination, from the last period, or from ovulation), and the counts of births (total, live, full-term, preterm), living children, miscarriages and abortions, and ectopic pregnancies. A due date may lie ahead.
+- **Doctor:** a name, a qualification, and a phone number or email address. It is a FHIR Practitioner, under practitioner details.
+- **Doctor's role:** what the doctor is, such as a cardiologist, a specialty, the doctor, the clinic, the place, and a phone number or email address. It is a FHIR PractitionerRole.
+- **Clinic or organization:** a name, an address, and a phone number or email address. It is a FHIR Organization, which Health Connect files under visits; the visits list shows it inside the visits that name it.
+- **Place:** a name, an address, and a phone number or email address. It is a FHIR Location, also under visits.
+- **Personal details:** the owner's own record, written with the first entry, is edited from its detail screen: given and family name, birth date, gender, address, a phone number or email address, and the family doctor.
 
-Every kind also takes a note and, for a user who has one, a code with its code system, such as a CVX code printed on a vaccine card. Names are free text. Nothing is looked up and no code list ships with the app.
+A vital sign, social history or pregnancy record carries the LOINC code of what it measures, which is how Health Connect files it: the platform recognizes pregnancy, social history and vital signs by their codes. Free social history has no code and is filed by its `social-history` category. A coded answer, such as a smoking status, carries its SNOMED CT code and the words the user picked.
+
+A vaccine, a visit, a procedure, a lab result, a vital sign, a social history and a pregnancy record need their date. Only something still ahead can be dated after today: a planned visit, a procedure in preparation, or a medication the person intends to take.
+
+A doctor, clinic, lab or place is a record of its own, and the records that name it point at it. The form offers the ones already entered as the name is typed; a new name is written as a new record in the same save. The reference also carries the name, so it shows where the record cannot be read.
+
+Every kind but a visit, a doctor, a doctor's role, a clinic, a place and the personal details also takes a note: FHIR gives those no note, and Health Connect refuses a field the type does not have. The clinical kinds take, for a user who has one, a code with its code system, such as a CVX code printed on a vaccine card. Names are free text. Nothing is looked up and no code list ships with the app.
 
 Records typed in go to one source, "Entered in OpenVitals". Each one points at the owner's own Patient record, which the first entry writes. Its name and birth date come from a Patient record OpenVitals can read. When there is none, the first entry asks for a name once, and a birth date if the user wants.
 
@@ -138,7 +162,7 @@ The health report builder in Settings has a **Medical records** option. The sect
 
 ## Saved documents
 
-When the switch on the Confirm step is on, OpenVitals keeps the imported file once the import has written records. The step shows the file's size and the space saved documents already use. For an Apple Health export, only the clinical records files are kept, packed as one zip. A file that gave no records is not kept, except the declarations and authorisations in an Estonian portal export.
+When the switch on the Confirm step is on, OpenVitals keeps the imported file once the import has written records. The step shows the file's size and the space saved documents already use. For an Apple Health export, only the clinical records files are kept, packed as one zip. For a zip of FHIR files, the FHIR files it read are kept, packed as one zip. A file that gave no records is not kept, except the declarations and authorisations in an Estonian portal export.
 
 Kept files stay in the app's private storage. They are not backed up, and they are deleted when the app is uninstalled. The same file kept twice is one copy. A file can hold more than the records taken from it, such as names, identifiers and notes.
 

@@ -18,6 +18,7 @@ import tech.mmarca.openvitals.domain.medical.cda.EstonianCdaFixtures
 import tech.mmarca.openvitals.domain.medical.cda.CdaImportSource
 import tech.mmarca.openvitals.domain.medical.shc.SmartHealthCardFixtures
 import tech.mmarca.openvitals.domain.medical.shc.SmartHealthCardImportSource
+import tech.mmarca.openvitals.domain.medical.zipOf
 import tech.mmarca.openvitals.domain.usecase.ImportMedicalRecordsUseCase
 import tech.mmarca.openvitals.util.MainDispatcherRule
 
@@ -29,7 +30,10 @@ class MedicalImportViewModelTest {
     @get:Rule
     val folder = TemporaryFolder()
 
-    private class FakePreferences(override var firstPermissionRequestDone: Boolean = true) : MedicalRecordsPreferences
+    private class FakePreferences(
+        override var firstPermissionRequestDone: Boolean = true,
+        override var betaNoticeSeen: Boolean = true,
+    ) : MedicalRecordsPreferences
 
     private val repository = FakeMedicalRecordsRepository()
     private val preferences = FakePreferences()
@@ -72,6 +76,36 @@ class MedicalImportViewModelTest {
         vm.analyze("report.json") { """{"resourceType":"DiagnosticReport","id":"r1","status":"final","code":{"text":"x"},"result":[{"reference":"Observation/o1"}]}""".byteInputStream() }
         assertThat(vm.uiState.value.pickError).isEqualTo(MedicalImportPickError.REPORTS_ONLY)
         assertThat(vm.uiState.value.step).isEqualTo(MedicalImportStep.PICK)
+    }
+
+    @Test
+    fun `a file that cannot be imported gives a report of what it holds, and one with nothing to write a report of what was held back`() = runTest {
+        val picked = MedicalImportViewModel(
+            repository, preferences, ImportMedicalRecordsUseCase(repository), mainDispatcherRule.dispatcherProvider,
+            PickedFileImportSource(SmartHealthCardImportSource(SmartHealthCardFixtures.FixedRasterizer())), { LocalDate.of(2026, 9, 29) },
+        )
+        val zip = zipOf(mapOf("export/Observation.json" to """[{"resourceType":"Observation","valueString":"Jane Doe"}]""".toByteArray()))
+
+        picked.analyze("commonhealth.zip") { zip.inputStream() }
+
+        assertThat(picked.uiState.value.pickError).isEqualTo(MedicalImportPickError.NOT_SUPPORTED)
+        val unread = picked.reportText()!!
+        assertThat(unread).contains("Not imported: NOT_SUPPORTED")
+        assertThat(unread).contains("file 1 (.json): 57 bytes, a JSON array of 1: 1 record: Observation 1")
+        assertThat(unread).doesNotContain("Jane")
+        assertThat(unread).doesNotContain("commonhealth.zip")
+        assertThat(unread).doesNotContain("export/Observation.json")
+
+        val vm = viewModel()
+        vm.analyze("lab.json") { """{"resourceType":"Observation","id":"o1","status":"final","code":{"text":"Something"}}""".byteInputStream() }
+
+        assertThat(vm.uiState.value.step).isEqualTo(MedicalImportStep.REVIEW)
+        assertThat(vm.uiState.value.canReportFailure).isTrue()
+        val heldBack = vm.reportText()!!
+        assertThat(heldBack).contains("Held back: Observation x1: UNCLASSIFIABLE_OBSERVATION")
+        // The record itself never: not its id, not its content.
+        assertThat(heldBack).doesNotContain("o1")
+        assertThat(heldBack).doesNotContain("Something")
     }
 
     @Test
@@ -127,7 +161,10 @@ class MedicalImportViewModelTest {
         assertThat(vm.uiState.value.step).isEqualTo(MedicalImportStep.DONE)
         assertThat(result.written).isEqualTo(12)
         assertThat(repository.sources.single().displayName).isEqualTo("City Clinic")
-        assertThat(vm.reportText()).contains("sample.json")
+        val report = vm.reportText()!!
+        assertThat(report).contains("Source 1: a new source")
+        assertThat(report).doesNotContain("sample.json")
+        assertThat(report).doesNotContain("City Clinic")
 
         vm.reset()
         vm.analyze("sample.json") { sample.byteInputStream() }
