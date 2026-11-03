@@ -684,9 +684,9 @@ object WearLinkProtocol {
     /** A fast elevator climbs about 600 m a minute. More means the barometer jumped. */
     const val MAX_ASCENT_DECIMETRES_PER_MINUTE: Int = 9000
 
-    /** An RMSSD of 0.1 to 300 ms, in tenths. Outside it the detector failed, not a heart. */
+    /** An RMSSD of 0.1 to 200 ms, in tenths (Health Connect's range). Outside it the detector failed, not a heart. */
     const val MIN_RMSSD10: Int = 1
-    const val MAX_RMSSD10: Int = 3000
+    const val MAX_RMSSD10: Int = 2000
 
     /** A window of a few minutes holds under a thousand beats. */
     const val MAX_HRV_BEATS: Int = 1000

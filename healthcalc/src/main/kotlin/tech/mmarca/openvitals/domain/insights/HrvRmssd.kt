@@ -45,8 +45,8 @@ object HrvRmssd {
     /** Share of detected intervals that must be clean, else the signal was poor. */
     const val MIN_CLEAN_SHARE = 0.6
 
-    /** An RMSSD above this is a detector failure, not a heart. */
-    const val MAX_PLAUSIBLE_RMSSD_MILLIS = 300.0
+    /** An RMSSD above this is a detector failure, not a heart; it is also the most Health Connect takes. */
+    const val MAX_PLAUSIBLE_RMSSD_MILLIS = 200.0
 
     /**
      * [beatMillis] are beat times in milliseconds, ascending. Null when too
