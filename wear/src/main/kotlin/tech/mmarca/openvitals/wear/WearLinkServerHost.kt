@@ -14,6 +14,7 @@ import tech.mmarca.openvitals.wearlink.WearLinkConnection
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 import tech.mmarca.openvitals.wearlink.WearLinkRequestHandler
 import tech.mmarca.openvitals.wearlink.WearLinkServer
+import tech.mmarca.openvitals.wearlink.WearLinkWorkout
 
 /**
  * Hosts the RFCOMM listener and runs `WearLinkServer` for every phone that
@@ -166,6 +167,8 @@ class WearLinkServerHost(
 
         override fun hrvSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.HrvWindow> =
             page(WearMetrics.HRV, sinceEpochMillis, limit)
+
+        override fun workoutsSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkWorkout> = Page(emptyList(), false)
 
         override fun liveHeartRate(seconds: Int, emit: (WearLinkProtocol.HeartRateSample) -> Unit): Int =
             live.window(seconds, emit)
