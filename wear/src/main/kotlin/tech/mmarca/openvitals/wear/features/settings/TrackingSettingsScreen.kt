@@ -2,11 +2,14 @@ package tech.mmarca.openvitals.wear.features.settings
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.wear.compose.foundation.lazy.TransformingLazyColumn
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumnScope
 import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
-import androidx.wear.compose.material3.AppScaffold
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.ButtonDefaults
 import androidx.wear.compose.material3.ListHeader
@@ -14,21 +17,29 @@ import androidx.wear.compose.material3.ScreenScaffold
 import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.SwitchButton
 import androidx.wear.compose.material3.Text
+import androidx.wear.compose.material3.lazy.TransformationSpec
 import androidx.wear.compose.material3.lazy.rememberTransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.WearPreferences
-import tech.mmarca.openvitals.wear.ui.preview.WearPreviews
-import tech.mmarca.openvitals.wear.ui.theme.OpenVitalsWearTheme
+import tech.mmarca.openvitals.wearlink.HeartRateInterval
+import tech.mmarca.openvitals.wearlink.WearLinkProtocol.Preferences as Keys
 
 @Composable
 fun TrackingSettingsScreen(
     prefs: WearPreferences,
     onToggleFlag: (String, Boolean) -> Unit,
-    onChangeInterval: (String, tech.mmarca.openvitals.wearlink.HeartRateInterval) -> Unit,
+    onChangeInterval: (String, HeartRateInterval) -> Unit,
 ) {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
+    val changed by prefs.changes.collectAsState(Unit)
+    val heartRate = remember(changed) { prefs.heartRate }
+    val steps = remember(changed) { prefs.steps }
+    val ascent = remember(changed) { prefs.ascent }
+    val sleep = remember(changed) { prefs.sleepRecording }
+    val day = remember(changed) { prefs.heartRateDay }
+    val night = remember(changed) { prefs.heartRateNight }
 
     ScreenScaffold(scrollState = listState) { contentPadding ->
         TransformingLazyColumn(state = listState, contentPadding = contentPadding) {
@@ -42,103 +53,66 @@ fun TrackingSettingsScreen(
                     Text(stringResource(R.string.settings_tracking))
                 }
             }
-            item {
-                SwitchButton(
-                    checked = prefs.heartRate,
-                    onCheckedChange = { onToggleFlag(tech.mmarca.openvitals.wearlink.WearLinkProtocol.Preferences.HEART_RATE, it) },
-                    label = { Text(stringResource(R.string.settings_tracking_heart_rate)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, transformationSpec),
-                    transformation = SurfaceTransformation(transformationSpec),
-                )
+            switchItem(transformationSpec, R.string.settings_tracking_heart_rate, heartRate) { onToggleFlag(Keys.HEART_RATE, it) }
+            switchItem(transformationSpec, R.string.settings_tracking_steps, steps) { onToggleFlag(Keys.STEPS, it) }
+            switchItem(transformationSpec, R.string.settings_tracking_ascent, ascent) { onToggleFlag(Keys.ASCENT, it) }
+            switchItem(transformationSpec, R.string.settings_tracking_sleep, sleep) { onToggleFlag(Keys.SLEEP_RECORDING, it) }
+            intervalItem(transformationSpec, R.string.settings_tracking_hr_day, day) {
+                onChangeInterval(Keys.HEART_RATE_DAY, it)
             }
-            item {
-                SwitchButton(
-                    checked = prefs.steps,
-                    onCheckedChange = { onToggleFlag(tech.mmarca.openvitals.wearlink.WearLinkProtocol.Preferences.STEPS, it) },
-                    label = { Text(stringResource(R.string.settings_tracking_steps)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, transformationSpec),
-                    transformation = SurfaceTransformation(transformationSpec),
-                )
-            }
-            item {
-                SwitchButton(
-                    checked = prefs.ascent,
-                    onCheckedChange = { onToggleFlag(tech.mmarca.openvitals.wearlink.WearLinkProtocol.Preferences.ASCENT, it) },
-                    label = { Text(stringResource(R.string.settings_tracking_ascent)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, transformationSpec),
-                    transformation = SurfaceTransformation(transformationSpec),
-                )
-            }
-            item {
-                SwitchButton(
-                    checked = prefs.sleepRecording,
-                    onCheckedChange = { onToggleFlag(tech.mmarca.openvitals.wearlink.WearLinkProtocol.Preferences.SLEEP_RECORDING, it) },
-                    label = { Text(stringResource(R.string.settings_tracking_sleep)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, transformationSpec),
-                    transformation = SurfaceTransformation(transformationSpec),
-                )
-            }
-            item {
-                val current = prefs.heartRateDay
-                val next = cycleInterval(current)
-                Button(
-                    onClick = { onChangeInterval(tech.mmarca.openvitals.wearlink.WearLinkProtocol.Preferences.HEART_RATE_DAY, next) },
-                    label = { Text(stringResource(R.string.settings_tracking_hr_day)) },
-                    secondaryLabel = { Text(intervalLabel(next)) },
-                    colors = ButtonDefaults.filledTonalButtonColors(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, transformationSpec),
-                    transformation = SurfaceTransformation(transformationSpec),
-                )
-            }
-            item {
-                val current = prefs.heartRateNight
-                val next = cycleInterval(current)
-                Button(
-                    onClick = { onChangeInterval(tech.mmarca.openvitals.wearlink.WearLinkProtocol.Preferences.HEART_RATE_NIGHT, next) },
-                    label = { Text(stringResource(R.string.settings_tracking_hr_night)) },
-                    secondaryLabel = { Text(intervalLabel(next)) },
-                    colors = ButtonDefaults.filledTonalButtonColors(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .transformedHeight(this, transformationSpec),
-                    transformation = SurfaceTransformation(transformationSpec),
-                )
+            intervalItem(transformationSpec, R.string.settings_tracking_hr_night, night) {
+                onChangeInterval(Keys.HEART_RATE_NIGHT, it)
             }
         }
     }
 }
 
-private fun cycleInterval(current: tech.mmarca.openvitals.wearlink.HeartRateInterval): tech.mmarca.openvitals.wearlink.HeartRateInterval =
-    when (current) {
-        tech.mmarca.openvitals.wearlink.HeartRateInterval.EVERY_10_SECONDS -> tech.mmarca.openvitals.wearlink.HeartRateInterval.EVERY_MINUTE
-        tech.mmarca.openvitals.wearlink.HeartRateInterval.EVERY_MINUTE -> tech.mmarca.openvitals.wearlink.HeartRateInterval.OFF
-        tech.mmarca.openvitals.wearlink.HeartRateInterval.OFF -> tech.mmarca.openvitals.wearlink.HeartRateInterval.EVERY_10_SECONDS
-    }
-
-@Composable
-private fun intervalLabel(interval: tech.mmarca.openvitals.wearlink.HeartRateInterval): String =
-    when (interval) {
-        tech.mmarca.openvitals.wearlink.HeartRateInterval.EVERY_10_SECONDS -> stringResource(R.string.interval_every_10_seconds)
-        tech.mmarca.openvitals.wearlink.HeartRateInterval.EVERY_MINUTE -> stringResource(R.string.interval_every_minute)
-        tech.mmarca.openvitals.wearlink.HeartRateInterval.OFF -> stringResource(R.string.interval_off)
-    }
-
-@WearPreviews
-@Composable
-private fun TrackingSettingsScreenPreview() {
-    OpenVitalsWearTheme {
-        AppScaffold {
-            // Preview scaffold
-        }
-    }
+private fun TransformingLazyColumnScope.switchItem(
+    spec: TransformationSpec,
+    label: Int,
+    checked: Boolean,
+    onChecked: (Boolean) -> Unit,
+) = item {
+    SwitchButton(
+        checked = checked,
+        onCheckedChange = onChecked,
+        label = { Text(stringResource(label)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .transformedHeight(this, spec),
+        transformation = SurfaceTransformation(spec),
+    )
 }
+
+private fun TransformingLazyColumnScope.intervalItem(
+    spec: TransformationSpec,
+    label: Int,
+    current: HeartRateInterval,
+    onNext: (HeartRateInterval) -> Unit,
+) = item {
+    Button(
+        onClick = { onNext(current.next()) },
+        label = { Text(stringResource(label)) },
+        secondaryLabel = { Text(current.label()) },
+        colors = ButtonDefaults.filledTonalButtonColors(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .transformedHeight(this, spec),
+        transformation = SurfaceTransformation(spec),
+    )
+}
+
+private fun HeartRateInterval.next(): HeartRateInterval = when (this) {
+    HeartRateInterval.EVERY_10_SECONDS -> HeartRateInterval.EVERY_MINUTE
+    HeartRateInterval.EVERY_MINUTE -> HeartRateInterval.OFF
+    HeartRateInterval.OFF -> HeartRateInterval.EVERY_10_SECONDS
+}
+
+@Composable
+private fun HeartRateInterval.label(): String = stringResource(
+    when (this) {
+        HeartRateInterval.EVERY_10_SECONDS -> R.string.interval_every_10_seconds
+        HeartRateInterval.EVERY_MINUTE -> R.string.interval_every_minute
+        HeartRateInterval.OFF -> R.string.interval_off
+    },
+)

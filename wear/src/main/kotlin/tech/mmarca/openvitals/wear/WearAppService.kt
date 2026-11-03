@@ -118,7 +118,7 @@ class WearAppService : Service() {
         stepRecorder = StepRecorder(this, store)
         ascentRecorder = AscentRecorder(this, store)
         trust = WearTrustStore(this).also { it.onPending = { pending -> WearPhoneRequests.notify(this, pending) } }
-        preferences = WearPreferences(this).also {
+        preferences = WearPreferences.shared(this).also {
             it.onChange = { mainHandler.post(::reconcileRecorders) }
         }
         bedtimeMonitor = BedtimeMonitor(this, mainHandler) { reconcileRecorders() }
@@ -315,6 +315,7 @@ class WearAppService : Service() {
             ppgLogger.stop()
             WearLinkState.update { it.copy(ppgLogging = false) }
         }
+        preferences.onChange = null
         link.stop()
         super.onDestroy()
     }
