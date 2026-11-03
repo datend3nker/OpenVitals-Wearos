@@ -60,6 +60,7 @@ internal class WearReadingsSource(
             steps = store.since(WearMetrics.STEPS, from, ROW_LIMIT, until),
             ascent = store.since(WearMetrics.ASCENT, from, ROW_LIMIT, until),
             sleep = readNight(date, zone),
+            nightHrv = readNightHrv(date, zone),
         )
     }
 
@@ -74,6 +75,13 @@ internal class WearReadingsSource(
         val until = date.plusDays(1).atStartOfDay(zone).toInstant()
         val rows = store.since(WearMetrics.SLEEP_MINUTES, from.toEpochMilli() - 1, ROW_LIMIT, until.toEpochMilli())
         return WearReadings.night(date, offset, rows)
+    }
+
+    /** The HRV windows of the night that ended on the morning of [date], as their mean. */
+    private fun readNightHrv(date: LocalDate, zone: ZoneId): Double? {
+        val offset = zone.rules.getOffset(date.atStartOfDay(zone).toInstant())
+        val (from, until) = sleepNightWindow(date, offset)
+        return WearReadings.nightHrv(store.since(WearMetrics.HRV, from.toEpochMilli() - 1, ROW_LIMIT, until.toEpochMilli()))
     }
 
     private companion object {

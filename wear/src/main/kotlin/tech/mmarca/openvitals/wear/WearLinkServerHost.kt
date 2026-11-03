@@ -27,12 +27,14 @@ class WearLinkServerHost(
     store: MetricStore,
     live: LiveHeartRate,
     preferences: WearPreferences,
+    /** Whether the watch has the raw PPG sensor a night-time HRV window needs. */
+    hrvAvailable: () -> Boolean,
     /** What the wearer logged on this watch, the entries the phone pulls. */
     logEntries: () -> List<LoggedEntry>,
     private val localName: () -> String,
     private val state: WearLinkState = WearLinkState,
 ) {
-    private val server = WearLinkServer(trust, Handler(store, live, preferences, logEntries, localName))
+    private val server = WearLinkServer(trust, Handler(store, live, preferences, hrvAvailable, logEntries, localName))
 
     @Volatile
     private var serverSocket: BluetoothServerSocket? = null
@@ -115,6 +117,7 @@ class WearLinkServerHost(
         private val store: MetricStore,
         private val live: LiveHeartRate,
         private val preferences: WearPreferences,
+        private val hrvAvailable: () -> Boolean,
         private val logEntries: () -> List<LoggedEntry>,
         private val localName: () -> String,
     ) : WearLinkRequestHandler {
@@ -131,6 +134,8 @@ class WearLinkServerHost(
             if (preferences.sleepRecording) add(WearLinkProtocol.CAP_SLEEP_MINUTES)
             if (preferences.steps) add(WearLinkProtocol.CAP_STEPS)
             if (preferences.ascent) add(WearLinkProtocol.CAP_ASCENT)
+            // Windows need heart rate tracking and the sleep minutes that show a still arm.
+            if (preferences.heartRate && preferences.sleepRecording && hrvAvailable()) add(WearLinkProtocol.CAP_HRV)
             if (preferences.heartRate && live.hasSensor) add(WearLinkProtocol.CAP_LIVE_HEART_RATE)
             add(WearLinkProtocol.CAP_PREFERENCES)
             add(WearLinkProtocol.CAP_LOG)
@@ -158,6 +163,9 @@ class WearLinkServerHost(
 
         override fun ascentSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.AscentMinute> =
             page(WearMetrics.ASCENT, sinceEpochMillis, limit)
+
+        override fun hrvSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.HrvWindow> =
+            page(WearMetrics.HRV, sinceEpochMillis, limit)
 
         override fun liveHeartRate(seconds: Int, emit: (WearLinkProtocol.HeartRateSample) -> Unit): Int =
             live.window(seconds, emit)

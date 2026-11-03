@@ -12,6 +12,7 @@ import tech.mmarca.openvitals.domain.model.WearSleepMinuteMapping
 import tech.mmarca.openvitals.wearlink.AscentCredit
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.AscentMinute
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.HeartRateSample
+import tech.mmarca.openvitals.wearlink.WearLinkProtocol.HrvWindow
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.SleepMinute
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.StepMinute
 
@@ -34,6 +35,8 @@ internal data class DayReadings(
     val hasAscent: Boolean,
     /** The night that ended on the morning of [date], or null when the watch saw none. */
     val sleep: NightSleep? = null,
+    /** Mean RMSSD in milliseconds of the night's HRV windows, or null when the watch took none. */
+    val nightHrv: Double? = null,
 )
 
 /**
@@ -79,6 +82,7 @@ internal object WearReadings {
         steps: List<StepMinute>,
         ascent: List<AscentMinute>,
         sleep: NightSleep? = null,
+        nightHrv: Double? = null,
     ): DayReadings {
         val stepsAt = steps.associate { it.epochMillis to it.steps }
         val stepsByHour = DoubleArray(HOURS)
@@ -104,8 +108,13 @@ internal object WearReadings {
             hasSteps = steps.isNotEmpty(),
             hasAscent = ascent.isNotEmpty(),
             sleep = sleep,
+            nightHrv = nightHrv,
         )
     }
+
+    /** The night's HRV: the mean RMSSD of its windows, or null with none. */
+    fun nightHrv(windows: List<HrvWindow>): Double? =
+        windows.takeIf { it.isNotEmpty() }?.map { it.rmssdMillis }?.average()
 
     /**
      * The sleep of [date] from the watch's minute rows: the night that ended
@@ -168,6 +177,15 @@ internal object WearReadings {
                     MetricUiState(
                         current = today.sleep?.totalMinutes?.toDouble(),
                         week = days.map { it.sleep?.totalMinutes?.toDouble() ?: 0.0 },
+                    ),
+                )
+            }
+            if (days.any { it.nightHrv != null }) {
+                put(
+                    MetricTile.HRV,
+                    MetricUiState(
+                        current = today.nightHrv,
+                        week = days.dropWhile { it.nightHrv == null }.map { it.nightHrv ?: 0.0 },
                     ),
                 )
             }
