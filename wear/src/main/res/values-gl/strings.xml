@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d minutos de pasos no reloxo</string>
     <string name="status_steps_not_granted">O contador de pasos está desactivado: permite Actividade física</string>
     <string name="status_steps_no_sensor">Este reloxo non ten contador de pasos</string>
-    <string name="status_bedtime_off">Activa o modo hora de durmir pola noite para rexistrar cada minuto de sono</string>
+    <string name="status_bedtime_off">Cada minuto de sono rexístrase cando te durmes ou en modo hora de durmir</string>
     <string name="status_bedtime_holding">Hora de durmir: rexistrando cada minuto</string>
+    <string name="status_sleep_holding">Sono: rexistrando cada minuto</string>
     <string name="status_bedtime_paused_off_wrist">Hora de durmir: en pausa mentres non o levas no pulso</string>
     <string name="status_bedtime_paused_charging">Hora de durmir: en pausa mentres carga</string>
     <string name="status_sleep_recording_off">Rexistro do sono desactivado (actívao na aplicación do teléfono)</string>

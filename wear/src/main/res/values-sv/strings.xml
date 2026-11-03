@@ -11,8 +11,9 @@
     <string name="status_step_minutes_stored">%1$d minuter med steg på klockan</string>
     <string name="status_steps_not_granted">Stegräkning är av: tillåt Fysisk aktivitet</string>
     <string name="status_steps_no_sensor">Den här klockan har ingen stegräknare</string>
-    <string name="status_bedtime_off">Slå på sänggåendeläget på natten för att registrera varje sömnminut</string>
+    <string name="status_bedtime_off">Varje sömnminut registreras när du somnar eller i sänggåendeläget</string>
     <string name="status_bedtime_holding">Sänggående: registrerar varje minut</string>
+    <string name="status_sleep_holding">Sömn: registrerar varje minut</string>
     <string name="status_bedtime_paused_off_wrist">Sänggående: pausad när klockan inte sitter på handleden</string>
     <string name="status_bedtime_paused_charging">Sänggående: pausad under laddning</string>
     <string name="status_sleep_recording_off">Sömninspelning är av (slå på i telefonappen)</string>

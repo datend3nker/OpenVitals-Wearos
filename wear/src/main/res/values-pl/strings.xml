@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d min kroków w zegarku</string>
     <string name="status_steps_not_granted">Liczenie kroków jest wyłączone: zezwól na Aktywność fizyczną</string>
     <string name="status_steps_no_sensor">Ten zegarek nie ma licznika kroków</string>
-    <string name="status_bedtime_off">Włącz w nocy tryb snu, aby zapisywać każdą minutę snu</string>
+    <string name="status_bedtime_off">Każda minuta snu jest zapisywana, gdy zaśniesz lub w trybie snu</string>
     <string name="status_bedtime_holding">Tryb snu: zapis co minutę</string>
+    <string name="status_sleep_holding">Sen: zapis co minutę</string>
     <string name="status_bedtime_paused_off_wrist">Tryb snu: wstrzymany, gdy zegarek jest zdjęty</string>
     <string name="status_bedtime_paused_charging">Tryb snu: wstrzymany podczas ładowania</string>
     <string name="status_sleep_recording_off">Zapis snu wyłączony (włącz w aplikacji w telefonie)</string>

@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d žingsnių minutės laikrodyje</string>
     <string name="status_steps_not_granted">Žingsnių skaičiavimas išjungtas: leiskite Fizinį aktyvumą</string>
     <string name="status_steps_no_sensor">Šiame laikrodyje nėra žingsniamačio</string>
-    <string name="status_bedtime_off">Naktį įjunkite miego režimą, kad būtų įrašoma kiekviena miego minutė</string>
+    <string name="status_bedtime_off">Kiekviena miego minutė įrašoma, kai užmiegate arba miego režimu</string>
     <string name="status_bedtime_holding">Miego laikas: įrašoma kiekviena minutė</string>
+    <string name="status_sleep_holding">Miegas: įrašoma kiekviena minutė</string>
     <string name="status_bedtime_paused_off_wrist">Miego laikas: pristabdyta, kol laikrodis nenešiojamas</string>
     <string name="status_bedtime_paused_charging">Miego laikas: pristabdyta įkraunant</string>
     <string name="status_sleep_recording_off">Miego įrašymas išjungtas (įjunkite telefono programėlėje)</string>

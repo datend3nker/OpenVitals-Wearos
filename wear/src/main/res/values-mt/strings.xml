@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d minuti ta\' passi fuq is-sa\'a</string>
     <string name="status_steps_not_granted">L-għadd tal-passi huwa mitfi: agħti aċċess lill-Attività Fiżika</string>
     <string name="status_steps_no_sensor">Din is-sa\'a m\'għandhiex għadd tal-passi</string>
-    <string name="status_bedtime_off">Ixgħel il-modalità tal-irqad bil-lejl biex tirreġistra kull minuta ta\' irqad</string>
+    <string name="status_bedtime_off">Kull minuta ta\' irqad tiġi rreġistrata meta torqod jew fil-modalità tal-irqad</string>
     <string name="status_bedtime_holding">Irqad: qed nirreġistra kull minuta</string>
+    <string name="status_sleep_holding">Irqad: qed nirreġistra kull minuta</string>
     <string name="status_bedtime_paused_off_wrist">Irqad: f\'pawża waqt li s-sa\'a mhijiex fuq il-polz</string>
     <string name="status_bedtime_paused_charging">Irqad: f\'pawża waqt it-tgħbija</string>
     <string name="status_sleep_recording_off">Ir-reġistrazzjoni tal-irqad mitfija (ixgħelha fl-app tat-telefon)</string>

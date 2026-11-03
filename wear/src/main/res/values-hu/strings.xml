@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d lépésekkel töltött perc az órán</string>
     <string name="status_steps_not_granted">A lépésszámlálás ki van kapcsolva: engedélyezze a Testmozgás jogosultságot</string>
     <string name="status_steps_no_sensor">Ez az óra nem rendelkezik lépésszámlálóval</string>
-    <string name="status_bedtime_off">Éjszaka kapcsolja be a lefekvési módot, hogy minden alvási percet rögzítsen</string>
+    <string name="status_bedtime_off">Minden alvási percet rögzít, amint elalszol, vagy lefekvés módban</string>
     <string name="status_bedtime_holding">Lefekvés: minden percet rögzít</string>
+    <string name="status_sleep_holding">Alvás: minden percet rögzít</string>
     <string name="status_bedtime_paused_off_wrist">Lefekvés: szüneteltetve, amíg nincs a csuklón</string>
     <string name="status_bedtime_paused_charging">Lefekvés: szüneteltetve töltés közben</string>
     <string name="status_sleep_recording_off">Alvásrögzítés ki van kapcsolva (a telefon alkalmazásában kapcsolja be)</string>

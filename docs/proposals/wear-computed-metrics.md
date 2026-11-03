@@ -36,3 +36,4 @@ Two small branches, each its own PR.
 - Watch: in bed about 23:45, asleep about 00:15, up about 08:10.
 - Heart rate 02:34–06:24 was about 100 bpm while lying still, then back to 47. Samsung Health shows the same, so this is likely real and not a sensor error. No filter is planned.
 - The movement in Sleep as Android (phone accelerometer, from 01:18) matches the watch's movement minutes.
+- Caveat: Sleep as Android ran with its watch companion, which very likely kept the processor awake, so this night's movement is denser than a normal night without bedtime mode. Do not tune thresholds to it.

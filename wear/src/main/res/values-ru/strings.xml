@@ -11,8 +11,9 @@
     <string name="status_step_minutes_stored">Минут шагов на часах: %1$d</string>
     <string name="status_steps_not_granted">Подсчёт шагов выключен: разрешите «Физическая активность»</string>
     <string name="status_steps_no_sensor">В этих часах нет датчика шагов</string>
-    <string name="status_bedtime_off">Включите ночью режим сна, чтобы записывать каждую минуту сна</string>
+    <string name="status_bedtime_off">Каждая минута сна записывается, когда вы засыпаете или в режиме сна</string>
     <string name="status_bedtime_holding">Режим сна: записывается каждая минута</string>
+    <string name="status_sleep_holding">Сон: записывается каждая минута</string>
     <string name="status_bedtime_paused_off_wrist">Режим сна: пауза, пока часы не на запястье</string>
     <string name="status_bedtime_paused_charging">Режим сна: пауза во время зарядки</string>
     <string name="status_sleep_recording_off">Запись сна выключена (включите в приложении на телефоне)</string>

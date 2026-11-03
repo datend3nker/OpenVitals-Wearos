@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d sammuminutit kellas</string>
     <string name="status_steps_not_granted">Sammude loendamine on välja lülitatud: luba Füüsiline aktiivsus</string>
     <string name="status_steps_no_sensor">Sellel kellal pole sammuloendurit</string>
-    <string name="status_bedtime_off">Lülita öösel magamisrežiim sisse, et salvestada iga uneminut</string>
+    <string name="status_bedtime_off">Iga uneminut salvestatakse, kui jääd magama või magamisrežiimis</string>
     <string name="status_bedtime_holding">Magamisrežiim: salvestab iga minuti</string>
+    <string name="status_sleep_holding">Uni: salvestab iga minuti</string>
     <string name="status_bedtime_paused_off_wrist">Magamisrežiim: peatatud, kui kell pole randmel</string>
     <string name="status_bedtime_paused_charging">Magamisrežiim: peatatud laadimise ajal</string>
     <string name="status_sleep_recording_off">Uinumise salvestamine on välja lülitatud (lülita see sisse telefoni rakenduses)</string>

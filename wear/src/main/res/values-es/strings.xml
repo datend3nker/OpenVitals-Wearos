@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d minutos de pasos en el reloj</string>
     <string name="status_steps_not_granted">El conteo de pasos está desactivado: permite Actividad física</string>
     <string name="status_steps_no_sensor">Este reloj no tiene contador de pasos</string>
-    <string name="status_bedtime_off">Activa el modo de hora de dormir por la noche para registrar cada minuto de sueño</string>
+    <string name="status_bedtime_off">Cada minuto de sueño se registra cuando te duermes o en modo de hora de dormir</string>
     <string name="status_bedtime_holding">Hora de dormir: registrando cada minuto</string>
+    <string name="status_sleep_holding">Sueño: registrando cada minuto</string>
     <string name="status_bedtime_paused_off_wrist">Hora de dormir: en pausa mientras el reloj no está en la muñeca</string>
     <string name="status_bedtime_paused_charging">Hora de dormir: en pausa mientras se carga</string>
     <string name="status_sleep_recording_off">Registro de sueño desactivado (actívalo en la app del teléfono)</string>

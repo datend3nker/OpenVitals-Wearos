@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d minuten stappen op het horloge</string>
     <string name="status_steps_not_granted">Stappen tellen staat uit: sta Fysieke activiteit toe</string>
     <string name="status_steps_no_sensor">Dit horloge heeft geen stappenteller</string>
-    <string name="status_bedtime_off">Zet \'s nachts de slaapstand aan om elke slaapminuut op te nemen</string>
+    <string name="status_bedtime_off">Elke slaapminuut wordt opgenomen zodra je in slaap valt of in de slaapstand</string>
     <string name="status_bedtime_holding">Slaapstand: elke minuut wordt opgenomen</string>
+    <string name="status_sleep_holding">Slaap: elke minuut wordt opgenomen</string>
     <string name="status_bedtime_paused_off_wrist">Slaapstand: gepauzeerd terwijl het horloge niet om de pols zit</string>
     <string name="status_bedtime_paused_charging">Slaapstand: gepauzeerd tijdens het opladen</string>
     <string name="status_sleep_recording_off">Slaapregistratie staat uit (zet aan in de telefoonapp)</string>

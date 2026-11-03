@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d minuta koraka na satu</string>
     <string name="status_steps_not_granted">Brojanje koraka isključeno: dopustite Tjelesnu aktivnost</string>
     <string name="status_steps_no_sensor">Ovaj sat nema brojač koraka</string>
-    <string name="status_bedtime_off">Uključite način za spavanje noću da biste zabilježili svaku minutu sna</string>
+    <string name="status_bedtime_off">Svaka minuta sna bilježi se čim zaspite ili u načinu za spavanje</string>
     <string name="status_bedtime_holding">Vrijeme za spavanje: bilježi se svaka minuta</string>
+    <string name="status_sleep_holding">San: bilježi se svaka minuta</string>
     <string name="status_bedtime_paused_off_wrist">Vrijeme za spavanje: pauzirano dok sat nije na ruci</string>
     <string name="status_bedtime_paused_charging">Vrijeme za spavanje: pauzirano tijekom punjenja</string>
     <string name="status_sleep_recording_off">Bilježenje sna isključeno (uključite u aplikaciji na telefonu)</string>

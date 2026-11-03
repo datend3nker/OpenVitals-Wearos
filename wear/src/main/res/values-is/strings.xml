@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d mínútur af skrefum í úrinu</string>
     <string name="status_steps_not_granted">Skrefatalning er slökkt: leyfðu Líkamlega virkni</string>
     <string name="status_steps_no_sensor">Þetta úr er ekki með skrefamæli</string>
-    <string name="status_bedtime_off">Kveiktu á svefnstillingu á kvöldin til að skrá hverja svefnmínútu</string>
+    <string name="status_bedtime_off">Hver svefnmínúta er skráð þegar þú sofnar eða í svefnstillingu</string>
     <string name="status_bedtime_holding">Háttatími: skrái hverja mínútu</string>
+    <string name="status_sleep_holding">Svefn: skrái hverja mínútu</string>
     <string name="status_bedtime_paused_off_wrist">Háttatími: í bið meðan úrið er ekki á úlnliðnum</string>
     <string name="status_bedtime_paused_charging">Háttatími: í bið meðan hleðst</string>
     <string name="status_sleep_recording_off">Svefnskráning slökkt (kveiktu á henni í símaappinu)</string>

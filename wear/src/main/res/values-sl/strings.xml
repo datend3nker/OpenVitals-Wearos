@@ -11,8 +11,9 @@
     <string name="status_step_minutes_stored">Minut korakov na uri: %1$d</string>
     <string name="status_steps_not_granted">Štetje korakov je izklopljeno: dovolite Telesna dejavnost</string>
     <string name="status_steps_no_sensor">Ta ura nima senzorja za korake</string>
-    <string name="status_bedtime_off">Ponoči vklopite način za spanje, da se zabeleži vsaka minuta spanja</string>
+    <string name="status_bedtime_off">Vsaka minuta spanja se zabeleži, ko zaspite, ali v načinu za spanje</string>
     <string name="status_bedtime_holding">Način za spanje: beleži se vsaka minuta</string>
+    <string name="status_sleep_holding">Spanje: beleži se vsaka minuta</string>
     <string name="status_bedtime_paused_off_wrist">Način za spanje: na premoru, ko ura ni na zapestju</string>
     <string name="status_bedtime_paused_charging">Način za spanje: na premoru med polnjenjem</string>
     <string name="status_sleep_recording_off">Beleženje spanja je izklopljeno (vklopite v aplikaciji v telefonu)</string>

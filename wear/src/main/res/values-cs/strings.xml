@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d minut kroků v hodinkách</string>
     <string name="status_steps_not_granted">Počítání kroků je vypnuté: povol Fyzickou aktivitu</string>
     <string name="status_steps_no_sensor">Tyto hodinky nemají krokoměr</string>
-    <string name="status_bedtime_off">V noci zapni režim spánku, aby se zaznamenala každá minuta spánku</string>
+    <string name="status_bedtime_off">Každá minuta spánku se zaznamená, jakmile usneš, nebo v režimu spánku</string>
     <string name="status_bedtime_holding">Režim spánku: zaznamenává každou minutu</string>
+    <string name="status_sleep_holding">Spánek: zaznamenává každou minutu</string>
     <string name="status_bedtime_paused_off_wrist">Režim spánku: pozastaveno, když hodinky nejsou na ruce</string>
     <string name="status_bedtime_paused_charging">Režim spánku: pozastaveno při nabíjení</string>
     <string name="status_sleep_recording_off">Záznam spánku je vypnutý (zapni ho v aplikaci v telefonu)</string>

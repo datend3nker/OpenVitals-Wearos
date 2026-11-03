@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d soļu minūtes pulkstenī</string>
     <string name="status_steps_not_granted">Soļu skaitīšana ir izslēgta: atļaujiet Fiziskā aktivitāte</string>
     <string name="status_steps_no_sensor">Šim pulkstenim nav soļu skaitītāja</string>
-    <string name="status_bedtime_off">Naktī ieslēdziet gulētiešanas režīmu, lai reģistrētu katru miega minūti</string>
+    <string name="status_bedtime_off">Katra miega minūte tiek reģistrēta, kad aizmiegat vai gulētiešanas režīmā</string>
     <string name="status_bedtime_holding">Gulētiešanas laiks: tiek reģistrēta katra minūte</string>
+    <string name="status_sleep_holding">Miegs: tiek reģistrēta katra minūte</string>
     <string name="status_bedtime_paused_off_wrist">Gulētiešanas laiks: apturēts, kamēr pulkstenis nav uzvilkts</string>
     <string name="status_bedtime_paused_charging">Gulētiešanas laiks: apturēts uzlādes laikā</string>
     <string name="status_sleep_recording_off">Miega reģistrēšana ir izslēgta (ieslēdziet tālruņa lietotnē)</string>

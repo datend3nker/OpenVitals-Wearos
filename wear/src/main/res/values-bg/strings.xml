@@ -10,8 +10,9 @@
     <string name="status_step_minutes_stored">%1$d минути със стъпки на часовника</string>
     <string name="status_steps_not_granted">Броенето на стъпки е изключено: разреши „Физическа активност“</string>
     <string name="status_steps_no_sensor">Този часовник няма брояч на стъпки</string>
-    <string name="status_bedtime_off">Включи режима за сън през нощта, за да се записва всяка минута сън</string>
+    <string name="status_bedtime_off">Всяка минута сън се записва, щом заспиш или в режим за сън</string>
     <string name="status_bedtime_holding">Режим за сън: записва всяка минута</string>
+    <string name="status_sleep_holding">Сън: записва всяка минута</string>
     <string name="status_bedtime_paused_off_wrist">Режим за сън: на пауза, докато часовникът не е на ръката</string>
     <string name="status_bedtime_paused_charging">Режим за сън: на пауза при зареждане</string>
     <string name="status_sleep_recording_off">Записът на сън е изключен (включи го в приложението за телефона)</string>
