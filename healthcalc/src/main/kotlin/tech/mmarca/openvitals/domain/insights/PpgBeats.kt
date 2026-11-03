@@ -23,6 +23,13 @@ object PpgBeats {
     /** A hole in the samples longer than this makes the window useless. */
     const val MAX_GAP_MILLIS = 120L
 
+    /**
+     * 0.5-4 Hz (30-240 bpm) is a common pass-band for wrist PPG pulse-rate work (e.g. Elgendi et al. and
+     * the Analog Devices PRV application note use 0.4-4 Hz), but papers do not agree it is optimal: a
+     * 2025 study (Watanabe et al., "Beyond Motion Artifacts", arXiv:2510.06158) reports that cutoffs tuned
+     * per person and activity beat a fixed band like this one by a wide margin. This band is this app's
+     * starting choice, not a validated optimum for this sensor.
+     */
     private const val LOW_CUT_HZ = 0.5
     private const val HIGH_CUT_HZ = 4.0
 

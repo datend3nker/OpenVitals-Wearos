@@ -15,37 +15,63 @@ data class HrvWindowResult(
  * are taken out.
  *
  * RMSSD is the root mean square of the differences between successive
- * normal-to-normal intervals (Task Force of the ESC and NASPE, 1996). Only a
- * difference between two intervals that both passed counts, so a missed or
- * doubled beat never turns into one huge step. The artefact rule is in the
- * spirit of Kubios' threshold correction: an interval further than a quarter
- * from the median of its neighbours is dropped. Not validated against an ECG
- * reference.
+ * normal-to-normal intervals. Its definition and the need to remove ectopic
+ * beats before computing it are standard (Task Force of the ESC and NASPE,
+ * "Heart rate variability: standards of measurement", Circulation 93(5),
+ * 1996, doi:10.1161/01.CIR.93.5.1043). The field's usual normative tables
+ * (e.g. Shaffer & Ginsberg, "An Overview of Heart Rate Variability Metrics
+ * and Norms", Frontiers in Public Health 5:258, 2017,
+ * doi:10.3389/fpubh.2017.00258) are for 24-hour or multi-minute recordings
+ * with their own population; they say explicitly that short-window norms
+ * are not interchangeable with those, so this file sets no "normal RMSSD"
+ * range and none should be read off those tables for a 5-minute window.
+ *
+ * That a single artefact can bias RMSSD more than other HRV metrics is shown
+ * empirically (e.g. Peltola, "Role of editing of R-R intervals in the
+ * analysis of heart rate variability", Frontiers in Physiology, and the 2021
+ * Journal of Sports Science and Medicine study on artefact sensitivity of
+ * RMSSD and SDNN), but no single paper fixes the correction thresholds
+ * below. There is no universally agreed artefact-rejection method (every
+ * source above says so); the specific numbers here (a quarter of the local
+ * median, a 30% successive step, five-beat neighbourhood, minimum beat
+ * counts) are this app's own choice, built in the spirit of Kubios'
+ * threshold correction but not copied from it, and not validated against an
+ * ECG or chest-strap reference.
  */
 object HrvRmssd {
 
-    /** 200 bpm. */
+    /** 200 bpm. Not a physiological artefact bound from a paper, just this file's outer plausibility limit. */
     const val MIN_INTERVAL_MILLIS = 300.0
 
-    /** 30 bpm. */
+    /** 30 bpm. Same caveat as [MIN_INTERVAL_MILLIS]. */
     const val MAX_INTERVAL_MILLIS = 2000.0
 
-    /** An interval this far from the local median is an artefact. */
+    /** An interval this far from the local median is an artefact. This app's own choice, not from a paper. */
     const val MAX_DEVIATION_FROM_MEDIAN = 0.25
 
-    /** A successive difference above this share of the local median is no resting rhythm. */
+    /**
+     * A successive difference above this share of the local median is no resting rhythm.
+     * This app's own choice, not from a paper.
+     */
     const val MAX_STEP_OF_MEDIAN = 0.30
 
     /** Intervals on each side that make the local median. */
     private const val MEDIAN_RADIUS = 5
 
-    /** Fewer clean beats than this and the window is dropped (a five-minute window at rest holds 250 to 350). */
+    /**
+     * Fewer clean beats than this and the window is dropped (a five-minute window at rest holds 250 to
+     * 350). This app's own choice, not from a paper.
+     */
     const val MIN_CLEAN_BEATS = 100
 
-    /** Share of detected intervals that must be clean, else the signal was poor. */
+    /** Share of detected intervals that must be clean, else the signal was poor. This app's own choice. */
     const val MIN_CLEAN_SHARE = 0.6
 
-    /** An RMSSD above this is a detector failure, not a heart; it is also the most Health Connect takes. */
+    /**
+     * An RMSSD above this is treated as a detector failure, not a heart. It is also the most Health
+     * Connect's `HeartRateVariabilityRmssdRecord` accepts, which is a platform limit, not a physiological
+     * one; healthy RMSSD is normally well under it.
+     */
     const val MAX_PLAUSIBLE_RMSSD_MILLIS = 200.0
 
     /**

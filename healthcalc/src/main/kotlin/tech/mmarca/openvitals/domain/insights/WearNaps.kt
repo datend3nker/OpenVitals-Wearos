@@ -32,6 +32,13 @@ data class WearNap(val session: EstimatedSleepSession) {
  * Between 22:00 and 06:00 a run counts only when a night session exists
  * in the minutes, with the smaller drop of [Config.nightDropBpm], so the
  * first hours of a night nobody estimated yet are not written as a nap.
+ *
+ * [Config.minNapMinutes] (20) is the one number here with a literature match:
+ * a study comparing 5, 10, 20 and 30-minute naps found the clearest benefit
+ * at 10 and 20 minutes (reported e.g. in Brooks & Lack, "A brief afternoon
+ * nap following nocturnal sleep restriction", Sleep 29(6), 2006). That study
+ * picks a *best* nap length, not a *minimum detectable* one, so the match is
+ * loose. Every other number in [Config] is this app's own choice.
  */
 object WearNaps {
 
