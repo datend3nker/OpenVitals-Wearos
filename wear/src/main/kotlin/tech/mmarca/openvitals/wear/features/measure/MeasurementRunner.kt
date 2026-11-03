@@ -59,9 +59,24 @@ class MeasurementRunner(private val context: Context) {
         emit(MeasureEvent.Result(value))
     }
 
-    /** Every usable heart rate while collected, with no end and no result; the sensor stops with the collector. */
-    fun liveHeartRate(): Flow<Double> =
-        sensorHeartRate().mapNotNull { (it as? HeartRateSample.Reading)?.bpm?.takeIf { bpm -> bpm > 0 } }
+    /**
+     * The measurement's value as it goes, for a screen that shows it: no end,
+     * no result, and the sensor stops with the collector. HRV is the RMSSD of
+     * the last [LiveBeats] beats, first seen once enough intervals are in.
+     */
+    fun live(measurement: Measurement): Flow<Double> = when (measurement) {
+        Measurement.HEART_RATE ->
+            sensorHeartRate().mapNotNull { (it as? HeartRateSample.Reading)?.bpm?.takeIf { bpm -> bpm > 0 } }
+        Measurement.HRV -> flow {
+            val beats = ArrayDeque<Long>()
+            sensorEvents(Sensor.TYPE_HEART_BEAT).collect { event ->
+                beats.addLast(event.timestamp)
+                if (beats.size > LiveBeats) beats.removeFirst()
+                rmssd(rrIntervalsMillis(beats.toList()))?.let { emit(it) }
+            }
+        }
+        Measurement.AIR_PRESSURE -> sensorEvents(Sensor.TYPE_PRESSURE).mapNotNull { it.values.firstOrNull()?.toDouble() }
+    }
 
     private fun hrv(): Flow<MeasureEvent> = flow {
         val beats = mutableListOf<Long>()
@@ -137,5 +152,6 @@ class MeasurementRunner(private val context: Context) {
 
     private companion object {
         const val PressureReadingsNeeded = 5
+        const val LiveBeats = 60
     }
 }
