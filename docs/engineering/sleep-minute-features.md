@@ -94,3 +94,21 @@ The watch closes a minute 90 seconds after it started; by then every batch that 
 ## What the watch actually delivers
 
 The Watch8's accelerometer cannot wake the watch and buffers 300 readings, 48 seconds at the 6.25 Hz the hub delivers; readings older than that are lost when the buffer wraps. The heart rate sensor can wake the watch, so its report latency sets how often the watch wakes at night and is kept at 40 seconds so the accelerometer buffer is drained before it wraps. A minute still ends up sparse now and then (`SPARSE` flag, `n` under 150), with few or no valid five-second epochs; the phone's window detector carries the last known angle change across such minutes rather than reading them as movement. The first recorded night, before the latency change, kept a median of 30 readings a minute.
+
+## Naps
+
+`WearNaps` (in `:healthcalc`) finds sleep outside the main night in the same rows. It reads the day, not only the night window, and leaves the night to `WearNight`: the night's estimate does not change, a test checks that.
+
+A nap is a run of minutes that are all of: worn, scored as sleep by `SleepWakeScorer` (still arm, quiet pulse), and with the 5-minute median heart rate clearly under the wearer's waking level. The waking level is the median heart rate of the worn minutes between 06:00 and 22:00 outside the night sessions; with fewer than 90 such minutes there is no level and no nap.
+
+| Rule | Value |
+| --- | --- |
+| Minimum sleep | 20 minutes |
+| Longest nap | 4 hours (a longer run is a night not estimated yet) |
+| Heart rate drop by day (06:00-22:00) | at least 10 bpm and 12% of the waking level |
+| Heart rate drop 22:00-06:00 | at least 6 bpm and 8%, and only when the minutes hold a night session |
+| Gap that joins two runs | up to 5 minutes, worn |
+| Distance from a night session | a run within 30 minutes of one is part of that night |
+| Onset | moved back up to 15 minutes over still, worn minutes with the pulse at least 3 bpm under the waking level |
+
+The thresholds are judgement, not fitted: no nap was recorded against a reference yet. Sitting still on a sofa or in a cinema lowers the pulse by a few beats, so by day the drop is the stricter rule. A nap has one `LIGHT` stage for its sleep, `AWAKE` for wake minutes; it is too short for deep and REM. A nap has no resting heart rate. Its identity is its onset minute, so re-estimating as the day fills in gives the same nap; if the onset moves, the phone replaces the old record (see watches.md).
