@@ -57,6 +57,9 @@ interface WearLinkRequestHandler {
 
     fun ascentSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.AscentMinute>
 
+    /** The night-time HRV windows newer than [sinceEpochMillis], oldest first. Only called when the watch advertised [WearLinkProtocol.CAP_HRV]. */
+    fun hrvSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.HrvWindow>
+
     /**
      * The entries the wearer logged on the watch and that are newer than
      * [sinceEpochMillis], oldest first, at most [limit]. Only called when the

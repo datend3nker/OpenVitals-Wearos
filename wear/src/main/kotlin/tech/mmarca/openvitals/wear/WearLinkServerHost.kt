@@ -159,6 +159,9 @@ class WearLinkServerHost(
         override fun ascentSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.AscentMinute> =
             page(WearMetrics.ASCENT, sinceEpochMillis, limit)
 
+        override fun hrvSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.HrvWindow> =
+            page(WearMetrics.HRV, sinceEpochMillis, limit)
+
         override fun liveHeartRate(seconds: Int, emit: (WearLinkProtocol.HeartRateSample) -> Unit): Int =
             live.window(seconds, emit)
 
