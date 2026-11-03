@@ -64,7 +64,7 @@ fun OpenVitalsWearApp(
         AppScaffold {
             val context = LocalContext.current
             val tilePrefs = remember(context) { WearTilePreferences(context) }
-            val wearPreferences = remember(context) { WearPreferences(context) }
+            val wearPreferences = remember(context) { WearPreferences.shared(context) }
             val navController = rememberSwipeDismissableNavController()
             var activityType by rememberSaveable { mutableStateOf(state.recording.activityType) }
             var paused by rememberSaveable { mutableStateOf(state.recording.paused) }

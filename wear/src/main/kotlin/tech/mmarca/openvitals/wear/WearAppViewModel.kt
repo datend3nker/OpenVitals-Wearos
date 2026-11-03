@@ -22,14 +22,14 @@ import tech.mmarca.openvitals.wear.health.WearCapabilities
 class WearAppViewModel(application: Application) : AndroidViewModel(application) {
 
     private val entryLog = EntryLog(application)
-    private val wearPreferences = WearPreferences(application)
+    private val wearPreferences = WearPreferences.shared(application)
     private val capabilities = MutableStateFlow(WearCapabilities())
     private val readings = WearReadingsSource(MetricStore(application))
 
     private val initial = WearUiState()
 
     val uiState: StateFlow<WearUiState> =
-        combine(capabilities, entryLog.entries, readings.readings()) { capabilities, entries, readings ->
+        combine(capabilities, entryLog.entries, readings.readings(), wearPreferences.changes) { capabilities, entries, readings, _ ->
             initial.copy(
                 metrics = readings.metrics,
                 sleepStages = readings.sleepStages,
