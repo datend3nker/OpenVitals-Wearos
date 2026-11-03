@@ -6,6 +6,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import tech.mmarca.openvitals.domain.insights.EstimatedStage
+import tech.mmarca.openvitals.domain.insights.WearNaps
 import tech.mmarca.openvitals.domain.insights.WearNight
 import tech.mmarca.openvitals.domain.model.WearSleepMinuteMapping
 import tech.mmarca.openvitals.wearlink.AscentCredit
@@ -36,16 +37,22 @@ internal data class DayReadings(
 )
 
 /**
- * One night as the phone estimates it, computed on the watch with the same
- * code (`WearNight` in `:healthcalc`).
+ * One day's sleep as the phone estimates it, computed on the watch with the
+ * same code (`WearNight` and `WearNaps` in `:healthcalc`).
  */
 internal data class NightSleep(
+    /** The night's sleep, without naps. */
     val asleepMinutes: Int,
+    /** Sleep in naps that began on the day. */
+    val napMinutes: Int = 0,
     /** Minutes per stage, awake included. */
     val stageMinutes: Map<SleepStage, Double>,
     /** Null while the night runs, or when too few minutes had a pulse. */
     val restingHeartRate: Int?,
-)
+) {
+    /** What the sleep tile counts: the night and the day's naps. */
+    val totalMinutes: Int get() = asleepMinutes + napMinutes
+}
 
 /** What the screens read: the tiles and last night's stages. */
 internal data class WearReadingsState(
@@ -100,20 +107,27 @@ internal object WearReadings {
         )
     }
 
-    /** The night of [date] from the watch's minute rows in its window, or null when they hold no night. */
+    /**
+     * The sleep of [date] from the watch's minute rows: the night that ended
+     * that morning and the naps that began that day, or null when the rows
+     * hold neither. The rows should run from 18:00 the evening before to the
+     * end of the day; fewer rows find fewer naps.
+     */
     fun night(date: LocalDate, offset: ZoneOffset, rows: List<SleepMinute>): NightSleep? {
         val minutes = rows.map(WearSleepMinuteMapping::toDomain)
-        val night = WearNight.estimate(minutes, date, offset) ?: return null
-        val session = night.session
-        if (session.sleepMinutes <= 0) return null
-        val stageMinutes = session.stages
+        val night = WearNight.estimate(minutes, date, offset)?.takeIf { it.session.sleepMinutes > 0 }
+        val naps = WearNaps.ofDay(minutes, date, offset).filter { it.session.sleepMinutes > 0 }
+        if (night == null && naps.isEmpty()) return null
+        val sessions = listOfNotNull(night?.session) + naps.map { it.session }
+        val stageMinutes = sessions.flatMap { it.stages }
             .mapNotNull { span -> span.stage.toSleepStage()?.let { it to (span.end.toEpochMilli() - span.start.toEpochMilli()) / MINUTE_MILLIS.toDouble() } }
             .groupBy({ it.first }, { it.second })
             .mapValues { (_, spans) -> spans.sum() }
         return NightSleep(
-            asleepMinutes = session.sleepMinutes,
+            asleepMinutes = night?.session?.sleepMinutes ?: 0,
+            napMinutes = naps.sumOf { it.session.sleepMinutes },
             stageMinutes = stageMinutes,
-            restingHeartRate = WearNight.restingHeartRate(minutes, night),
+            restingHeartRate = night?.let { WearNight.restingHeartRate(minutes, it) },
         )
     }
 
@@ -152,8 +166,8 @@ internal object WearReadings {
                 put(
                     MetricTile.SLEEP,
                     MetricUiState(
-                        current = today.sleep?.asleepMinutes?.toDouble(),
-                        week = days.map { it.sleep?.asleepMinutes?.toDouble() ?: 0.0 },
+                        current = today.sleep?.totalMinutes?.toDouble(),
+                        week = days.map { it.sleep?.totalMinutes?.toDouble() ?: 0.0 },
                     ),
                 )
             }

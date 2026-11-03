@@ -63,10 +63,15 @@ internal class WearReadingsSource(
         )
     }
 
-    /** The night that ended on the morning of [date]: the minutes in its window, estimated as the phone does. */
+    /**
+     * The sleep of [date]: the night that ended that morning and the naps of
+     * the day, estimated as the phone does. The minutes run from the night
+     * window's start to the end of the day, so the naps have a waking level.
+     */
     private fun readNight(date: LocalDate, zone: ZoneId): NightSleep? {
         val offset = zone.rules.getOffset(date.atStartOfDay(zone).toInstant())
-        val (from, until) = sleepNightWindow(date, offset)
+        val (from, _) = sleepNightWindow(date, offset)
+        val until = date.plusDays(1).atStartOfDay(zone).toInstant()
         val rows = store.since(WearMetrics.SLEEP_MINUTES, from.toEpochMilli() - 1, ROW_LIMIT, until.toEpochMilli())
         return WearReadings.night(date, offset, rows)
     }
