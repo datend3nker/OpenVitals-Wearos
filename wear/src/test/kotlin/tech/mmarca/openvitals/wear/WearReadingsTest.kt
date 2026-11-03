@@ -196,6 +196,26 @@ class WearReadingsTest {
         assertEquals(night.stageMinutes, WearReadings.sleepStages(readings))
     }
 
+    /** 08:00 to 16:00 on [today]: walking at a pulse of 75, with a still 45 minute nap from 10:00 at 58. */
+    private fun napDayRows(): List<WearLinkProtocol.SleepMinute> = List(8 * 60) { index ->
+        val time = at(today, 8) + index * 60_000L
+        if (index in 120 until 165) minute(time, movement10 = 0, bpm = 58 + (index * 7) % 3) else minute(time, movement10 = 90 + (index * 5) % 60, bpm = 73 + (index * 7) % 5)
+    }
+
+    @Test
+    fun aNapAloneFillsTheSleepTileAndAddsToANight() {
+        val napOnly = requireNotNull(WearReadings.night(today, zone, napDayRows()))
+        assertEquals(0, napOnly.asleepMinutes)
+        assertTrue("nap ${napOnly.napMinutes}", napOnly.napMinutes in 30..45)
+        assertNull(napOnly.restingHeartRate)
+
+        val both = requireNotNull(WearReadings.night(today, zone, nightRows().filter { it.epochMillis < at(today, 8) } + napDayRows()))
+        assertTrue(both.asleepMinutes > 360)
+        assertEquals(napOnly.napMinutes, both.napMinutes)
+        val readings = week(WearReadings.day(today, zone, emptyList(), emptyList(), emptyList(), sleep = both))
+        assertEquals(both.totalMinutes.toDouble(), WearReadings.metrics(readings, now, zone).getValue(MetricTile.SLEEP).current!!, 0.0)
+    }
+
     @Test
     fun noMinutesMeanNoSleepTile() {
         assertNull(WearReadings.night(today, zone, emptyList()))
