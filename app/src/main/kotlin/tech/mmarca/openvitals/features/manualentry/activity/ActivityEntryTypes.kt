@@ -19,6 +19,7 @@ import tech.mmarca.openvitals.domain.model.BeachVolleyballVariantId
 import tech.mmarca.openvitals.domain.model.PlannedExerciseCompletion
 import tech.mmarca.openvitals.domain.model.PlannedExerciseData
 import tech.mmarca.openvitals.domain.model.activeSteps
+import tech.mmarca.openvitals.domain.workout.WorkoutSport
 
 enum class ActivityRecordingSensor {
     NONE,
@@ -73,36 +74,12 @@ fun activityEntryTypeById(id: String?): ActivityEntryType? =
     id?.let { typeId -> DefaultActivityEntryTypes.firstOrNull { it.id == typeId } }
 
 val DefaultActivityEntryTypes: List<ActivityEntryType> = listOf(
-    ActivityEntryType(
-        exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_RUNNING,
-        labelRes = R.string.exercise_type_running,
-        supportsElevation = true,
-    ),
-    ActivityEntryType(
-        exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_BIKING,
-        labelRes = R.string.exercise_type_biking,
-        supportsElevation = true,
-    ),
+    sportEntry(WorkoutSport.RUNNING, R.string.exercise_type_running),
+    sportEntry(WorkoutSport.BIKING, R.string.exercise_type_biking),
     // A trainer ride has a distance and no route; FIT names it (`sub_sport` 5/6).
-    ActivityEntryType(
-        exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_BIKING_STATIONARY,
-        id = "stationary_bike",
-        labelRes = R.string.exercise_type_stationary_bike,
-        supportsGpsRoute = false,
-        supportsDistance = true,
-        recordingSensor = ActivityRecordingSensor.BLE,
-    ),
-    ActivityEntryType(
-        exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_WALKING,
-        labelRes = R.string.exercise_type_walking,
-        supportsElevation = true,
-        repetitionUnit = ActivityRepetitionUnit.STEPS,
-    ),
-    ActivityEntryType(
-        exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_HIKING,
-        labelRes = R.string.exercise_type_hiking,
-        supportsElevation = true,
-    ),
+    sportEntry(WorkoutSport.STATIONARY_BIKE, R.string.exercise_type_stationary_bike, ActivityRecordingSensor.BLE),
+    sportEntry(WorkoutSport.WALKING, R.string.exercise_type_walking, repetitionUnit = ActivityRepetitionUnit.STEPS),
+    sportEntry(WorkoutSport.HIKING, R.string.exercise_type_hiking),
     ActivityEntryType(
         exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_WHEELCHAIR,
         labelRes = R.string.exercise_type_wheelchair,
@@ -152,13 +129,7 @@ val DefaultActivityEntryTypes: List<ActivityEntryType> = listOf(
         exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_GOLF,
         labelRes = R.string.exercise_type_golf,
     ),
-    ActivityEntryType(
-        exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING,
-        labelRes = R.string.exercise_type_strength_training,
-        supportsGpsRoute = false,
-        supportsDistance = false,
-        recordingSensor = ActivityRecordingSensor.BLE,
-    ),
+    sportEntry(WorkoutSport.STRENGTH_TRAINING, R.string.exercise_type_strength_training, ActivityRecordingSensor.BLE),
     // Generic set sessions for plans that mix exercises. Manual-entry and plan only.
     ActivityEntryType(
         exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING,
@@ -180,13 +151,10 @@ val DefaultActivityEntryTypes: List<ActivityEntryType> = listOf(
         segmentType = ExerciseSegment.EXERCISE_SEGMENT_TYPE_OTHER_WORKOUT,
         repetitionUnit = ActivityRepetitionUnit.REPETITIONS,
     ),
-    ActivityEntryType(
-        exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_RUNNING_TREADMILL,
-        id = "treadmill",
-        labelRes = R.string.exercise_type_treadmill,
-        supportsGpsRoute = false,
-        supportsDistance = true,
-        recordingSensor = ActivityRecordingSensor.STEP_DETECTOR,
+    sportEntry(
+        WorkoutSport.TREADMILL,
+        R.string.exercise_type_treadmill,
+        ActivityRecordingSensor.STEP_DETECTOR,
         segmentType = ExerciseSegment.EXERCISE_SEGMENT_TYPE_RUNNING_TREADMILL,
         repetitionUnit = ActivityRepetitionUnit.STEPS,
     ),
@@ -252,8 +220,8 @@ val DefaultActivityEntryTypes: List<ActivityEntryType> = listOf(
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_BOOT_CAMP, R.string.hc_exercise_type_boot_camp),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_BOXING, R.string.hc_exercise_type_boxing),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_CRICKET, R.string.hc_exercise_type_cricket),
-    timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_DANCING, R.string.hc_exercise_type_dancing),
-    indoorDistanceActivity(ExerciseSessionRecord.EXERCISE_TYPE_ELLIPTICAL, R.string.hc_exercise_type_elliptical),
+    sportEntry(WorkoutSport.DANCING, R.string.hc_exercise_type_dancing, ActivityRecordingSensor.BLE),
+    sportEntry(WorkoutSport.ELLIPTICAL, R.string.hc_exercise_type_elliptical, ActivityRecordingSensor.BLE),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_EXERCISE_CLASS, R.string.hc_exercise_type_exercise_class),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_FENCING, R.string.hc_exercise_type_fencing),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_FOOTBALL_AMERICAN, R.string.hc_exercise_type_football_american),
@@ -262,24 +230,24 @@ val DefaultActivityEntryTypes: List<ActivityEntryType> = listOf(
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_GUIDED_BREATHING, R.string.hc_exercise_type_guided_breathing),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_GYMNASTICS, R.string.hc_exercise_type_gymnastics),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_HANDBALL, R.string.hc_exercise_type_handball),
-    timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING, R.string.hc_exercise_type_high_intensity_interval_training),
+    sportEntry(WorkoutSport.HIIT, R.string.hc_exercise_type_high_intensity_interval_training, ActivityRecordingSensor.BLE),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_ICE_HOCKEY, R.string.hc_exercise_type_ice_hockey),
     routeActivity(ExerciseSessionRecord.EXERCISE_TYPE_ICE_SKATING, R.string.hc_exercise_type_ice_skating),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_MARTIAL_ARTS, R.string.hc_exercise_type_martial_arts),
     routeActivity(ExerciseSessionRecord.EXERCISE_TYPE_PARAGLIDING, R.string.hc_exercise_type_paragliding, supportsElevation = true),
-    timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_PILATES, R.string.hc_exercise_type_pilates),
+    sportEntry(WorkoutSport.PILATES, R.string.hc_exercise_type_pilates, ActivityRecordingSensor.BLE),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_RACQUETBALL, R.string.hc_exercise_type_racquetball),
     routeActivity(ExerciseSessionRecord.EXERCISE_TYPE_ROCK_CLIMBING, R.string.hc_exercise_type_rock_climbing, supportsElevation = true),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_ROLLER_HOCKEY, R.string.hc_exercise_type_roller_hockey),
-    indoorDistanceActivity(ExerciseSessionRecord.EXERCISE_TYPE_ROWING_MACHINE, R.string.hc_exercise_type_rowing_machine),
+    sportEntry(WorkoutSport.ROWING_MACHINE, R.string.hc_exercise_type_rowing_machine, ActivityRecordingSensor.BLE),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_RUGBY, R.string.hc_exercise_type_rugby),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_SCUBA_DIVING, R.string.hc_exercise_type_scuba_diving),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_SOCCER, R.string.hc_exercise_type_soccer),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_SOFTBALL, R.string.hc_exercise_type_softball),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_SQUASH, R.string.hc_exercise_type_squash),
-    indoorDistanceActivity(ExerciseSessionRecord.EXERCISE_TYPE_STAIR_CLIMBING, R.string.hc_exercise_type_stair_climbing, supportsElevation = true),
-    indoorDistanceActivity(ExerciseSessionRecord.EXERCISE_TYPE_STAIR_CLIMBING_MACHINE, R.string.hc_exercise_type_stair_climbing_machine),
-    timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING, R.string.hc_exercise_type_stretching),
+    sportEntry(WorkoutSport.STAIR_CLIMBING, R.string.hc_exercise_type_stair_climbing, ActivityRecordingSensor.BLE),
+    sportEntry(WorkoutSport.STAIR_CLIMBING_MACHINE, R.string.hc_exercise_type_stair_climbing_machine, ActivityRecordingSensor.BLE),
+    sportEntry(WorkoutSport.STRETCHING, R.string.hc_exercise_type_stretching, ActivityRecordingSensor.BLE),
     indoorDistanceActivity(ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_POOL, R.string.hc_exercise_type_swimming_pool),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_TABLE_TENNIS, R.string.hc_exercise_type_table_tennis),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_TENNIS, R.string.hc_exercise_type_tennis),
@@ -291,13 +259,30 @@ val DefaultActivityEntryTypes: List<ActivityEntryType> = listOf(
         .copy(id = BeachVolleyballVariantId, recordsVariant = true),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_WATER_POLO, R.string.hc_exercise_type_water_polo),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_WEIGHTLIFTING, R.string.hc_exercise_type_weightlifting),
-    timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_YOGA, R.string.hc_exercise_type_yoga),
-    ActivityEntryType(
-        exerciseType = ExerciseSessionRecord.EXERCISE_TYPE_OTHER_WORKOUT,
-        labelRes = R.string.exercise_type_other_workout,
-        supportsGpsRoute = false,
-        supportsDistance = false,
-    ),
+    sportEntry(WorkoutSport.YOGA, R.string.hc_exercise_type_yoga, ActivityRecordingSensor.BLE),
+    sportEntry(WorkoutSport.OTHER_WORKOUT, R.string.exercise_type_other_workout, ActivityRecordingSensor.NONE),
+)
+
+/**
+ * An entry type for a sport the watch records too: the id, the Health Connect type and the
+ * route, distance and elevation traits come from the shared table.
+ */
+private fun sportEntry(
+    sport: WorkoutSport,
+    @StringRes labelRes: Int,
+    recordingSensor: ActivityRecordingSensor = if (sport.gps) ActivityRecordingSensor.GPS else ActivityRecordingSensor.NONE,
+    segmentType: Int? = null,
+    repetitionUnit: ActivityRepetitionUnit? = null,
+): ActivityEntryType = ActivityEntryType(
+    exerciseType = sport.exerciseType,
+    id = sport.id,
+    labelRes = labelRes,
+    supportsGpsRoute = sport.gps,
+    supportsDistance = sport.distance,
+    supportsElevation = sport.elevation,
+    recordingSensor = recordingSensor,
+    segmentType = segmentType,
+    repetitionUnit = repetitionUnit,
 )
 
 /** Travels outdoors: a GPS route, a distance, a live recording. */
