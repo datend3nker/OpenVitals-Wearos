@@ -161,6 +161,11 @@ class WearLinkServer(
                 for (minute in page.items) writer.line(WearLinkProtocol.formatAscentMinute(minute))
                 writer.line(WearLinkProtocol.formatEnd(page.items.size, page.more))
             }
+            is WearLinkProtocol.Request.HrvSince -> {
+                val page = handler.hrvSince(request.sinceEpochMillis, request.limit)
+                for (window in page.items) writer.line(WearLinkProtocol.formatHrvWindow(window))
+                writer.line(WearLinkProtocol.formatEnd(page.items.size, page.more))
+            }
             is WearLinkProtocol.Request.LogSince -> {
                 val page = handler.logEntriesSince(request.sinceEpochMillis, request.limit)
                 for (entry in page.items) writer.line(WearLinkProtocol.formatLogEntry(entry))
