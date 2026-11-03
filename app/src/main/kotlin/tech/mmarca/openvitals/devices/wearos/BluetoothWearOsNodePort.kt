@@ -24,6 +24,7 @@ import tech.mmarca.openvitals.wearlink.WearLinkClient
 import tech.mmarca.openvitals.wearlink.WearLinkConnection
 import tech.mmarca.openvitals.wearlink.WearLinkOutcome
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
+import tech.mmarca.openvitals.wearlink.WearLinkWorkout
 import tech.mmarca.openvitals.wearlink.WearLinkSession
 
 /**
@@ -131,6 +132,19 @@ class BluetoothWearOsNodePort @Inject constructor(
                 minutes = page.items.map { WearOsAscentMinute(Instant.ofEpochMilli(it.epochMillis), it.decimetres / 10.0) },
                 hasMore = page.more,
             )
+        }
+    }
+
+    override suspend fun pullWorkouts(
+        targetAddress: String?,
+        targetName: String?,
+        since: Instant,
+    ): WearOsWorkoutPage? = withContext(Dispatchers.IO) {
+        val match = bondedWatchOrNull(targetAddress, targetName) ?: return@withContext null
+        withSession(match, targetAddress, PULL_TIMEOUT_MS) { session ->
+            if (WearLinkProtocol.CAP_WORKOUTS !in session.peer.capabilities) return@withSession WearOsWorkoutPage(emptyList(), false)
+            val page = unwrap(session.pullWorkouts(since.toEpochMilli(), WearLinkProtocol.MAX_WORKOUTS_PER_REQUEST))
+            WearOsWorkoutPage(page.items.map { it.toPortWorkout() }, page.more)
         }
     }
 
@@ -354,3 +368,22 @@ class BluetoothWearOsNodePort @Inject constructor(
         private const val LIVE_SESSION_MS = 8L * 60 * 1000
     }
 }
+
+private fun WearLinkWorkout.toPortWorkout() = WearOsWorkout(
+    start = Instant.ofEpochMilli(startMillis),
+    end = Instant.ofEpochMilli(endMillis),
+    exerciseType = exerciseType,
+    steps = steps,
+    distanceMetres = distanceMetres,
+    ascentMetres = ascentDecimetres?.let { it / 10.0 },
+    pauses = pauses.map { Instant.ofEpochMilli(it.startMillis)..Instant.ofEpochMilli(it.endMillis) },
+    route = route.map {
+        WearOsWorkoutPoint(
+            time = Instant.ofEpochMilli(it.epochMillis),
+            latitude = it.latitudeE7 / 1e7,
+            longitude = it.longitudeE7 / 1e7,
+            altitudeMetres = it.altitudeDecimetres?.let { d -> d / 10.0 },
+            accuracyMetres = it.accuracyDecimetres?.let { d -> d / 10.0 },
+        )
+    },
+)

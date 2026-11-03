@@ -75,6 +75,14 @@ class WearOsSyncCursorStore(private val prefs: SharedPreferences) {
         prefs.edit { putLong(hrvKey(deviceId), at.toEpochMilli()) }
     }
 
+    /** The workout cursor: the start of the newest workout written. [Instant.EPOCH] for a watch never synced. */
+    fun workoutCursor(deviceId: String): Instant =
+        Instant.ofEpochMilli(prefs.getLong(workoutKey(deviceId), 0L))
+
+    fun setWorkoutCursor(deviceId: String, at: Instant) {
+        prefs.edit { putLong(workoutKey(deviceId), at.toEpochMilli()) }
+    }
+
     fun clear(deviceId: String) {
         prefs.edit {
             remove(key(deviceId))
@@ -83,8 +91,11 @@ class WearOsSyncCursorStore(private val prefs: SharedPreferences) {
             remove(ascentKey(deviceId))
             remove(logKey(deviceId))
             remove(hrvKey(deviceId))
+            remove(workoutKey(deviceId))
         }
     }
+
+    private fun workoutKey(deviceId: String) = "workout_cursor_$deviceId"
 
     private fun hrvKey(deviceId: String) = "hrv_cursor_$deviceId"
 
