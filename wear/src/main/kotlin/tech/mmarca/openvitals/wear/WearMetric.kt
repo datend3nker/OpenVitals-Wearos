@@ -1,6 +1,7 @@
 package tech.mmarca.openvitals.wear
 
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
+import tech.mmarca.openvitals.wearlink.WearLinkWorkoutLines
 
 /**
  * One series the watch records for the phone, and everything [MetricStore]
@@ -104,5 +105,42 @@ object WearMetrics {
         onSameTime = WearMetric.OnSameTime.KEEP,
     )
 
-    val ALL: List<WearMetric<*>> = listOf(HEART_RATE, SLEEP_MINUTES, STEPS, ASCENT, HRV)
+    /**
+     * One header row per finished workout, keyed on its start; see
+     * `WorkoutStore`. The pauses and route points are the two series below, found by
+     * the workout's time range. A workout is final once saved.
+     */
+    val WORKOUTS = WearMetric(
+        key = WearLinkProtocol.CAP_WORKOUTS,
+        encode = WearLinkWorkoutLines::formatHeader,
+        decode = WearLinkWorkoutLines::parseHeader,
+        timeOf = { it.startMillis },
+        onSameTime = WearMetric.OnSameTime.KEEP,
+        retentionMillis = WORKOUT_RETENTION_MILLIS,
+    )
+
+    /** The pauses of the workouts, keyed on a pause's start. */
+    val WORKOUT_PAUSES = WearMetric(
+        key = "wp",
+        encode = WearLinkWorkoutLines::formatPause,
+        decode = WearLinkWorkoutLines::parsePause,
+        timeOf = { it.startMillis },
+        onSameTime = WearMetric.OnSameTime.KEEP,
+        retentionMillis = WORKOUT_RETENTION_MILLIS,
+    )
+
+    /** The GPS fixes of the workouts, keyed on a fix's time. Stored as they arrive, so a killed app keeps its route. */
+    val WORKOUT_POINTS = WearMetric(
+        key = "wr",
+        encode = WearLinkWorkoutLines::formatPoint,
+        decode = WearLinkWorkoutLines::parsePoint,
+        timeOf = { it.epochMillis },
+        onSameTime = WearMetric.OnSameTime.KEEP,
+        retentionMillis = WORKOUT_RETENTION_MILLIS,
+    )
+
+    /** A month: a workout is rare and big, and the phone may be away for a holiday. */
+    private const val WORKOUT_RETENTION_MILLIS: Long = 30L * 24 * 60 * 60 * 1000
+
+    val ALL: List<WearMetric<*>> = listOf(HEART_RATE, SLEEP_MINUTES, STEPS, ASCENT, HRV, WORKOUTS, WORKOUT_PAUSES, WORKOUT_POINTS)
 }
