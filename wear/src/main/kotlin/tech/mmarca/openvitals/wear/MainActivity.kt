@@ -51,7 +51,8 @@ class MainActivity : ComponentActivity() {
     /** The sport waiting for the location answer; null when none is. */
     private var workoutAwaitingLocation: ActivityType? = null
 
-    private val requestLocation = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+    private val requestLocation = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+        val granted = result[android.Manifest.permission.ACCESS_FINE_LOCATION] == true
         // Declined: the workout still records, without a route or a distance.
         workoutAwaitingLocation?.let { WearAppService.startWorkout(this, it.sport, gps = granted) }
         workoutAwaitingLocation = null
@@ -63,7 +64,7 @@ class MainActivity : ComponentActivity() {
             WearAppService.startWorkout(this, type.sport, gps = type.sport.gps)
         } else {
             workoutAwaitingLocation = type
-            requestLocation.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+            requestLocation.launch(arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION))
         }
     }
 
