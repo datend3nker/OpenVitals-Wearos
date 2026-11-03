@@ -197,6 +197,28 @@ class WearReadingsTest {
     }
 
     @Test
+    fun theNightsHrvIsTheMeanOfItsWindowsAndFillsTheTile() {
+        val windows = listOf(
+            WearLinkProtocol.HrvWindow(at(today, 2), 400, 280),
+            WearLinkProtocol.HrvWindow(at(today, 3), 500, 270),
+        )
+        assertEquals(45.0, WearReadings.nightHrv(windows)!!, 1e-9)
+        assertNull(WearReadings.nightHrv(emptyList()))
+
+        val yesterday = day(today.minusDays(1)).copy(nightHrv = 38.0)
+        val readings = week(day(today).copy(nightHrv = 45.0), earlier = mapOf(1 to yesterday))
+        val hrv = WearReadings.metrics(readings, now, zone).getValue(MetricTile.HRV)
+
+        assertEquals(45.0, hrv.current!!, 0.0)
+        assertEquals(listOf(38.0, 45.0), hrv.week)
+    }
+
+    @Test
+    fun noWindowsMeanNoHrvTile() {
+        assertFalse(WearReadings.metrics(week(day(today)), now, zone).containsKey(MetricTile.HRV))
+    }
+
+    @Test
     fun noMinutesMeanNoSleepTile() {
         assertNull(WearReadings.night(today, zone, emptyList()))
         assertFalse(WearReadings.metrics(week(day(today)), now, zone).containsKey(MetricTile.SLEEP))
