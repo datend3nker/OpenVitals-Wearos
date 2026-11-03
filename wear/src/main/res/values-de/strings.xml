@@ -204,4 +204,14 @@
     <string name="diag_drain">Akku −%1$s %% pro Stunde</string>
     <string name="diag_heart_rate_share">Herzfrequenz an: %1$d %% der Zeit</string>
     <string name="action_forget_phone">Telefon vergessen</string>
+    <string name="settings_tracking">Erfassung &amp; Sensoren</string>
+    <string name="settings_tracking_heart_rate">Herzfrequenz erfassen</string>
+    <string name="settings_tracking_steps">Schrittzähler</string>
+    <string name="settings_tracking_ascent">Höhe &amp; Etagen</string>
+    <string name="settings_tracking_sleep">Schlaf aufzeichnen</string>
+    <string name="settings_tracking_hr_day">Herzfrequenz tagsüber</string>
+    <string name="settings_tracking_hr_night">Herzfrequenz zur Schlafenszeit</string>
+    <string name="interval_every_10_seconds">Alle 10 Sekunden</string>
+    <string name="interval_every_minute">Jede Minute</string>
+    <string name="interval_off">Aus</string>
 </resources>
