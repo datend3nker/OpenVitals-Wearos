@@ -1,14 +1,11 @@
-package tech.mmarca.openvitals.devices.wearos
+package tech.mmarca.openvitals.domain.model
 
 import java.time.Instant
 import java.time.ZoneOffset
-import tech.mmarca.openvitals.domain.model.SleepMinuteKind
-import tech.mmarca.openvitals.domain.model.WearMinuteFlags
-import tech.mmarca.openvitals.domain.model.WearSleepMinute
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 
-/** The wire row in physical units. Pure. */
-object WearOsSleepMinuteMapping {
+/** The watch's wire row in physical units, as phone and watch both read it. Pure. */
+object WearSleepMinuteMapping {
 
     fun toDomain(m: WearLinkProtocol.SleepMinute): WearSleepMinute = WearSleepMinute(
         time = Instant.ofEpochMilli(m.epochMillis),

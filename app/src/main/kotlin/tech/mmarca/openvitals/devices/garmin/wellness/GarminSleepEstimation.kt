@@ -10,7 +10,7 @@ import kotlinx.coroutines.CancellationException
 import tech.mmarca.openvitals.data.repository.AppleHealthImportRepository
 import tech.mmarca.openvitals.data.repository.contract.GarminSleepMinuteRepository
 import tech.mmarca.openvitals.devices.core.sync.estimatedSleepSessionRecord
-import tech.mmarca.openvitals.devices.core.sync.sleepNightWindow
+import tech.mmarca.openvitals.domain.insights.sleepNightWindow
 import tech.mmarca.openvitals.devices.garmin.GarminLog
 import tech.mmarca.openvitals.domain.insights.EstimatedSleepSession
 import tech.mmarca.openvitals.domain.insights.SleepStageEstimator

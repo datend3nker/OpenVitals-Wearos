@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import tech.mmarca.openvitals.domain.model.WearSleepMinute
+import tech.mmarca.openvitals.domain.model.WearSleepMinuteMapping
 import tech.mmarca.openvitals.wearlink.WearLinkClient
 import tech.mmarca.openvitals.wearlink.WearLinkConnection
 import tech.mmarca.openvitals.wearlink.WearLinkOutcome
@@ -92,7 +93,7 @@ class BluetoothWearOsNodePort @Inject constructor(
         val match = bondedWatchOrNull(targetAddress, targetName) ?: return@withContext null
         withSession(match, targetAddress, PULL_TIMEOUT_MS) { session ->
             val page = unwrap(session.pullSleepMinutes(since.toEpochMilli(), WearLinkProtocol.MAX_MINUTES_PER_REQUEST))
-            WearOsSleepMinutePage(minutes = page.items.map(WearOsSleepMinuteMapping::toDomain), hasMore = page.more)
+            WearOsSleepMinutePage(minutes = page.items.map(WearSleepMinuteMapping::toDomain), hasMore = page.more)
         }
     }
 
