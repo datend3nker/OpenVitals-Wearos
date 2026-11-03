@@ -104,7 +104,7 @@ enum class MetricTile(
         MetricSource.PHONE,
     ),
 
-    /** Milliseconds RMSSD. Synced, or measured on a watch that reports single beats. */
+    /** Milliseconds RMSSD. The night's mean of the watch's own windows, synced, or measured on a watch that reports single beats. */
     HRV(R.string.metric_hrv, Icons.Outlined.Insights, VitalsColor, MetricKind.SAMPLED, MetricSource.PHONE),
 
     /** Minutes asleep. The stages arrive as `WearUiState.sleepStages`. */
