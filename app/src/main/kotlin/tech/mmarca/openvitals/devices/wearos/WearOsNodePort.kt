@@ -104,6 +104,36 @@ data class WearOsHrvPage(
     val hasMore: Boolean,
 )
 
+/** One GPS fix of a watch workout. Altitude and accuracy in metres, null when the fix had none. */
+data class WearOsWorkoutPoint(
+    val time: Instant,
+    val latitude: Double,
+    val longitude: Double,
+    val altitudeMetres: Double?,
+    val accuracyMetres: Double?,
+)
+
+/**
+ * One finished workout the watch recorded. [exerciseType] is the Health Connect type; the totals are
+ * null where the watch measured none.
+ */
+data class WearOsWorkout(
+    val start: Instant,
+    val end: Instant,
+    val exerciseType: Int,
+    val steps: Int?,
+    val distanceMetres: Int?,
+    val ascentMetres: Double?,
+    val pauses: List<ClosedRange<Instant>>,
+    val route: List<WearOsWorkoutPoint>,
+)
+
+/** One page of a workout pull. [hasMore] means the watch cut the reply at its limit. */
+data class WearOsWorkoutPage(
+    val workouts: List<WearOsWorkout>,
+    val hasMore: Boolean,
+)
+
 /** One entry the wearer logged on the watch, in metric; [value2] is a blood pressure's diastolic. */
 data class WearOsLogEntry(
     val time: Instant,
@@ -212,6 +242,17 @@ interface WearOsNodePort {
         targetName: String?,
         since: Instant,
     ): WearOsHrvPage?
+
+    /**
+     * Workouts that started after [since], oldest first, at most a few per page. Empty page: the watch
+     * app is too old to record workouts. Null: no bonded watch matches. Any other failure throws
+     * [WearOsLinkFailure].
+     */
+    suspend fun pullWorkouts(
+        targetAddress: String?,
+        targetName: String?,
+        since: Instant,
+    ): WearOsWorkoutPage? = WearOsWorkoutPage(emptyList(), false)
 
     /**
      * Entries the wearer logged on the watch, newer than [since], oldest
