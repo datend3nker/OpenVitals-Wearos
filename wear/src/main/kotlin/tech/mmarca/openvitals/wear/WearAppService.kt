@@ -176,6 +176,9 @@ class WearAppService : Service() {
         if (intent?.action == ACTION_TOGGLE_PPG_LOG) {
             if (ppgLogger.isRunning) ppgLogger.stop() else ppgLogger.start()
             WearLinkState.update { it.copy(ppgLogging = ppgLogger.isRunning) }
+        } else if (intent?.action == ACTION_SET_INTERACTIVE) {
+            val interactive = intent.getBooleanExtra(EXTRA_INTERACTIVE, false)
+            stepRecorder.setInteractive(interactive)
         }
         link.start()
         // A grant made after the start: the type set grows to include health.
@@ -324,6 +327,19 @@ class WearAppService : Service() {
         private const val CHANNEL_ID = "phone_link"
         private const val NOTIFICATION_ID = 1
         private const val ACTION_TOGGLE_PPG_LOG = "tech.mmarca.openvitals.wear.TOGGLE_PPG_LOG"
+        private const val ACTION_SET_INTERACTIVE = "tech.mmarca.openvitals.wear.SET_INTERACTIVE"
+        private const val EXTRA_INTERACTIVE = "interactive"
+
+        /** Sets whether the watch app UI is active so step counting flushes in real time. */
+        fun setInteractive(context: Context, interactive: Boolean) {
+            if (!WearPermissions.hasBluetooth(context)) return
+            runCatching {
+                val intent = Intent(context, WearAppService::class.java)
+                    .setAction(ACTION_SET_INTERACTIVE)
+                    .putExtra(EXTRA_INTERACTIVE, interactive)
+                context.startForegroundService(intent)
+            }.onFailure { Log.e(TAG, "Cannot set interactive mode", it) }
+        }
 
         /** Starts or stops the raw PPG log (debuggable builds with the sensor only). */
         fun togglePpgLog(context: Context) {

@@ -40,9 +40,16 @@ class MetricStore(context: Context, name: String? = DB_NAME) : SQLiteOpenHelper(
         db.execSQL("CREATE TABLE IF NOT EXISTS $STATE_TABLE ($COL_KEY TEXT PRIMARY KEY, $COL_VALUE TEXT NOT NULL)")
     }
 
+    val updates = kotlinx.coroutines.flow.MutableSharedFlow<Unit>(extraBufferCapacity = 64)
+
+    fun notifyDataChanged() {
+        updates.tryEmit(Unit)
+    }
+
     /** Stores one value; one already at its time stays or is replaced as [WearMetric.onSameTime] says. */
     fun <T> put(metric: WearMetric<T>, value: T) {
         put(writableDatabase, metric, value)
+        notifyDataChanged()
     }
 
     /** Stores several values in one transaction. */
@@ -55,6 +62,7 @@ class MetricStore(context: Context, name: String? = DB_NAME) : SQLiteOpenHelper(
         } finally {
             db.endTransaction()
         }
+        notifyDataChanged()
     }
 
     /** Stores [values] and sets the state [key] to [state], in one transaction. */
@@ -72,6 +80,7 @@ class MetricStore(context: Context, name: String? = DB_NAME) : SQLiteOpenHelper(
         } finally {
             db.endTransaction()
         }
+        notifyDataChanged()
     }
 
     /** The state stored under [key], or null when there is none. */
