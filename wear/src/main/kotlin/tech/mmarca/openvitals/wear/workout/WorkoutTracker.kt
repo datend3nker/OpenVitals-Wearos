@@ -72,6 +72,8 @@ class WorkoutTracker(
     private val points = ArrayList<WearLinkWorkout.RoutePoint>()
 
     private var stepBaseline: Long? = null
+    private var stepBaselineStale = false
+    private var lastStepTotal = 0L
     private var steps = 0
     private val stepsByMinute = HashMap<Long, Int>()
     private val ascentByMinute = HashMap<Long, Int>()
@@ -167,14 +169,32 @@ class WorkoutTracker(
         if (points.size < WearLinkWorkoutLines.MAX_POINTS) points += point
     }
 
-    /** The step counter's running total at [epochMillis]; the first one after the start is the baseline. */
+    /**
+     * The step counter's running total at [epochMillis]. The first reading is the baseline.
+     * A reading stamped before the start is the sensor's cached value from before the workout:
+     * it can be a baseline, never a gain. The first fresh reading after it replaces it, because
+     * the steps in between are not known to belong to the workout. While paused the baseline
+     * moves with the counter, so steps taken in a pause are not credited on resume.
+     */
     fun onStepTotal(epochMillis: Long, total: Long) {
         val base = stepBaseline
-        if (base == null) {
+        val stale = epochMillis < startMillis
+        val last = lastStepTotal
+        lastStepTotal = total
+        if (base == null || (stepBaselineStale && !stale)) {
             stepBaseline = total
+            stepBaselineStale = stale
             return
         }
-        if (isPaused || total < base) return
+        if (stale) {
+            if (stepBaselineStale) stepBaseline = total
+            return
+        }
+        if (isPaused) {
+            if (total >= last) stepBaseline = base + (total - last)
+            return
+        }
+        if (total < base) return
         val now = (total - base).toInt().coerceAtMost(WearLinkWorkoutLines.MAX_STEPS)
         val delta = now - steps
         if (delta <= 0) return
@@ -231,8 +251,13 @@ class WorkoutTracker(
         )
     }
 
-    /** The finished workout as the wire carries it, ending at [endMillis]. An open pause ends there. */
-    fun finish(endMillis: Long): WearLinkWorkout {
+    /**
+     * The finished workout as the wire carries it, ending at [requestedEndMillis]. An open pause ends there.
+     * The phone refuses a workout longer than [WearLinkWorkoutLines.MAX_DURATION_MILLIS], so the end is
+     * cut to that, and the pauses and route points after it go.
+     */
+    fun finish(requestedEndMillis: Long): WearLinkWorkout {
+        val endMillis = limitedEnd(startMillis, requestedEndMillis)
         resume(endMillis)
         val gps = useGps && hadFix
         return WearLinkWorkout(
@@ -243,8 +268,8 @@ class WorkoutTracker(
             distanceMetres = distance.roundToInt().coerceAtMost(WearLinkWorkoutLines.MAX_DISTANCE_METRES).takeIf { gps },
             ascentDecimetres = ascentDecimetres().coerceAtMost(WearLinkWorkoutLines.MAX_ASCENT_DECIMETRES)
                 .takeIf { sport.elevation && ascentByMinute.isNotEmpty() },
-            pauses = pauses.toList(),
-            route = points.toList(),
+            pauses = clipPauses(pauses, endMillis),
+            route = points.filter { it.epochMillis <= endMillis },
         )
     }
 
@@ -287,6 +312,14 @@ class WorkoutTracker(
         private const val MIN_CADENCE_SECONDS = 20
         private const val MINUTE_MILLIS = 60_000L
         private const val EARTH_RADIUS_METRES = 6_371_000.0
+
+        /** [endMillis], but no later than the longest workout the link carries. */
+        fun limitedEnd(startMillis: Long, endMillis: Long): Long =
+            minOf(endMillis, startMillis + WearLinkWorkoutLines.MAX_DURATION_MILLIS)
+
+        /** The pauses that begin before [endMillis], the last one cut to end there. */
+        fun clipPauses(pauses: List<WearLinkWorkout.Pause>, endMillis: Long): List<WearLinkWorkout.Pause> =
+            pauses.filter { it.startMillis < endMillis }.map { it.copy(endMillis = minOf(it.endMillis, endMillis)) }
 
         /** Great-circle distance in metres. */
         fun distanceBetween(a: WorkoutFix, b: WorkoutFix): Double {

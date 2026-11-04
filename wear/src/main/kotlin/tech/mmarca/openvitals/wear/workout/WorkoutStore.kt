@@ -63,7 +63,7 @@ class WorkoutStore(private val rows: WorkoutRows) {
             return null
         }
         val sport = WorkoutSport.fromId(checkpoint.sportId)
-        val end = checkpoint.savedMillis
+        val end = WorkoutTracker.limitedEnd(checkpoint.startMillis, checkpoint.savedMillis)
         val open = checkpoint.pausedSince?.takeIf { it < end }
         val workout = WearLinkWorkout(
             startMillis = checkpoint.startMillis,
@@ -72,8 +72,10 @@ class WorkoutStore(private val rows: WorkoutRows) {
             steps = checkpoint.steps,
             distanceMetres = checkpoint.distanceMetres,
             ascentDecimetres = checkpoint.ascentDecimetres,
-            pauses = (checkpoint.pauses + listOfNotNull(open?.let { WearLinkWorkout.Pause(it, end) }))
-                .take(WearLinkWorkoutLines.MAX_PAUSES),
+            pauses = WorkoutTracker.clipPauses(
+                (checkpoint.pauses + listOfNotNull(open?.let { WearLinkWorkout.Pause(it, end) })).take(WearLinkWorkoutLines.MAX_PAUSES),
+                end,
+            ),
             route = rows.points(checkpoint.startMillis, end),
         )
         return workout.takeIf { finish(it, nowMillis) }
