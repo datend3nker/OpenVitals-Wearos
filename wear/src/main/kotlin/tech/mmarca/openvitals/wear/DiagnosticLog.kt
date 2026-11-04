@@ -82,6 +82,20 @@ internal fun summarizeDiagnostics(samples: List<DiagnosticSample>): DiagnosticSu
 }
 
 /**
+ * Where the log lives: the app's folder on shared storage, so `adb pull` reads it from a build
+ * that is not debuggable. The readings hold a battery level and which recorders ran, never a
+ * value. A log kept in the private folder by an earlier build is moved once.
+ */
+internal fun diagnosticLogFile(context: Context): File {
+    val old = File(context.filesDir, DiagnosticLog.FILE_NAME)
+    val folder = context.getExternalFilesDir(null) ?: return old
+    val target = File(folder, DiagnosticLog.FILE_NAME)
+    if (!target.exists() && old.exists()) old.copyTo(target)
+    old.delete()
+    return target
+}
+
+/**
  * The readings kept on the watch, one line each, newest last. The file is
  * replaced whole through a temporary file, so a reader never sees a half
  * written file; the oldest readings go once [maxSamples] is reached.

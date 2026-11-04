@@ -52,6 +52,8 @@ and `:wear:compileDebugAndroidTestKotlin`. A dependency change in `wearlink/buil
 needs `./gradlew :wearlink:dependencies --write-locks` for its lockfile, like the other modules (`:domain:dependencies --write-locks` for the domain module). The wear module uses the standard
 `debug` build type; it has no `ci` variant.
 
+The watch app logs its battery level and which recorders run every 15 minutes (two weeks kept). `run-as` fails on the installed watch app (it is not debuggable), so the file sits in the app's folder on shared storage: `adb -s <watch> pull /sdcard/Android/data/tech.mmarca.openvitals/files/diagnostics.csv`. Each line is `epochMillis;battery%;charging;heartRateOn;stepsOn;bedtimeState`. Pair it with `adb shell dumpsys batterystats --charged tech.mmarca.openvitals` for the cost per sensor.
+
 The watch's instrumented tests (`wear/src/androidTest`, the metric store against real SQLite)
 are compiled by the gate but run only on a device. Do not use `connectedDebugAndroidTest` on a
 watch you wear: it uninstalls the app afterwards, which deletes the recorded data and the

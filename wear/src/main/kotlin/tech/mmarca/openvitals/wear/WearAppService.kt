@@ -5,7 +5,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import java.io.File
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -170,7 +169,7 @@ class WearAppService : Service() {
         wornMonitor.start()
         // Needs no grant: the accelerometer and the barometer are open to every app.
         reconcileRecorders()
-        diagnostics = DiagnosticsSampler(DiagnosticLog(File(filesDir, DiagnosticLog.FILE_NAME))) { takeDiagnosticSample() }
+        diagnostics = DiagnosticsSampler(DiagnosticLog(diagnosticLogFile(this))) { takeDiagnosticSample() }
         diagnostics.start()
     }
 
