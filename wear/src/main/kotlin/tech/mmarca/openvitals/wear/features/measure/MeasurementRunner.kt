@@ -72,7 +72,7 @@ class MeasurementRunner(private val context: Context) {
             sensorEvents(Sensor.TYPE_HEART_BEAT).collect { event ->
                 beats.addLast(event.timestamp)
                 if (beats.size > LiveBeats) beats.removeFirst()
-                rmssd(rrIntervalsMillis(beats.toList()))?.let { emit(it) }
+                rmssd(beats.toList(), HrvIntervalsNeeded)?.let { emit(it) }
             }
         }
         Measurement.AIR_PRESSURE -> sensorEvents(Sensor.TYPE_PRESSURE).mapNotNull { it.values.firstOrNull()?.toDouble() }
@@ -104,7 +104,7 @@ class MeasurementRunner(private val context: Context) {
                 }
             }
         }
-        val value = rmssd(rrIntervalsMillis(beats)) ?: throw MeasureException(MeasureError.NO_SIGNAL)
+        val value = rmssd(beats, HrvBeatsNeededForReading) ?: throw MeasureException(MeasureError.NO_SIGNAL)
         emit(MeasureEvent.Result(value))
     }
 
