@@ -97,6 +97,7 @@ dependencies {
     implementation(libs.androidx.wear.compose.navigation)
     // Same drag-to-reorder library as the phone dashboard.
     implementation(libs.reorderable)
+    implementation(libs.androidx.wear.ongoing)
     implementation(libs.androidx.wear.tiles)
     implementation(libs.androidx.wear.protolayout)
     implementation(libs.androidx.wear.protolayout.material)

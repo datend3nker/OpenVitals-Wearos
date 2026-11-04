@@ -33,7 +33,7 @@ import tech.mmarca.openvitals.wear.SensorTime
 class WorkoutRecorder(
     private val context: Context,
     metricStore: MetricStore,
-    /** Called on the main thread when a workout starts or ends, so the service can adjust itself. */
+    /** Called on the main thread when a workout starts, pauses, resumes or ends, so the service can adjust itself and its Ongoing Activity. */
     private val onActiveChange: () -> Unit,
 ) : SensorEventListener, LocationListener {
 
@@ -81,9 +81,9 @@ class WorkoutRecorder(
         return true
     }
 
-    fun pause() = post { it.pause(System.currentTimeMillis()); publish(it) }
+    fun pause() = post { it.pause(System.currentTimeMillis()); publish(it); mainHandler.post(onActiveChange) }
 
-    fun resume() = post { it.resume(System.currentTimeMillis()); publish(it) }
+    fun resume() = post { it.resume(System.currentTimeMillis()); publish(it); mainHandler.post(onActiveChange) }
 
     fun noteHeartRate(epochMillis: Long, bpm: Int) = post { it.onHeartRate(epochMillis, bpm) }
 

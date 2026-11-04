@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
 import java.io.File
 import android.bluetooth.BluetoothAdapter
@@ -18,7 +19,14 @@ import android.os.Build
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
+import androidx.core.app.NotificationCompat
+import androidx.wear.ongoing.OngoingActivity
+import androidx.wear.ongoing.Status
+import tech.mmarca.openvitals.wear.features.recording.ActivityType
+import tech.mmarca.openvitals.wear.workout.WorkoutState
+import tech.mmarca.openvitals.wear.workout.WorkoutUiState
 import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.wear.features.quicklog.EntryLog
 import tech.mmarca.openvitals.domain.workout.WorkoutSport
@@ -226,6 +234,58 @@ class WearAppService : Service() {
     }
 
     /**
+     * The service's notification. While a workout runs it is also an Ongoing
+     * Activity: the pill on the watch face and in the recents list shows the
+     * sport and its running time, and tapping it opens the workout. It then
+     * sits on a channel that is not minimal, which the pill needs to show.
+     */
+    private fun buildNotification(manager: NotificationManager): Notification {
+        val workoutState = WorkoutState.state.value
+        // The recorder's own flag, not the state's: it flips before the state is rewritten at a stop.
+        val running = ::workout.isInitialized && workout.isActive && workoutState.running
+        val channel = if (running) WORKOUT_CHANNEL_ID else CHANNEL_ID
+        if (running) {
+            manager.createNotificationChannel(
+                NotificationChannel(WORKOUT_CHANNEL_ID, getString(R.string.activity_workout), NotificationManager.IMPORTANCE_LOW),
+            )
+        }
+        val builder = NotificationCompat.Builder(this, channel)
+            .setSmallIcon(R.drawable.ic_launcher_monochrome)
+            .setContentTitle(getString(R.string.app_name))
+            .setContentText(getString(R.string.link_notification_text))
+            .setOngoing(true)
+        if (running) applyOngoingActivity(builder, workoutState)
+        return builder.build()
+    }
+
+    private fun applyOngoingActivity(builder: NotificationCompat.Builder, workoutState: WorkoutUiState) {
+        val sport = ActivityType.entries.firstOrNull { it.sport == workoutState.sport }
+        val snapshot = workoutState.snapshot
+        val status = Status.Builder()
+            .addPart("type", Status.TextPart(getString(sport?.label ?: R.string.activity_workout)))
+        if (snapshot == null || snapshot.paused) {
+            status.addTemplate("#type# · #state#").addPart("state", Status.TextPart(getString(R.string.recording_paused)))
+        } else {
+            // The stopwatch runs on the elapsed-realtime clock, from the active time so far; a pause rebuilds this.
+            val zero = SystemClock.elapsedRealtime() - snapshot.activeSeconds * 1000
+            status.addTemplate("#type# #time#").addPart("time", Status.StopwatchPart(zero))
+        }
+        val open = PendingIntent.getActivity(
+            this,
+            0,
+            Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        builder.setCategory(NotificationCompat.CATEGORY_WORKOUT)
+        OngoingActivity.Builder(applicationContext, NOTIFICATION_ID, builder)
+            .setStaticIcon(R.drawable.ic_launcher_monochrome)
+            .setTouchIntent(open)
+            .setStatus(status.build())
+            .build()
+            .apply(applicationContext)
+    }
+
+    /**
      * False when the system refuses, e.g. BLUETOOTH_CONNECT not granted on
      * API 34+. Calling it again with the heart rate or step grant in place
      * adds the `health` type to the running service.
@@ -235,12 +295,7 @@ class WearAppService : Service() {
         manager.createNotificationChannel(
             NotificationChannel(CHANNEL_ID, getString(R.string.link_channel_name), NotificationManager.IMPORTANCE_MIN),
         )
-        val notification = Notification.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_monochrome)
-            .setContentTitle(getString(R.string.app_name))
-            .setContentText(getString(R.string.link_notification_text))
-            .setOngoing(true)
-            .build()
+        val notification = buildNotification(manager)
         var types = ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
         val sensing = WearPermissions.hasHeartRate(this) || WearPermissions.hasActivityRecognition(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE && sensing) {
@@ -364,6 +419,7 @@ class WearAppService : Service() {
         private const val TAG = "WearAppService"
         private const val CHANNEL_ID = "phone_link"
         private const val NOTIFICATION_ID = 1
+        private const val WORKOUT_CHANNEL_ID = "workout"
         private const val ACTION_TOGGLE_PPG_LOG = "tech.mmarca.openvitals.wear.TOGGLE_PPG_LOG"
         private const val ACTION_SET_INTERACTIVE = "tech.mmarca.openvitals.wear.SET_INTERACTIVE"
         private const val EXTRA_INTERACTIVE = "interactive"
