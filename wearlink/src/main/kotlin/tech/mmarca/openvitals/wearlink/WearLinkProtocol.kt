@@ -107,6 +107,10 @@ object WearLinkProtocol {
     const val LOG_ENTRY: String = "LG"
     const val SET_PREFERENCE: String = "SET_PREF"
     const val PREFERENCE_OK: String = "PREF_OK"
+
+    /** Asks the watch for every preference it holds; the reply is one [PREFERENCE] line each, then `END`. */
+    const val GET_PREFERENCES: String = "GET_PREF"
+    const val PREFERENCE: String = "PREF"
     const val END: String = "END"
 
     /** Longer than this a line is a protocol violation; the reader closes rather than buffers. */
@@ -212,6 +216,7 @@ object WearLinkProtocol {
         data class WorkoutsSince(val sinceEpochMillis: Long, val limit: Int) : Request()
         data class LiveHeartRate(val seconds: Int) : Request()
         data class SetPreference(val key: String, val value: String) : Request()
+        data object GetPreferences : Request()
     }
 
     fun formatHello(hello: Hello): String =
@@ -273,6 +278,7 @@ object WearLinkProtocol {
         is Request.WorkoutsSince -> "$WORKOUTS_SINCE ${request.sinceEpochMillis} ${request.limit.coerceIn(1, MAX_WORKOUTS_PER_REQUEST)}"
         is Request.LiveHeartRate -> "$HEART_RATE_LIVE ${request.seconds.coerceIn(1, MAX_LIVE_SECONDS)}"
         is Request.SetPreference -> "$SET_PREFERENCE ${request.key} ${request.value}"
+        Request.GetPreferences -> GET_PREFERENCES
     }
 
     /** Null unless [line] is a well-formed request. */
@@ -297,7 +303,19 @@ object WearLinkProtocol {
         }
         parseLiveRequest(line)?.let { return Request.LiveHeartRate(it) }
         parsePreferenceRequest(line)?.let { return it }
+        if (fields(line) == listOf(GET_PREFERENCES)) return Request.GetPreferences
         return null
+    }
+
+    /** One preference the watch holds, as the reply to [GET_PREFERENCES] carries it. */
+    fun formatPreference(key: String, value: String): String = "$PREFERENCE $key $value"
+
+    /** Null unless [line] is a well-formed `PREF` line; the key and the value are the same tokens `SET_PREF` takes. */
+    fun parsePreference(line: String): Pair<String, String>? {
+        val fields = fields(line)
+        if (fields.size != 3 || fields[0] != PREFERENCE) return null
+        if (!isPreferenceToken(fields[1]) || !isPreferenceToken(fields[2])) return null
+        return fields[1] to fields[2]
     }
 
     private fun parsePreferenceRequest(line: String): Request.SetPreference? {

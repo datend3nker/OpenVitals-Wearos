@@ -86,4 +86,10 @@ interface WearLinkRequestHandler {
      * Only called when the watch advertised [WearLinkProtocol.CAP_PREFERENCES].
      */
     fun setPreference(key: String, value: String): Boolean
+
+    /**
+     * Every preference the watch holds, by key, in the values [setPreference] takes. The watch is the
+     * truth: the wearer can change a setting on the watch itself, and the phone reads it back with this.
+     */
+    fun heldPreferences(): Map<String, String>
 }

@@ -52,6 +52,22 @@ class WearLinkLoopbackTest {
     }
 
     @Test
+    fun `the phone reads back what the watch holds, including a change made on the watch`() {
+        val loopback = trusted()
+        loopback.handler.preferences += WearLinkProtocol.Preferences.HEART_RATE_DAY to HeartRateInterval.POWER_SAVE.wire
+        val link = loopback.connect()
+
+        val session = (WearLinkClient.hello(link.clientConnection, hello()) as WearLinkOutcome.Ok).value
+        assertEquals(
+            WearLinkOutcome.Ok(mapOf(WearLinkProtocol.Preferences.HEART_RATE_DAY to HeartRateInterval.POWER_SAVE.wire)),
+            session.pullPreferences(),
+        )
+        session.close()
+
+        assertEquals(WearLinkServer.Outcome.SERVED, link.serverOutcome())
+    }
+
+    @Test
     fun `an unknown phone is pending, allowed, then served`() {
         val loopback = Loopback()
         val first = loopback.connect()
