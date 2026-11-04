@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Frequência cardíaca</string>
     <string name="measure_heart_rate_description">Cerca de 15 segundos</string>
     <string name="measure_hrv">Variabilidade da frequência cardíaca</string>
-    <string name="measure_hrv_description">1 minuto, sentado e parado</string>
     <string name="measure_air_pressure">Pressão atmosférica</string>
     <string name="measure_air_pressure_description">Barómetro e altitude</string>
     <string name="measure_instruction_still">Mantém o relógio bem ajustado ao pulso e fica parado.</string>
-    <string name="measure_instruction_still_minute">Senta-te, apoia o braço e fica parado durante um minuto.</string>
     <string name="measure_instruction_none">Demora poucos segundos.</string>
     <string name="measure_hint_detecting">A detetar…</string>
     <string name="measure_hint_off_body">Coloca o relógio no pulso</string>

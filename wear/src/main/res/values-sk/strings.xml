@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Tep</string>
     <string name="measure_heart_rate_description">Asi 15 sekúnd</string>
     <string name="measure_hrv">Variabilita srdcovej frekvencie</string>
-    <string name="measure_hrv_description">1 minúta, v pokoji sediac</string>
     <string name="measure_air_pressure">Tlak vzduchu</string>
     <string name="measure_air_pressure_description">Barometer a nadmorská výška</string>
     <string name="measure_instruction_still">Hodinky pevne pridržte na zápästí a ruku držte bez pohybu.</string>
-    <string name="measure_instruction_still_minute">Sadnite si, položte ruku a minútu buďte bez pohybu.</string>
     <string name="measure_instruction_none">Trvá to niekoľko sekúnd.</string>
     <string name="measure_hint_detecting">Zisťuje sa…</string>
     <string name="measure_hint_off_body">Nasaďte hodinky na zápästie</string>

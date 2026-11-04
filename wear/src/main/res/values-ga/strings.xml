@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Ritim croí</string>
     <string name="measure_heart_rate_description">Thart ar 15 soicind</string>
     <string name="measure_hrv">Athraitheacht ritim croí</string>
-    <string name="measure_hrv_description">1 nóiméad, ina suí go ciúin</string>
     <string name="measure_air_pressure">Brú aeir</string>
     <string name="measure_air_pressure_description">Baraiméadar agus airde</string>
     <string name="measure_instruction_still">Coinnigh an uaireadóir teann ar do rosta agus bí ciúin.</string>
-    <string name="measure_instruction_still_minute">Suigh síos, ligh do lámh agus fan ciúin ar feadh nóiméid.</string>
     <string name="measure_instruction_none">Glacann sé cúpla soicind.</string>
     <string name="measure_hint_detecting">Ag brath…</string>
     <string name="measure_hint_off_body">Cuir an uaireadóir ar do rosta</string>

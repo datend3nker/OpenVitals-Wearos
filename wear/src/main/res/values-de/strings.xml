@@ -141,11 +141,11 @@
     <string name="measure_heart_rate">Herzfrequenz</string>
     <string name="measure_heart_rate_description">Etwa 15 Sekunden</string>
     <string name="measure_hrv">Herzfrequenzvariabilität</string>
-    <string name="measure_hrv_description">1 Minute, ruhig sitzen</string>
+    <string name="measure_hrv_description_minutes">3 Minuten, ruhig sitzen</string>
     <string name="measure_air_pressure">Luftdruck</string>
     <string name="measure_air_pressure_description">Barometer und Höhe</string>
     <string name="measure_instruction_still">Uhr fest am Handgelenk tragen und ruhig halten.</string>
-    <string name="measure_instruction_still_minute">Hinsetzen, Arm ablegen und eine Minute ruhig bleiben.</string>
+    <string name="measure_instruction_still_minutes">Setz dich hin, leg den Arm ab und halte drei Minuten still.</string>
     <string name="measure_instruction_none">Dauert ein paar Sekunden.</string>
     <string name="measure_hint_detecting">Messe…</string>
     <string name="measure_hint_off_body">Uhr ans Handgelenk legen</string>
@@ -154,6 +154,7 @@
     <string name="measure_error_permission">OpenVitals braucht Zugriff auf Herzfrequenzdaten.</string>
     <string name="measure_error_off_body">Die Uhr liegt nicht am Handgelenk.</string>
     <string name="measure_error_no_signal">Keine verlässliche Messung. Band enger stellen und erneut versuchen.</string>
+    <string name="measure_error_moved">Zu viel Bewegung. Arm ablegen und erneut versuchen.</string>
     <string name="measure_error_failed">Die Messung konnte nicht gestartet werden.</string>
     <string name="quicklog_title">Eintragen</string>
     <string name="quicklog_add_water">Wasser +%1$s %2$s</string>

@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Pulzus</string>
     <string name="measure_heart_rate_description">Kb. 15 másodperc</string>
     <string name="measure_hrv">Pulzusváltozékonyság</string>
-    <string name="measure_hrv_description">1 perc, nyugodtan ülve</string>
     <string name="measure_air_pressure">Légnyomás</string>
     <string name="measure_air_pressure_description">Barométer és tengerszint feletti magasság</string>
     <string name="measure_instruction_still">Tartsa az órát szorosan a csuklóján, és maradjon mozdulatlan.</string>
-    <string name="measure_instruction_still_minute">Üljön le, támassza meg a karját, és egy percig maradjon mozdulatlan.</string>
     <string name="measure_instruction_none">Néhány másodpercig tart.</string>
     <string name="measure_hint_detecting">Észlelés…</string>
     <string name="measure_hint_off_body">Helyezze az órát a csuklójára</string>

@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Pulso</string>
     <string name="measure_heart_rate_description">Unos 15 segundos</string>
     <string name="measure_hrv">Variabilidad de la frecuencia cardíaca</string>
-    <string name="measure_hrv_description">1 minuto, sentado y quieto</string>
     <string name="measure_air_pressure">Presión atmosférica</string>
     <string name="measure_air_pressure_description">Barómetro y altitud</string>
     <string name="measure_instruction_still">Ajusta el reloj a la muñeca y mantente quieto.</string>
-    <string name="measure_instruction_still_minute">Siéntate, apoya el brazo y quédate quieto durante un minuto.</string>
     <string name="measure_instruction_none">Tarda unos segundos.</string>
     <string name="measure_hint_detecting">Detectando…</string>
     <string name="measure_hint_off_body">Ponte el reloj en la muñeca</string>

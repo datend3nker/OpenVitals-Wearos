@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Пулс</string>
     <string name="measure_heart_rate_description">Около 15 секунди</string>
     <string name="measure_hrv">Вариабилност на пулса</string>
-    <string name="measure_hrv_description">1 минута, седнал и неподвижен</string>
     <string name="measure_air_pressure">Атмосферно налягане</string>
     <string name="measure_air_pressure_description">Барометър и надморска височина</string>
     <string name="measure_instruction_still">Дръж часовника плътно на ръката си и не мърдай.</string>
-    <string name="measure_instruction_still_minute">Седни, отпусни ръката си и стой неподвижен една минута.</string>
     <string name="measure_instruction_none">Отнема няколко секунди.</string>
     <string name="measure_hint_detecting">Засичане…</string>
     <string name="measure_hint_off_body">Сложи часовника на ръката си</string>

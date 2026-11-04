@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Hartslag</string>
     <string name="measure_heart_rate_description">Ongeveer 15 seconden</string>
     <string name="measure_hrv">Hartslagvariabiliteit</string>
-    <string name="measure_hrv_description">1 minuut, zittend en stil</string>
     <string name="measure_air_pressure">Luchtdruk</string>
     <string name="measure_air_pressure_description">Barometer en hoogte</string>
     <string name="measure_instruction_still">Houd het horloge strak om je pols en blijf stil.</string>
-    <string name="measure_instruction_still_minute">Ga zitten, rust je arm en blijf een minuut stil.</string>
     <string name="measure_instruction_none">Duurt een paar seconden.</string>
     <string name="measure_hint_detecting">Detecteren…</string>
     <string name="measure_hint_off_body">Doe het horloge om je pols</string>

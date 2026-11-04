@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Puls</string>
     <string name="measure_heart_rate_description">Oko 15 sekundi</string>
     <string name="measure_hrv">Varijabilnost pulsa</string>
-    <string name="measure_hrv_description">1 minuta, sjedeći mirno</string>
     <string name="measure_air_pressure">Tlak zraka</string>
     <string name="measure_air_pressure_description">Barometar i nadmorska visina</string>
     <string name="measure_instruction_still">Držite sat čvrsto na zglobu i mirno.</string>
-    <string name="measure_instruction_still_minute">Sjednite, odmorite ruku i mirno ostanite minutu.</string>
     <string name="measure_instruction_none">Traje nekoliko sekundi.</string>
     <string name="measure_hint_detecting">Otkrivanje…</string>
     <string name="measure_hint_off_body">Stavite sat na zglob</string>

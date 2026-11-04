@@ -65,6 +65,14 @@ class CapabilityProbeTest {
     }
 
     @Test
+    fun `HRV is offered with single beats or with the raw pulse signal, not with neither`() {
+        val noBeats = everything.copy(heartBeat = false)
+        assertTrue(Measurement.HRV in capabilitiesOf(noBeats.copy(rawPpg = true)).measurements)
+        assertTrue(Measurement.HRV in capabilitiesOf(noBeats.copy(heartBeat = true)).measurements)
+        assertFalse(Measurement.HRV in capabilitiesOf(noBeats).measurements)
+    }
+
+    @Test
     fun `indoor sports show only what the sensors give indoors`() {
         val workouts = capabilitiesOf(everything).workouts
         assertEquals(setOf(WorkoutField.HEART_RATE, WorkoutField.STEPS), workouts[ActivityType.TREADMILL])
