@@ -5,16 +5,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import tech.mmarca.openvitals.R
 import tech.mmarca.openvitals.devices.wearos.WearOsHeartRatePeriod
 import tech.mmarca.openvitals.devices.wearos.WearOsWatchSetting
@@ -142,6 +143,11 @@ private fun TrackingSwitchRow(
     }
 }
 
+/**
+ * One choice list per part of the day. Radio rows rather than segments: the long label "Energiesparend"
+ * broke in a third of the width and made one segment taller, and a selected segment was hard to tell
+ * from the others.
+ */
 @Composable
 private fun IntervalRow(
     label: String,
@@ -151,16 +157,27 @@ private fun IntervalRow(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
         Text(text = label, style = MaterialTheme.typography.bodyMedium)
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            IntervalChoices.forEachIndexed { index, choice ->
-                SegmentedButton(
-                    selected = interval == choice,
-                    onClick = { onChange(choice) },
-                    enabled = enabled,
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = IntervalChoices.size),
-                    icon = {},
+        Column(modifier = Modifier.selectableGroup()) {
+            IntervalChoices.forEach { choice ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = interval == choice,
+                            enabled = enabled,
+                            role = Role.RadioButton,
+                            onClick = { onChange(choice) },
+                        )
+                        .padding(vertical = Spacing.xs),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(intervalLabel(choice))
+                    RadioButton(selected = interval == choice, onClick = null, enabled = enabled)
+                    Text(
+                        text = intervalLabel(choice),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = Spacing.md),
+                    )
                 }
             }
         }
