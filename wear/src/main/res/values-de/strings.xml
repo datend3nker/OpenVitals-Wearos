@@ -156,6 +156,8 @@
     <string name="measure_error_no_signal">Keine verlässliche Messung. Band enger stellen und erneut versuchen.</string>
     <string name="measure_error_failed">Die Messung konnte nicht gestartet werden.</string>
     <string name="quicklog_title">Eintragen</string>
+    <string name="quicklog_customize">Anpassen</string>
+    <string name="quicklog_editor_title">Im Log anzeigen</string>
     <string name="quicklog_add_water">Wasser +%1$s %2$s</string>
     <string name="quicklog_water_today">%1$s / %2$s %3$s</string>
     <string name="quicklog_blood_pressure">Blutdruck</string>

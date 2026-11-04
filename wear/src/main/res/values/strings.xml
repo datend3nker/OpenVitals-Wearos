@@ -156,6 +156,8 @@
     <string name="measure_error_no_signal">No reliable reading. Tighten the band and try again.</string>
     <string name="measure_error_failed">The measurement could not be started.</string>
     <string name="quicklog_title">Log</string>
+    <string name="quicklog_customize">Customize</string>
+    <string name="quicklog_editor_title">Show in log</string>
     <string name="quicklog_add_water">Water +%1$s %2$s</string>
     <string name="quicklog_water_today">%1$s / %2$s %3$s</string>
     <string name="quicklog_blood_pressure">Blood pressure</string>

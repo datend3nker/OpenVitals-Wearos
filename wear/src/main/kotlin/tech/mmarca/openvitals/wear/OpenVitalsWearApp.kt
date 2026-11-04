@@ -28,6 +28,8 @@ import tech.mmarca.openvitals.wear.features.quicklog.BreatheScreen
 import tech.mmarca.openvitals.wear.features.quicklog.EntryType
 import tech.mmarca.openvitals.wear.features.quicklog.LogValueScreen
 import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
+import tech.mmarca.openvitals.wear.features.quicklog.QuickLogEditorScreen
+import tech.mmarca.openvitals.wear.features.quicklog.QuickLogItem
 import tech.mmarca.openvitals.wear.features.quicklog.QuickLogScreen
 import tech.mmarca.openvitals.wear.features.quicklog.WaterServingMl
 import tech.mmarca.openvitals.wear.features.quicklog.WeightEntryScreen
@@ -76,6 +78,12 @@ fun OpenVitalsWearApp(
             val tilePrefs = remember(context) { WearTilePreferences(context) }
             val wearPreferences = remember(context) { WearPreferences.shared(context) }
             val navController = rememberSwipeDismissableNavController()
+            val quickLogPrefs = remember(context) { QuickLogPreferences(context) }
+            var hiddenQuickLog by remember { mutableStateOf(quickLogPrefs.hidden()) }
+            fun updateHiddenQuickLog(updated: Set<QuickLogItem>) {
+                hiddenQuickLog = updated
+                quickLogPrefs.save(updated)
+            }
             var chosenTiles by remember { mutableStateOf(tilePrefs.loadTiles()) }
             fun updateTiles(updated: List<MetricTile>) {
                 chosenTiles = updated
@@ -184,6 +192,15 @@ fun OpenVitalsWearApp(
                         onLogBloodPressure = { navController.navigate(WearRoutes.LOG_BLOOD_PRESSURE) },
                         onLogValue = { navController.navigate(WearRoutes.logValue(it)) },
                         onBreathe = { navController.navigate(WearRoutes.BREATHE) },
+                        onCustomize = { navController.navigate(WearRoutes.QUICK_LOG_EDITOR) },
+                        hidden = hiddenQuickLog,
+                    )
+                }
+                composable(WearRoutes.QUICK_LOG_EDITOR) {
+                    QuickLogEditorScreen(
+                        hidden = hiddenQuickLog,
+                        onToggle = { item, shown -> updateHiddenQuickLog(if (shown) hiddenQuickLog - item else hiddenQuickLog + item) },
+                        onReset = { updateHiddenQuickLog(emptySet()) },
                     )
                 }
                 composable(WearRoutes.LOG_WEIGHT) {
