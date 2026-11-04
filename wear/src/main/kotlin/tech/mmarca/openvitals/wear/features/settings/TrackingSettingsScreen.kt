@@ -103,8 +103,8 @@ private fun TransformingLazyColumnScope.intervalItem(
 }
 
 private fun HeartRateInterval.next(): HeartRateInterval = when (this) {
-    HeartRateInterval.EVERY_10_SECONDS -> HeartRateInterval.EVERY_MINUTE
-    HeartRateInterval.EVERY_MINUTE -> HeartRateInterval.OFF
+    HeartRateInterval.EVERY_10_SECONDS -> HeartRateInterval.POWER_SAVE
+    HeartRateInterval.POWER_SAVE -> HeartRateInterval.OFF
     HeartRateInterval.OFF -> HeartRateInterval.EVERY_10_SECONDS
 }
 
@@ -112,7 +112,7 @@ private fun HeartRateInterval.next(): HeartRateInterval = when (this) {
 private fun HeartRateInterval.label(): String = stringResource(
     when (this) {
         HeartRateInterval.EVERY_10_SECONDS -> R.string.interval_every_10_seconds
-        HeartRateInterval.EVERY_MINUTE -> R.string.interval_every_minute
+        HeartRateInterval.POWER_SAVE -> R.string.interval_power_save
         HeartRateInterval.OFF -> R.string.interval_off
     },
 )

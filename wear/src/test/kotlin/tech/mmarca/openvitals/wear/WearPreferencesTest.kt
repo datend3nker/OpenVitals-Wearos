@@ -58,11 +58,18 @@ class WearPreferencesTest {
 
     @Test
     fun `an interval is stored as its wire value and read back`() {
-        assertTrue(preferences.applyPreference(WearLinkProtocol.Preferences.HEART_RATE_DAY, "60"))
+        assertTrue(preferences.applyPreference(WearLinkProtocol.Preferences.HEART_RATE_DAY, "600"))
         assertTrue(preferences.applyPreference(WearLinkProtocol.Preferences.HEART_RATE_NIGHT, "0"))
 
-        assertEquals(HeartRateInterval.EVERY_MINUTE, preferences.heartRateDay)
+        assertEquals(HeartRateInterval.POWER_SAVE, preferences.heartRateDay)
         assertEquals(HeartRateInterval.OFF, preferences.heartRateNight)
+    }
+
+    @Test
+    fun `a removed wire value is refused like any other unknown value`() {
+        // "60" was EVERY_MINUTE before it was removed; an old peer may still send it.
+        assertFalse(preferences.applyPreference(WearLinkProtocol.Preferences.HEART_RATE_DAY, "60"))
+        assertEquals(HeartRateInterval.EVERY_10_SECONDS, preferences.heartRateDay)
     }
 
     @Test
@@ -89,7 +96,7 @@ class WearPreferencesTest {
         preferences.applyPreference(WearLinkProtocol.Preferences.STEPS, WearLinkProtocol.Preferences.OFF)
         assertEquals(1, calls)
 
-        preferences.applyPreference(WearLinkProtocol.Preferences.HEART_RATE_DAY, "60")
+        preferences.applyPreference(WearLinkProtocol.Preferences.HEART_RATE_DAY, "600")
         assertEquals(2, calls)
     }
 
@@ -106,8 +113,8 @@ class WearPreferencesTest {
         preferences.setFlag(WearLinkProtocol.Preferences.STEPS, false)
         assertFalse(preferences.steps)
 
-        preferences.setInterval(WearLinkProtocol.Preferences.HEART_RATE_DAY, HeartRateInterval.EVERY_MINUTE)
-        assertEquals(HeartRateInterval.EVERY_MINUTE, preferences.heartRateDay)
+        preferences.setInterval(WearLinkProtocol.Preferences.HEART_RATE_DAY, HeartRateInterval.POWER_SAVE)
+        assertEquals(HeartRateInterval.POWER_SAVE, preferences.heartRateDay)
 
         assertEquals(UnitSystem.METRIC, preferences.unitSystem)
         preferences.unitSystem = UnitSystem.IMPERIAL

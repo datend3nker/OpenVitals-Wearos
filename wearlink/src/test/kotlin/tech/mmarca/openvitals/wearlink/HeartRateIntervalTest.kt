@@ -17,10 +17,10 @@ class HeartRateIntervalTest {
     fun `the wire values and spacings are the ones the protocol documents`() {
         assertEquals("0", HeartRateInterval.OFF.wire)
         assertEquals("10", HeartRateInterval.EVERY_10_SECONDS.wire)
-        assertEquals("60", HeartRateInterval.EVERY_MINUTE.wire)
+        assertEquals("600", HeartRateInterval.POWER_SAVE.wire)
         assertEquals(0, HeartRateInterval.OFF.seconds)
         assertEquals(10, HeartRateInterval.EVERY_10_SECONDS.seconds)
-        assertEquals(60, HeartRateInterval.EVERY_MINUTE.seconds)
+        assertEquals(600, HeartRateInterval.POWER_SAVE.seconds)
     }
 
     @Test
@@ -28,6 +28,14 @@ class HeartRateIntervalTest {
         assertNull(HeartRateInterval.fromWire("5"))
         assertNull(HeartRateInterval.fromWire(""))
         assertNull(HeartRateInterval.fromWire("10 "))
+    }
+
+    @Test
+    fun `a peer still sending the removed every-minute value is unknown, not a crash`() {
+        // "60" was EVERY_MINUTE before it was removed. An old phone or an old
+        // watch build may still send it; the other side must not recognise it
+        // as something else.
+        assertNull(HeartRateInterval.fromWire("60"))
     }
 
     @Test
@@ -41,9 +49,9 @@ class HeartRateIntervalTest {
         )
         for (key in keys) {
             val line = WearLinkProtocol.formatRequest(
-                WearLinkProtocol.Request.SetPreference(key, HeartRateInterval.EVERY_MINUTE.wire),
+                WearLinkProtocol.Request.SetPreference(key, HeartRateInterval.POWER_SAVE.wire),
             )
-            assertEquals(WearLinkProtocol.Request.SetPreference(key, "60"), WearLinkProtocol.parseRequest(line))
+            assertEquals(WearLinkProtocol.Request.SetPreference(key, "600"), WearLinkProtocol.parseRequest(line))
         }
     }
 }
