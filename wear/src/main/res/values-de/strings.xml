@@ -141,11 +141,11 @@
     <string name="measure_heart_rate">Herzfrequenz</string>
     <string name="measure_heart_rate_description">Etwa 15 Sekunden</string>
     <string name="measure_hrv">Herzfrequenzvariabilität</string>
-    <string name="measure_hrv_description">1 Minute, ruhig sitzen</string>
+    <string name="measure_hrv_description">2 bis 5 Minuten, ruhig sitzen</string>
     <string name="measure_air_pressure">Luftdruck</string>
     <string name="measure_air_pressure_description">Barometer und Höhe</string>
     <string name="measure_instruction_still">Uhr fest am Handgelenk tragen und ruhig halten.</string>
-    <string name="measure_instruction_still_minute">Hinsetzen, Arm ablegen und eine Minute ruhig bleiben.</string>
+    <string name="measure_instruction_still_minute">Hinsetzen, Arm ablegen und ein paar Minuten ruhig bleiben.</string>
     <string name="measure_instruction_none">Dauert ein paar Sekunden.</string>
     <string name="measure_hint_detecting">Messe…</string>
     <string name="measure_hint_off_body">Uhr ans Handgelenk legen</string>

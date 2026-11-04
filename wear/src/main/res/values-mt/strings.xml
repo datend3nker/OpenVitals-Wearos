@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Rata tal-qalb</string>
     <string name="measure_heart_rate_description">Madwar 15-il sekonda</string>
     <string name="measure_hrv">Varjabbiltà tar-rata tal-qalb</string>
-    <string name="measure_hrv_description">1 minuta, bilqiegħda u bla moviment</string>
     <string name="measure_air_pressure">Pressjoni tal-arja</string>
     <string name="measure_air_pressure_description">Barometru u għoli</string>
     <string name="measure_instruction_still">Żomm is-sa\'a mqabbda sew mal-polz u ibqa\' bla moviment.</string>
-    <string name="measure_instruction_still_minute">Oqgħod bilqiegħda, appoġġja driegħek u ibqa\' bla moviment għal minuta.</string>
     <string name="measure_instruction_none">Jieħu ftit sekondi.</string>
     <string name="measure_hint_detecting">Qed niskopri…</string>
     <string name="measure_hint_off_body">Poġġi s-sa\'a fuq il-polz</string>

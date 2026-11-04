@@ -14,7 +14,7 @@ class CapabilityProbeTest {
 
     private val everything = WatchSensors(
         heartRate = true,
-        heartBeat = true,
+        rawPpg = true,
         stepCounter = true,
         barometer = true,
         gps = true,
@@ -22,7 +22,7 @@ class CapabilityProbeTest {
     )
     private val nothing = WatchSensors(
         heartRate = false,
-        heartBeat = false,
+        rawPpg = false,
         stepCounter = false,
         barometer = false,
         gps = false,

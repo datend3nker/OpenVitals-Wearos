@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Puls</string>
     <string name="measure_heart_rate_description">Circa 15 secunde</string>
     <string name="measure_hrv">Variabilitatea ritmului cardiac</string>
-    <string name="measure_hrv_description">1 minut, stând așezat</string>
     <string name="measure_air_pressure">Presiune atmosferică</string>
     <string name="measure_air_pressure_description">Barometru și altitudine</string>
     <string name="measure_instruction_still">Purtați ceasul strâns pe încheietură și stați nemișcat.</string>
-    <string name="measure_instruction_still_minute">Așezați-vă, sprijiniți brațul și stați nemișcat un minut.</string>
     <string name="measure_instruction_none">Durează câteva secunde.</string>
     <string name="measure_hint_detecting">Se detectează…</string>
     <string name="measure_hint_off_body">Puneți ceasul pe încheietură</string>

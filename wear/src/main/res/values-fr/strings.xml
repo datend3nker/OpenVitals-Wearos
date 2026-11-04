@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Fréquence cardiaque</string>
     <string name="measure_heart_rate_description">Environ 15 secondes</string>
     <string name="measure_hrv">Variabilité de la fréquence cardiaque</string>
-    <string name="measure_hrv_description">1 minute, assis et immobile</string>
     <string name="measure_air_pressure">Pression atmosphérique</string>
     <string name="measure_air_pressure_description">Baromètre et altitude</string>
     <string name="measure_instruction_still">Garde la montre bien ajustée au poignet et reste immobile.</string>
-    <string name="measure_instruction_still_minute">Assieds-toi, pose ton bras et reste immobile pendant une minute.</string>
     <string name="measure_instruction_none">Prend quelques secondes.</string>
     <string name="measure_hint_detecting">Détection…</string>
     <string name="measure_hint_off_body">Mets la montre au poignet</string>

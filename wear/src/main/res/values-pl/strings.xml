@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Tętno</string>
     <string name="measure_heart_rate_description">Około 15 sekund</string>
     <string name="measure_hrv">Zmienność rytmu serca</string>
-    <string name="measure_hrv_description">1 minuta, w spokoju, w pozycji siedzącej</string>
     <string name="measure_air_pressure">Ciśnienie powietrza</string>
     <string name="measure_air_pressure_description">Barometr i wysokość</string>
     <string name="measure_instruction_still">Załóż zegarek ciasno na nadgarstek i nie ruszaj się.</string>
-    <string name="measure_instruction_still_minute">Usiądź, oprzyj rękę i przez minutę nie ruszaj się.</string>
     <string name="measure_instruction_none">Trwa kilka sekund.</string>
     <string name="measure_hint_detecting">Wykrywanie…</string>
     <string name="measure_hint_off_body">Załóż zegarek na nadgarstek</string>

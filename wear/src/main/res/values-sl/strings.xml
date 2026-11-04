@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Srčni utrip</string>
     <string name="measure_heart_rate_description">Približno 15 sekund</string>
     <string name="measure_hrv">Variabilnost srčnega utripa</string>
-    <string name="measure_hrv_description">1 minuta, sede in mirno</string>
     <string name="measure_air_pressure">Zračni tlak</string>
     <string name="measure_air_pressure_description">Barometer in nadmorska višina</string>
     <string name="measure_instruction_still">Uro tesno pritrdite na zapestje in mirujte.</string>
-    <string name="measure_instruction_still_minute">Sedite, položite roko in eno minuto mirujte.</string>
     <string name="measure_instruction_none">Traja nekaj sekund.</string>
     <string name="measure_hint_detecting">Zaznavanje…</string>
     <string name="measure_hint_off_body">Nadenite uro na zapestje</string>

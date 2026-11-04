@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Pulss</string>
     <string name="measure_heart_rate_description">Umbes 15 sekundit</string>
     <string name="measure_hrv">Pulsi variatsioon</string>
-    <string name="measure_hrv_description">1 minut, istudes paigal</string>
     <string name="measure_air_pressure">Õhurõhk</string>
     <string name="measure_air_pressure_description">Baromeeter ja kõrgus</string>
     <string name="measure_instruction_still">Hoia kell käel tihedalt ja ole paigal.</string>
-    <string name="measure_instruction_still_minute">Istu, toeta käsi ja ole minut paigal.</string>
     <string name="measure_instruction_none">Võtab mõne sekundi.</string>
     <string name="measure_hint_detecting">Tuvastan…</string>
     <string name="measure_hint_off_body">Pane kell randmele</string>
