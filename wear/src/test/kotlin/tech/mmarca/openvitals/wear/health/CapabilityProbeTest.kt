@@ -65,6 +65,22 @@ class CapabilityProbeTest {
     }
 
     @Test
+    fun `indoor sports show only what the sensors give indoors`() {
+        val workouts = capabilitiesOf(everything).workouts
+        assertEquals(setOf(WorkoutField.HEART_RATE, WorkoutField.STEPS), workouts[ActivityType.TREADMILL])
+        for (sport in listOf(ActivityType.STATIONARY_BIKE, ActivityType.ROWING_MACHINE, ActivityType.STRENGTH, ActivityType.HIIT, ActivityType.YOGA, ActivityType.VOLLEYBALL)) {
+            assertEquals(sport.name, setOf(WorkoutField.HEART_RATE), workouts[sport])
+        }
+    }
+
+    @Test
+    fun `a watch without a heart rate sensor still offers a sport that has steps, not one that shows nothing`() {
+        val workouts = capabilitiesOf(everything.copy(heartRate = false)).workouts
+        assertEquals(setOf(WorkoutField.STEPS), workouts[ActivityType.TREADMILL])
+        assertFalse(ActivityType.YOGA in workouts)
+    }
+
+    @Test
     fun `without GPS a run still has heart rate, steps and the barometer's height`() {
         val run = capabilitiesOf(everything.copy(gps = false)).workouts[ActivityType.RUN]
         assertEquals(setOf(WorkoutField.HEART_RATE, WorkoutField.ELEVATION, WorkoutField.STEPS), run)

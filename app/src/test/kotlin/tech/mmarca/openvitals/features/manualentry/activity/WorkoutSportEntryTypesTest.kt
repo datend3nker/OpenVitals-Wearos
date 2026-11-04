@@ -35,6 +35,7 @@ class WorkoutSportEntryTypesTest {
         "71" to Traits(ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING, false, false, false, ActivityRecordingSensor.BLE),
         "16" to Traits(ExerciseSessionRecord.EXERCISE_TYPE_DANCING, false, false, false, ActivityRecordingSensor.BLE),
         "0" to Traits(ExerciseSessionRecord.EXERCISE_TYPE_OTHER_WORKOUT, false, false, false, ActivityRecordingSensor.NONE),
+        "78" to Traits(ExerciseSessionRecord.EXERCISE_TYPE_VOLLEYBALL, false, false, false, ActivityRecordingSensor.BLE),
     )
 
     @Test fun `every sport of the table is an entry type with the traits it had`() {

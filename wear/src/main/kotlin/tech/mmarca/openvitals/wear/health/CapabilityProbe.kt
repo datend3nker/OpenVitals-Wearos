@@ -68,14 +68,14 @@ fun capabilitiesOf(sensors: WatchSensors): WearCapabilities {
     return WearCapabilities(probed = true, sensorMetrics = sensorMetrics, measurements = measurements, workouts = workouts)
 }
 
+/** What a sport can show on this watch: its flags in `WorkoutSport` against the sensors present. */
 private fun workoutFields(activity: ActivityType, sensors: WatchSensors): Set<WorkoutField> = buildSet {
-    val outdoor = activity != ActivityType.WORKOUT
-    val onFoot = activity in setOf(ActivityType.WALK, ActivityType.RUN, ActivityType.HIKE)
+    val sport = activity.sport
     if (sensors.heartRate) add(WorkoutField.HEART_RATE)
-    if (outdoor && sensors.gps) {
+    if (sport.gps && sensors.gps) {
         add(WorkoutField.DISTANCE)
-        add(if (activity == ActivityType.CYCLE) WorkoutField.SPEED else WorkoutField.PACE)
+        add(if (sport.pace) WorkoutField.PACE else WorkoutField.SPEED)
     }
-    if (outdoor && (sensors.barometer || sensors.gps)) add(WorkoutField.ELEVATION)
-    if (onFoot && sensors.stepCounter) add(WorkoutField.STEPS)
+    if (sport.elevation && (sensors.barometer || (sport.gps && sensors.gps))) add(WorkoutField.ELEVATION)
+    if (sport.steps && sensors.stepCounter) add(WorkoutField.STEPS)
 }

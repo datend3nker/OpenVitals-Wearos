@@ -38,6 +38,7 @@ enum class WorkoutSport(
     PILATES("48", 48, gps = false, distance = false, elevation = false, steps = false),
     STRETCHING("71", 71, gps = false, distance = false, elevation = false, steps = false),
     DANCING("16", 16, gps = false, distance = false, elevation = false, steps = false),
+    VOLLEYBALL("78", 78, gps = false, distance = false, elevation = false, steps = false),
     OTHER_WORKOUT("0", 0, gps = false, distance = false, elevation = false, steps = false),
     ;
 
