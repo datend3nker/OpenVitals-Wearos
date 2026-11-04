@@ -148,7 +148,7 @@ data class WearOsLogEntryPage(
     val hasMore: Boolean,
 )
 
-/** A switch the phone pushes to the watch app; the phone is the watch's settings screen. All on by default, so an added watch keeps recording what it did. */
+/** A switch the phone pushes to the watch app; the phone is the watch's settings screen. All on by default, so an added watch keeps recording what it did; only [DEBUG_DATA] starts off. */
 enum class WearOsWatchSetting(val protocolKey: String, val defaultOn: Boolean) {
     /** Whether the watch records sleep at all. */
     SLEEP_RECORDING(WearLinkProtocol.Preferences.SLEEP_RECORDING, defaultOn = true),
@@ -161,6 +161,12 @@ enum class WearOsWatchSetting(val protocolKey: String, val defaultOn: Boolean) {
 
     /** Whether the watch records height climbed. */
     ASCENT(WearLinkProtocol.Preferences.ASCENT, defaultOn = true),
+
+    /**
+     * Whether the watch and this phone keep debug files for `adb pull`. Off by default, unlike the others.
+     * The phone's own file log follows this switch; see `WearOsLog`.
+     */
+    DEBUG_DATA(WearLinkProtocol.Preferences.DEBUG_DATA, defaultOn = false),
 }
 
 /** Which part of the day a heart rate interval applies to: by day, or in bedtime mode when sleep recording is off. */

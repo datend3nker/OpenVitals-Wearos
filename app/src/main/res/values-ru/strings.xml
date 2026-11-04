@@ -4058,6 +4058,8 @@
     <string name="settings_watch_wearos_interval_off">Выкл.</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 с</string>
     <string name="settings_watch_wearos_tracking_body">Выключение прекращает это измерение на часах. Уже записанные данные остаются на часах.</string>
+    <string name="settings_watch_wearos_debug_data">Собирать отладочные данные</string>
+    <string name="settings_watch_wearos_debug_data_body">Сохраняет пульс, движение, время и решения часов в файлы на часах и на этом телефоне, для adb. Включайте только на время теста. Файлы остаются на устройствах, пока вы их не заберёте, и ни один отчёт их не включает.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Синхронизация часов</string>
     <string name="settings_watch_wearos_sync_body">Приложение OpenVitals на часах записывает пульс и данные для оценки сна и хранит их неделю. Синхронизация копирует новый пульс в Health Connect и записывает по одной оценённой сессии сна за ночь.</string>

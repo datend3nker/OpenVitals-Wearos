@@ -3985,6 +3985,8 @@
     <string name="settings_watch_wearos_interval_off">Pois</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
     <string name="settings_watch_wearos_tracking_body">Pois päältä kello lopettaa tämän mittaamisen. Jo tallennettu tieto jää kellolle.</string>
+    <string name="settings_watch_wearos_debug_data">Kerää vianetsintätietoja</string>
+    <string name="settings_watch_wearos_debug_data_body">Tallentaa sykkeen, liikkeen, ajat ja kellon päätökset tiedostoihin kellossa ja tässä puhelimessa adb:tä varten. Kytke päälle vain testatessasi. Tiedostot pysyvät laitteissa, kunnes noudat ne, eikä mikään raportti sisällä niitä.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Kellon synkronointi</string>
     <string name="settings_watch_wearos_sync_body">Kellon OpenVitals-sovellus tallentaa sykkeen ja unen arvioon tarvittavat tiedot ja säilyttää niitä viikon. Synkronointi kopioi uuden sykkeen Health Connectiin ja kirjoittaa yhden arvioidun unijakson yötä kohden.</string>

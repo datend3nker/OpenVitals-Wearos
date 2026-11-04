@@ -4021,6 +4021,8 @@
     <string name="settings_watch_wearos_interval_off">Desactivado</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
     <string name="settings_watch_wearos_tracking_body">Desactivar detiene la medición en el reloj. Los datos ya registrados se quedan donde están.</string>
+    <string name="settings_watch_wearos_debug_data">Recopilar datos de depuración</string>
+    <string name="settings_watch_wearos_debug_data_body">Guarda el pulso, el movimiento, las horas y las decisiones del reloj en archivos del reloj y de este teléfono, para adb. Actívalo solo mientras pruebas. Los archivos se quedan en los dispositivos hasta que los extraes, y ningún informe los incluye.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Sincronización del reloj</string>
     <string name="settings_watch_wearos_sync_body">La app OpenVitals del reloj registra la frecuencia cardiaca y lo necesario para estimar el sueño, y guarda una semana. La sincronización copia la frecuencia cardiaca nueva en Health Connect y escribe una sesión de sueño estimada por noche.</string>

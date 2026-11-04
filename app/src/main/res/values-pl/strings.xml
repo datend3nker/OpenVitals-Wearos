@@ -4057,6 +4057,8 @@
     <string name="settings_watch_wearos_interval_off">Wyłączone</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
     <string name="settings_watch_wearos_tracking_body">Wyłączenie zatrzymuje pomiar na zegarku. Dane już zapisane zostają na zegarku.</string>
+    <string name="settings_watch_wearos_debug_data">Zbieraj dane diagnostyczne</string>
+    <string name="settings_watch_wearos_debug_data_body">Zapisuje tętno, ruch, czasy i decyzje zegarka w plikach na zegarku i w tym telefonie, dla adb. Włączaj tylko na czas testów. Pliki zostają na urządzeniach, dopóki ich nie pobierzesz, i żaden raport ich nie zawiera.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Synchronizacja zegarka</string>
     <string name="settings_watch_wearos_sync_body">Aplikacja OpenVitals na zegarku zapisuje tętno i dane potrzebne do oszacowania snu i przechowuje je przez tydzień. Synchronizacja kopiuje nowe tętno do Health Connect i zapisuje jedną oszacowaną sesję snu na noc.</string>

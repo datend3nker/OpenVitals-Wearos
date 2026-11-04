@@ -173,7 +173,7 @@ class WearOsWatchSyncService(
         listenAfter: Duration,
         onProgress: ((DeviceSyncProgress) -> Unit)?,
     ): DeviceSyncResult = syncMutex.withLock {
-        syncSerially(device, onProgress)
+        WearOsSyncTrace.around { syncSerially(device, onProgress) }
     }
 
     private suspend fun syncSerially(
@@ -203,7 +203,7 @@ class WearOsWatchSyncService(
             throw error
         } catch (failure: WearOsLinkFailure) {
             linkStore.record(device.id, WearOsLinkSnapshot(failure.toAppStatus(), checkedAt = clock()))
-            WearOsLog.log("sync failed: ${failure.message}")
+            WearOsLog.failure("sync failed", failure)
             return DeviceSyncResult.Failed(
                 if (progress.hasWritten && failure is WearOsLinkFailure.NoAnswer) {
                     ScreenError.Text(R.string.settings_watch_wearos_fail_partial)
@@ -215,7 +215,7 @@ class WearOsWatchSyncService(
             return DeviceSyncResult.Failed(permissionError(error))
         } catch (error: Exception) {
             if (error.isPermissionFailure()) return DeviceSyncResult.Failed(permissionError(error))
-            WearOsLog.log("sync failed: $error")
+            WearOsLog.failure("sync failed", error)
             return DeviceSyncResult.Failed(ScreenError.Text(R.string.settings_watch_wearos_fail_generic))
         }
         linkStore.record(device.id, WearOsLinkSnapshot(WearOsAppStatus.APP_RUNNING, checkedAt = clock()))
@@ -611,7 +611,7 @@ class WearOsWatchSyncService(
     private suspend fun <T> retryOnce(pull: suspend () -> T): T = try {
         pull()
     } catch (failure: WearOsLinkFailure.NoAnswer) {
-        WearOsLog.log("link failed once (${failure.message}); trying again")
+        WearOsLog.failure("link failed once, trying again", failure)
         kotlinx.coroutines.delay(RETRY_DELAY_MILLIS)
         pull()
     }

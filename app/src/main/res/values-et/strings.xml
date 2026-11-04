@@ -3985,6 +3985,8 @@
     <string name="settings_watch_wearos_interval_off">Väljas</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
     <string name="settings_watch_wearos_tracking_body">Väljalülitamine lõpetab selle mõõtmise kellas. Juba salvestatud andmed jäävad alles.</string>
+    <string name="settings_watch_wearos_debug_data">Kogu silumisandmeid</string>
+    <string name="settings_watch_wearos_debug_data_body">Salvestab pulsi, liikumise, ajad ja kella otsused failidesse kellas ja selles telefonis, adb jaoks. Lülita sisse ainult testimise ajaks. Failid jäävad seadmetesse, kuni sa need välja tõmbad, ja ükski aruanne neid ei sisalda.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Kella sünkroonimine</string>
     <string name="settings_watch_wearos_sync_body">Kella OpenVitalsi rakendus salvestab pulsi ja une hindamiseks vajaliku ning hoiab nädala jagu andmeid. Sünkroonimine kopeerib uue pulsi Health Connecti ja kirjutab iga öö kohta ühe hinnatud uneseansi.</string>

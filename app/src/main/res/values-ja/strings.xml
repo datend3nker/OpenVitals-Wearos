@@ -4057,6 +4057,8 @@
     <string name="settings_watch_wearos_interval_off">オフ</string>
     <string name="settings_watch_wearos_interval_10_seconds">10秒</string>
     <string name="settings_watch_wearos_tracking_body">オフにすると時計はその測定をしなくなります。すでに記録されたデータは時計に残ります。</string>
+    <string name="settings_watch_wearos_debug_data">デバッグデータを収集</string>
+    <string name="settings_watch_wearos_debug_data_body">心拍、動き、時刻、時計の判断を、adb 用のファイルとして時計とこのスマートフォンに保存します。テスト中だけオンにしてください。ファイルは取り出すまで端末内にとどまり、どのレポートにも含まれません。</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">ウォッチの同期</string>
     <string name="settings_watch_wearos_sync_body">ウォッチの OpenVitals アプリは心拍数と睡眠推定に必要なデータを記録し、1 週間分を保持します。同期すると新しい心拍数を Health Connect にコピーし、一晩ごとに推定した睡眠セッションを書き込みます。</string>

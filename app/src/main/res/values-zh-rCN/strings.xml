@@ -3991,6 +3991,8 @@
     <string name="settings_watch_wearos_interval_off">关闭</string>
     <string name="settings_watch_wearos_interval_10_seconds">10秒</string>
     <string name="settings_watch_wearos_tracking_body">关闭后手表将不再测量该项。已记录的数据仍保留在手表上。</string>
+    <string name="settings_watch_wearos_debug_data">收集调试数据</string>
+    <string name="settings_watch_wearos_debug_data_body">把心率、活动、时间和手表的判断保存为文件，存在手表和这部手机上，供 adb 读取。仅在测试时开启。文件会留在设备上，直到你取出，任何报告都不会包含它们。</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">手表同步</string>
     <string name="settings_watch_wearos_sync_body">手表上的 OpenVitals 应用会记录心率和估算睡眠所需的数据，并保留一周。同步会把新的心率复制到 Health Connect，并为每晚写入一条估算的睡眠记录。</string>

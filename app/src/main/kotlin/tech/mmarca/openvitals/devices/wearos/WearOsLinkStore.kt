@@ -86,6 +86,14 @@ class WearOsLinkStore(private val prefs: SharedPreferences) {
         return prefs.getBoolean(settingKey(address, settingKey), default)
     }
 
+    /**
+     * Whether the phone writes its own debug log (`wear-sync-*.log`). Follows the debug data switch
+     * of the watch: set when the watch has accepted it. Off by default.
+     */
+    var debugLog: Boolean
+        get() = prefs.getBoolean(KEY_DEBUG_LOG, false)
+        set(value) = prefs.edit { putBoolean(KEY_DEBUG_LOG, value) }
+
     fun setWatchSetting(registeredAddress: String?, settingKey: String, enabled: Boolean) {
         val address = registeredAddress?.takeIf { it.isNotBlank() } ?: return
         prefs.edit { putBoolean(settingKey(address, settingKey), enabled) }
@@ -126,5 +134,6 @@ class WearOsLinkStore(private val prefs: SharedPreferences) {
     private companion object {
         const val PREFS = "wearos_link"
         const val SETTING_PREFIX = "watch_setting_"
+        private const val KEY_DEBUG_LOG = "debug_log"
     }
 }

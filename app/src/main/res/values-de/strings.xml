@@ -3986,6 +3986,8 @@
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
     <string name="settings_watch_wearos_interval_power_save">Energiesparend</string>
     <string name="settings_watch_wearos_tracking_body">Aus lässt die Uhr das nicht mehr messen. Schon aufgezeichnete Daten bleiben auf der Uhr.</string>
+    <string name="settings_watch_wearos_debug_data">Debug-Daten sammeln</string>
+    <string name="settings_watch_wearos_debug_data_body">Speichert Puls, Bewegung, Zeiten und die Entscheidungen der Uhr in Dateien auf der Uhr und auf diesem Telefon, für adb. Nur beim Testen einschalten. Die Dateien bleiben auf den Geräten, bis du sie abholst, und kein Bericht enthält sie.</string>
     <string name="settings_watch_wearos_setting_unsupported">Aktualisiere die Uhren-App, um diese Einstellung zu ändern.</string>
     <string name="settings_watch_wearos_sync_section">Uhr-Synchronisierung</string>
     <string name="settings_watch_wearos_sync_body">Die OpenVitals-App auf der Uhr zeichnet die Herzfrequenz und die Daten für eine Schlafschätzung auf und behält eine Woche davon. Die Synchronisierung kopiert die neue Herzfrequenz nach Health Connect und schreibt pro Nacht eine geschätzte Schlafsitzung.</string>

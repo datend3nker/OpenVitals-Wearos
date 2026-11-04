@@ -8,6 +8,7 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
 import java.io.IOException
 import java.time.Instant
 import javax.inject.Inject
@@ -43,6 +44,11 @@ class BluetoothWearOsNodePort @Inject constructor(
     @ApplicationContext private val context: Context,
     private val linkStore: WearOsLinkStore,
 ) : WearOsNodePort {
+
+    init {
+        // The phone's own debug log; it writes only while the debug data switch is on.
+        WearOsLog.installFileSink(context.getExternalFilesDir(null)?.let { File(it, WearOsFileLog.FOLDER) }) { linkStore.debugLog }
+    }
 
     @SuppressLint("MissingPermission")
     override suspend fun checkStatus(
@@ -80,6 +86,7 @@ class BluetoothWearOsNodePort @Inject constructor(
         val match = bondedWatchOrNull(targetAddress, targetName) ?: return@withContext null
         withSession(match, targetAddress, PULL_TIMEOUT_MS) { session ->
             val page = unwrap(session.pullHeartRate(since.toEpochMilli(), WearLinkProtocol.MAX_SAMPLES_PER_REQUEST))
+            WearOsLog.log("pull heart rate: ${page.items.size} row(s), more=${page.more}")
             WearOsHeartRatePage(
                 samples = page.items.map { WearOsHeartRateSample(Instant.ofEpochMilli(it.epochMillis), it.bpm) },
                 hasMore = page.more,
@@ -97,6 +104,7 @@ class BluetoothWearOsNodePort @Inject constructor(
             // A watch with sleep recording switched off no longer offers the capability.
             if (WearLinkProtocol.CAP_SLEEP_MINUTES !in session.peer.capabilities) return@withSession WearOsSleepMinutePage(emptyList(), false)
             val page = unwrap(session.pullSleepMinutes(since.toEpochMilli(), WearLinkProtocol.MAX_MINUTES_PER_REQUEST))
+            WearOsLog.log("pull sleep minutes: ${page.items.size} row(s), more=${page.more}")
             WearOsSleepMinutePage(minutes = page.items.map(WearSleepMinuteMapping::toDomain), hasMore = page.more)
         }
     }
@@ -111,6 +119,7 @@ class BluetoothWearOsNodePort @Inject constructor(
             // A watch app from before steps would answer the request with an error.
             if (WearLinkProtocol.CAP_STEPS !in session.peer.capabilities) return@withSession WearOsStepPage(emptyList(), false)
             val page = unwrap(session.pullSteps(since.toEpochMilli(), WearLinkProtocol.MAX_STEP_MINUTES_PER_REQUEST))
+            WearOsLog.log("pull steps: ${page.items.size} row(s), more=${page.more}")
             WearOsStepPage(
                 minutes = page.items.map { WearOsStepMinute(Instant.ofEpochMilli(it.epochMillis), it.steps) },
                 hasMore = page.more,
@@ -128,6 +137,7 @@ class BluetoothWearOsNodePort @Inject constructor(
             // A watch app from before ascent would answer the request with an error.
             if (WearLinkProtocol.CAP_ASCENT !in session.peer.capabilities) return@withSession WearOsAscentPage(emptyList(), false)
             val page = unwrap(session.pullAscent(since.toEpochMilli(), WearLinkProtocol.MAX_ASCENT_MINUTES_PER_REQUEST))
+            WearOsLog.log("pull ascent: ${page.items.size} row(s), more=${page.more}")
             WearOsAscentPage(
                 minutes = page.items.map { WearOsAscentMinute(Instant.ofEpochMilli(it.epochMillis), it.decimetres / 10.0) },
                 hasMore = page.more,
@@ -144,6 +154,7 @@ class BluetoothWearOsNodePort @Inject constructor(
         withSession(match, targetAddress, PULL_TIMEOUT_MS) { session ->
             if (WearLinkProtocol.CAP_WORKOUTS !in session.peer.capabilities) return@withSession WearOsWorkoutPage(emptyList(), false)
             val page = unwrap(session.pullWorkouts(since.toEpochMilli(), WearLinkProtocol.MAX_WORKOUTS_PER_REQUEST))
+            WearOsLog.log("pull workouts: ${page.items.size} row(s), more=${page.more}")
             WearOsWorkoutPage(page.items.map { it.toPortWorkout() }, page.more)
         }
     }
@@ -158,6 +169,7 @@ class BluetoothWearOsNodePort @Inject constructor(
             // A watch app from before HRV, or one without the sensor or with it off, would answer with an error.
             if (WearLinkProtocol.CAP_HRV !in session.peer.capabilities) return@withSession WearOsHrvPage(emptyList(), false)
             val page = unwrap(session.pullHrv(since.toEpochMilli(), WearLinkProtocol.MAX_HRV_WINDOWS_PER_REQUEST))
+            WearOsLog.log("pull hrv: ${page.items.size} row(s), more=${page.more}")
             WearOsHrvPage(
                 windows = page.items.map { WearOsHrvWindow(Instant.ofEpochMilli(it.epochMillis), it.rmssdMillis, it.beats) },
                 hasMore = page.more,
@@ -175,6 +187,7 @@ class BluetoothWearOsNodePort @Inject constructor(
             // A watch app from before the log would answer the request with an error.
             if (WearLinkProtocol.CAP_LOG !in session.peer.capabilities) return@withSession WearOsLogEntryPage(emptyList(), false)
             val page = unwrap(session.pullLogEntries(since.toEpochMilli(), WearLinkProtocol.MAX_LOG_ENTRIES_PER_REQUEST))
+            WearOsLog.log("pull log entries: ${page.items.size} row(s), more=${page.more}")
             WearOsLogEntryPage(
                 entries = page.items.map { WearOsLogEntry(Instant.ofEpochMilli(it.epochMillis), it.kind, it.value, it.value2) },
                 hasMore = page.more,
@@ -205,6 +218,7 @@ class BluetoothWearOsNodePort @Inject constructor(
             } else {
                 0
             }
+            WearOsLog.log("put day values: $days of ${values.size} kept, $settings setting(s) kept")
             days + settings
         }
     }
@@ -218,14 +232,28 @@ class BluetoothWearOsNodePort @Inject constructor(
         withSession(match, targetAddress, LIVE_SESSION_MS + PING_TIMEOUT_MS) { session ->
             if (WearLinkProtocol.CAP_LIVE_HEART_RATE !in session.peer.capabilities) return@withSession false
             val started = System.currentTimeMillis()
-            // One window after another on the same connection, each shorter than the watch's idle timeout.
-            while (System.currentTimeMillis() - started < LIVE_SESSION_MS) {
-                val count = unwrap(
-                    session.liveHeartRate(WearLinkProtocol.MAX_LIVE_SECONDS) {
-                        onSample(WearOsHeartRateSample(Instant.ofEpochMilli(it.epochMillis), it.bpm))
-                    },
-                )
-                if (count == 0) break
+            WearOsLog.log("live heart rate: session start")
+            var total = 0
+            var reason = "age limit"
+            try {
+                // One window after another on the same connection, each shorter than the watch's idle timeout.
+                while (System.currentTimeMillis() - started < LIVE_SESSION_MS) {
+                    val count = unwrap(
+                        session.liveHeartRate(WearLinkProtocol.MAX_LIVE_SECONDS) {
+                            onSample(WearOsHeartRateSample(Instant.ofEpochMilli(it.epochMillis), it.bpm))
+                        },
+                    )
+                    total += count
+                    if (count == 0) {
+                        reason = "watch sent none"
+                        break
+                    }
+                }
+            } catch (error: Throwable) {
+                reason = "failed: ${error::class.java.simpleName}"
+                throw error
+            } finally {
+                WearOsLog.log("live heart rate: session end after ${System.currentTimeMillis() - started} ms, $total sample(s), reason: $reason")
             }
             true
         }
@@ -241,6 +269,9 @@ class BluetoothWearOsNodePort @Inject constructor(
         val value = if (enabled) WearLinkProtocol.Preferences.ON else WearLinkProtocol.Preferences.OFF
         val applied = pushPreference(match, targetAddress, setting.protocolKey, value)
         if (applied) linkStore.setWatchSetting(targetAddress, setting.protocolKey, enabled)
+        WearOsLog.log("setting ${setting.name} -> $enabled: ${if (applied) "applied" else "not applied"}")
+        // The phone's own log follows the watch's debug switch, once the watch has taken it.
+        if (applied && setting == WearOsWatchSetting.DEBUG_DATA) linkStore.debugLog = enabled
         applied
     }
 
@@ -252,6 +283,7 @@ class BluetoothWearOsNodePort @Inject constructor(
     ): Boolean = withContext(Dispatchers.IO) {
         val match = bondedWatchOrNull(targetAddress, targetName) ?: return@withContext false
         val applied = pushPreference(match, targetAddress, period.protocolKey, interval.wire)
+        WearOsLog.log("interval ${period.name} -> ${interval.wire}: ${if (applied) "applied" else "not applied"}")
         if (applied) linkStore.setWatchValue(targetAddress, period.protocolKey, interval.wire)
         applied
     }
@@ -328,6 +360,7 @@ class BluetoothWearOsNodePort @Inject constructor(
                 runCatching { socket.close() }
             }
         }
+        val connectStartedAt = System.currentTimeMillis()
         try {
             // A running discovery slows the connect down. Cancelling it needs
             // BLUETOOTH_SCAN, which the exchange itself does not.
@@ -355,7 +388,11 @@ class BluetoothWearOsNodePort @Inject constructor(
             lastWatchName = session.peer.name
             // The bond's Classic address is the surest way to find this watch again.
             linkStore.setLinkAddress(registeredAddress, match.address)
+            WearOsLog.log("link up after ${System.currentTimeMillis() - connectStartedAt} ms")
             block(session)
+        } catch (error: Throwable) {
+            WearOsLog.failure("link failed after ${System.currentTimeMillis() - connectStartedAt} ms", error)
+            throw error
         } finally {
             // The watch waits for this close; the watchdog is only a guard.
             watchdog.cancel()

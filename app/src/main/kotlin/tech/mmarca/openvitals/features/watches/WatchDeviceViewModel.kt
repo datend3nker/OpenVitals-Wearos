@@ -128,6 +128,8 @@ data class WearOsTracking(
     val heartRate: Boolean = true,
     val steps: Boolean = true,
     val ascent: Boolean = true,
+    /** Whether the watch and this phone keep debug files. Off until the wearer switches it on. */
+    val debugData: Boolean = false,
     val heartRateDay: HeartRateInterval = HeartRateInterval.EVERY_10_SECONDS,
     val heartRateNight: HeartRateInterval = HeartRateInterval.EVERY_10_SECONDS,
 )
@@ -362,6 +364,7 @@ class WatchDeviceViewModel @Inject constructor(
         heartRate = wearOsCompanionManager.watchSetting(address, WearOsWatchSetting.HEART_RATE),
         steps = wearOsCompanionManager.watchSetting(address, WearOsWatchSetting.STEPS),
         ascent = wearOsCompanionManager.watchSetting(address, WearOsWatchSetting.ASCENT),
+        debugData = wearOsCompanionManager.watchSetting(address, WearOsWatchSetting.DEBUG_DATA),
         heartRateDay = wearOsCompanionManager.heartRateInterval(address, WearOsHeartRatePeriod.DAY),
         heartRateNight = wearOsCompanionManager.heartRateInterval(address, WearOsHeartRatePeriod.NIGHT),
     )

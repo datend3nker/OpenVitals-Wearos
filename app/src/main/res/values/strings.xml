@@ -4052,6 +4052,8 @@
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
     <string name="settings_watch_wearos_interval_power_save">Power save</string>
     <string name="settings_watch_wearos_tracking_body">Turning a switch off stops the watch from measuring that. Data it has already recorded stays on the watch.</string>
+    <string name="settings_watch_wearos_debug_data">Collect debug data</string>
+    <string name="settings_watch_wearos_debug_data_body">Saves heart rate, movement, times and the watch\'s decisions in files on the watch and on this phone, for adb. Turn it on only while you test. The files stay on the devices until you pull them, and no report includes them.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Watch Sync</string>
     <string name="settings_watch_wearos_sync_body">The OpenVitals app on the watch records your heart rate and what a sleep estimate needs, and keeps a week of it. Sync copies the new heart rate into Health Connect and writes one estimated sleep session per night.</string>

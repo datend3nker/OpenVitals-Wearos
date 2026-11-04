@@ -107,6 +107,14 @@ internal fun WearOsTrackingCard(
                 enabled = enabled && tracking.heartRate,
                 onCheckedChange = { onSettingChange(WearOsWatchSetting.SLEEP_RECORDING, it) },
             )
+            // Off by default. What it collects is said on the switch, because the files hold values.
+            TrackingSwitchRow(
+                label = stringResource(R.string.settings_watch_wearos_debug_data),
+                body = stringResource(R.string.settings_watch_wearos_debug_data_body),
+                checked = tracking.debugData,
+                enabled = enabled,
+                onCheckedChange = { onSettingChange(WearOsWatchSetting.DEBUG_DATA, it) },
+            )
             Text(
                 text = stringResource(R.string.settings_watch_wearos_tracking_body),
                 style = MaterialTheme.typography.bodySmall,
