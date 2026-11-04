@@ -30,12 +30,12 @@ class LiveHeartRate(
 
     /** Whether the watch has a heart rate sensor at all; the link announces `hl` then. */
     val hasSensor: Boolean
-        get() = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE) != null
+        get() = sensorManager.heartRateSensor() != null
 
     /** Blocks for up to [seconds], handing each usable reading to [emit] on the caller's thread; returns how many. */
     fun window(seconds: Int, emit: (WearLinkProtocol.HeartRateSample) -> Unit): Int {
         if (!isRecording()) return 0
-        val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE) ?: return 0
+        val sensor = sensorManager.heartRateSensor() ?: return 0
         val readings = LinkedBlockingQueue<WearLinkProtocol.HeartRateSample>()
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
