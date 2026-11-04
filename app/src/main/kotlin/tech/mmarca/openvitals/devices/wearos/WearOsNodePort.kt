@@ -267,6 +267,17 @@ interface WearOsNodePort {
     ): WearOsLogEntryPage?
 
     /**
+     * Sends [values] to the watch on one connection. The number the watch kept; 0 when the watch
+     * app is too old to take them. Null: no bonded watch matches. Any other failure throws
+     * [WearOsLinkFailure].
+     */
+    suspend fun pushDayValues(
+        targetAddress: String?,
+        targetName: String?,
+        values: List<WearOsDayValue>,
+    ): Int? = 0
+
+    /**
      * Holds one connection and hands each heart rate reading to [onSample],
      * on an I/O thread, as the watch takes it. Returns true once the watch
      * reports none (it is off the wrist) or the connection nears the watch's

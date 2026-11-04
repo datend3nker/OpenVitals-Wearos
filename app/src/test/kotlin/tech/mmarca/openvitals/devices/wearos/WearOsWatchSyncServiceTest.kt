@@ -149,7 +149,14 @@ class WearOsWatchSyncServiceTest {
 
         override fun heartRateInterval(targetAddress: String?, period: WearOsHeartRatePeriod): HeartRateInterval =
             HeartRateInterval.EVERY_10_SECONDS
+
+        override suspend fun pushDayValues(targetAddress: String?, targetName: String?, values: List<WearOsDayValue>): Int? {
+            pushedDayValues += values
+            return values.size
+        }
     }
+
+    private val pushedDayValues = mutableListOf<WearOsDayValue>()
 
     /**
      * Health Connect's rule for a `clientRecordId`: a batch is refused whole
@@ -1053,6 +1060,27 @@ class WearOsWatchSyncServiceTest {
 
         assertEquals(Instant.EPOCH, cursors.hrvCursor(WATCH.id))
         assertTrue(result is DeviceSyncResult.Succeeded)
+    }
+
+    @Test
+    fun `the last days of water and weight go to the watch after the pulls`() = runTest {
+        pages += WearOsHeartRatePage(emptyList(), hasMore = false)
+        val day = java.time.LocalDate.ofInstant(t0, zone)
+        coEvery { healthConnect.readDailyHydration(any(), any()) } returns
+            listOf(tech.mmarca.openvitals.domain.model.DailyHydration(day, 1.8))
+        coEvery { healthConnect.readWeightEntries(any(), any()) } returns
+            listOf(tech.mmarca.openvitals.domain.model.WeightEntry(t0, 81.24, "app"))
+
+        val result = service().sync(WATCH, Duration.ZERO, null)
+
+        assertEquals(DeviceSyncResult.Succeeded(0), result)
+        assertEquals(
+            listOf(
+                WearOsDayValue(tech.mmarca.openvitals.wearlink.WearLinkProtocol.DayKind.WEIGHT, day.toEpochDay(), 812),
+                WearOsDayValue(tech.mmarca.openvitals.wearlink.WearLinkProtocol.DayKind.HYDRATION, day.toEpochDay(), 18_000),
+            ),
+            pushedDayValues.sortedBy { it.kind },
+        )
     }
 
     @Test

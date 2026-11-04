@@ -90,6 +90,9 @@ import tech.mmarca.openvitals.healthconnect.withStrictHealthConnectReads
  * kind is written as its Health Connect record, and a kind whose grant is
  * missing waits on the watch for the next sync.
  *
+ * Then the other way: the last seven days of water and weight from Health
+ * Connect go to the watch ([WearOsDayValuePush]) for its tiles. Optional.
+ *
  * [DeviceSyncResult.Succeeded.fileCount] carries the number of heart rate
  * samples, [DeviceSyncResult.Succeeded.stepMinuteCount] the minutes of
  * steps and [DeviceSyncResult.Succeeded.nightCount] the nights written; the
@@ -148,6 +151,8 @@ class WearOsWatchSyncService(
         zone = zone,
     )
 
+    private val dayValues = WearOsDayValuePush.of(healthConnect, nodePort, clock, zone)
+
     private val workouts = WearOsWorkoutSync(
         cursors = cursors,
         missingPermissions = { request ->
@@ -192,6 +197,7 @@ class WearOsWatchSyncService(
             if (!pullHrv(device, progress)) return notPaired(device)
             if (!pullWorkouts(device, progress)) return notPaired(device)
             if (!pullLogEntries(device, progress)) return notPaired(device)
+            dayValues.send(device.address, device.bluetoothName)
         } catch (error: CancellationException) {
             throw error
         } catch (failure: WearOsLinkFailure) {

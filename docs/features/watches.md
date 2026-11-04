@@ -230,6 +230,10 @@ either of the above: the live reading is the wrist's current number, and the
 minutes since the watch last closed a monitoring file have not been handed over
 yet. They arrive on the next sync.
 
+### Water and weight from the phone
+
+At the end of a sync the phone sends the watch the last seven days of water (the day's total) and weight (the day's last entry) from Health Connect, after the logged entries are written, so the totals hold what the watch logged. The watch shows them on its water and weight tiles. A day you log again on the phone reaches the watch at the next sync. Without a read grant for them the phone sends nothing and the tiles show only what you logged on the watch. For water, the larger of the phone's total and the watch's own entries for the day stands, so an entry not yet synced still counts and a synced one is not counted twice. The watch refuses a day older than seven days. A watch app from before this has no such channel and the phone skips it.
+
 ### Logged Entries
 
 What the wearer logs on the watch (water, weight, blood pressure, a breathing
