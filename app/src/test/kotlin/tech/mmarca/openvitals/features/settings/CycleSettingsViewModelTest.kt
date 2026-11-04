@@ -90,6 +90,19 @@ class CycleSettingsViewModelTest {
     }
 
     @Test
+    fun `a different method does not inherit the stop date of the old one`() {
+        val preferences = FakePreferences()
+        val vm = viewModel(preferences = preferences)
+        vm.setHormonalKind(HormonalContraceptionKind.PILL)
+        vm.setHormonalStoppedOn(today.minusDays(70))
+
+        vm.setHormonalKind(HormonalContraceptionKind.HORMONAL_IUD)
+
+        assertEquals(HormonalContraception(HormonalContraceptionKind.HORMONAL_IUD), preferences.cycleTrackingProfile().hormonalContraception)
+        assertTrue(vm.uiState.value.profile.hormonalContraception.isInfluencing(today))
+    }
+
+    @Test
     fun `a stop date needs a declared method`() {
         val preferences = FakePreferences()
         viewModel(preferences = preferences).setHormonalStoppedOn(today)
