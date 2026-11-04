@@ -99,6 +99,13 @@ class WearPreferences(
         applyPreference(protocolKey, interval.wire)
     }
 
+    /** Every preference the link knows, in the values [applyPreference] takes: what the phone reads back. */
+    fun snapshot(): Map<String, String> = buildMap {
+        for (key in FLAG_KEYS) put(key, if (flag(key)) WearLinkProtocol.Preferences.ON else WearLinkProtocol.Preferences.OFF)
+        put(WearLinkProtocol.Preferences.HEART_RATE_DAY, heartRateDay.wire)
+        put(WearLinkProtocol.Preferences.HEART_RATE_NIGHT, heartRateNight.wire)
+    }
+
     private fun flag(key: String): Boolean = prefs.getBoolean(FLAG_STORAGE.getValue(key), defaultOf(key))
 
     /** Publishes the stored values to the status screen; call once at startup. */

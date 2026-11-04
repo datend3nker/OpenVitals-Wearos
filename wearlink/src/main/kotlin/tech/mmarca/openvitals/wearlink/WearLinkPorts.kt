@@ -92,4 +92,10 @@ interface WearLinkRequestHandler {
      * in tenths of the unit. False when the watch refuses it, for a day it does not keep.
      */
     fun putDay(kind: WearLinkProtocol.DayKind, epochDay: Long, tenths: Int): Boolean
+
+    /**
+     * Every preference the watch holds, by key, in the values [setPreference] takes. The watch is the
+     * truth: the wearer can change a setting on the watch itself, and the phone reads it back with this.
+     */
+    fun heldPreferences(): Map<String, String>
 }

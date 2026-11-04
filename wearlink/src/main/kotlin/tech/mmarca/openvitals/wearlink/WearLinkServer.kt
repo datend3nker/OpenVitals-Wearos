@@ -188,6 +188,11 @@ class WearLinkServer(
                 val kept = handler.putDay(request.kind, request.epochDay, request.tenths)
                 writer.line(if (kept) WearLinkProtocol.DAY_OK else WearLinkProtocol.formatError(WearLinkProtocol.ErrorCode.BAD_REQUEST))
             }
+            WearLinkProtocol.Request.GetPreferences -> {
+                val held = handler.heldPreferences()
+                for ((key, value) in held) writer.line(WearLinkProtocol.formatPreference(key, value))
+                writer.line(WearLinkProtocol.formatEnd(held.size, false))
+            }
             is WearLinkProtocol.Request.SetPreference -> {
                 val applied = handler.setPreference(request.key, request.value)
                 writer.line(if (applied) WearLinkProtocol.PREFERENCE_OK else WearLinkProtocol.formatError(WearLinkProtocol.ErrorCode.BAD_REQUEST))

@@ -109,6 +109,10 @@ object WearLinkProtocol {
     const val PREFERENCE_OK: String = "PREF_OK"
     const val PUT_DAY: String = "PUT_DAY"
     const val DAY_OK: String = "DAY_OK"
+
+    /** Asks the watch for every preference it holds; the reply is one [PREFERENCE] line each, then `END`. */
+    const val GET_PREFERENCES: String = "GET_PREF"
+    const val PREFERENCE: String = "PREF"
     const val END: String = "END"
 
     /** Longer than this a line is a protocol violation; the reader closes rather than buffers. */
@@ -247,6 +251,7 @@ object WearLinkProtocol {
         data class LiveHeartRate(val seconds: Int) : Request()
         data class SetPreference(val key: String, val value: String) : Request()
         data class PutDay(val kind: DayKind, val epochDay: Long, val tenths: Int) : Request()
+        data object GetPreferences : Request()
     }
 
     fun formatHello(hello: Hello): String =
@@ -309,6 +314,7 @@ object WearLinkProtocol {
         is Request.LiveHeartRate -> "$HEART_RATE_LIVE ${request.seconds.coerceIn(1, MAX_LIVE_SECONDS)}"
         is Request.SetPreference -> "$SET_PREFERENCE ${request.key} ${request.value}"
         is Request.PutDay -> "$PUT_DAY ${request.kind.word} ${request.epochDay} ${request.tenths}"
+        Request.GetPreferences -> GET_PREFERENCES
     }
 
     /** Null unless [line] is a well-formed request. */
@@ -334,6 +340,7 @@ object WearLinkProtocol {
         parseLiveRequest(line)?.let { return Request.LiveHeartRate(it) }
         parsePreferenceRequest(line)?.let { return it }
         parsePutDayRequest(line)?.let { return it }
+        if (fields(line) == listOf(GET_PREFERENCES)) return Request.GetPreferences
         return null
     }
 
@@ -344,6 +351,17 @@ object WearLinkProtocol {
         val epochDay = fields[2].toLongOrNull()?.takeIf { it >= 0 } ?: return null
         val tenths = fields[3].toIntOrNull()?.takeIf { it > 0 } ?: return null
         return Request.PutDay(kind, epochDay, tenths)
+    }
+
+    /** One preference the watch holds, as the reply to [GET_PREFERENCES] carries it. */
+    fun formatPreference(key: String, value: String): String = "$PREFERENCE $key $value"
+
+    /** Null unless [line] is a well-formed `PREF` line; the key and the value are the same tokens `SET_PREF` takes. */
+    fun parsePreference(line: String): Pair<String, String>? {
+        val fields = fields(line)
+        if (fields.size != 3 || fields[0] != PREFERENCE) return null
+        if (!isPreferenceToken(fields[1]) || !isPreferenceToken(fields[2])) return null
+        return fields[1] to fields[2]
     }
 
     private fun parsePreferenceRequest(line: String): Request.SetPreference? {

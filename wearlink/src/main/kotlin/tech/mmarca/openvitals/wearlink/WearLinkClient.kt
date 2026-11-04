@@ -103,6 +103,19 @@ class WearLinkSession internal constructor(
             if (line.trim() == WearLinkProtocol.DAY_OK) Reply.Done(Unit) else Reply.Unexpected
         }
 
+    /**
+     * Every preference the watch holds. A watch app older than this request
+     * answers `ERROR bad_request`, which arrives as [WearLinkOutcome.Refused].
+     */
+    fun pullPreferences(): WearLinkOutcome<Map<String, String>> {
+        val held = LinkedHashMap<String, String>()
+        return exchange(WearLinkProtocol.Request.GetPreferences) { line ->
+            WearLinkProtocol.parsePreference(line)?.let { held[it.first] = it.second; return@exchange Reply.More }
+            WearLinkProtocol.parseEnd(line)?.let { return@exchange Reply.Done(held.toMap()) }
+            Reply.Unexpected
+        }
+    }
+
     fun pullHrv(sinceEpochMillis: Long, limit: Int): WearLinkOutcome<Page<WearLinkProtocol.HrvWindow>> {
         val items = ArrayList<WearLinkProtocol.HrvWindow>()
         return exchange(WearLinkProtocol.Request.HrvSince(sinceEpochMillis, limit)) { line ->

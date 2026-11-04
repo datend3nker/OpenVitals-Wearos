@@ -46,7 +46,7 @@ On Android 16 the heart rate sensor sits behind the Health Connect `READ_HEART_R
 
 ### Tracking on the watch
 
-The phone's Watches screen sets what the watch records. The switches go over the same settings channel as the sleep switch, and the watch keeps each value, so it applies them without the phone and after a restart:
+The phone's Watches screen sets what the watch records. The switches go over the same settings channel as the sleep switch, and the watch keeps each value, so it applies them without the phone and after a restart. The same switches are on the watch's own Settings > Tracking screen. The watch is the truth: whenever the phone checks the watch's status it asks the watch for every setting (`GET_PREF`) and shows those values, so a change made on the watch appears on the phone without any push. A watch app too old to answer leaves the phone's stored values as they were.
 
 - **Heart rate** on or off. Off, the sensor stays off and the watch no longer offers heart rate to the phone.
 - **Heart rate by day**: off, every 10 seconds (the default), or power save.
