@@ -52,15 +52,34 @@ internal data class NightSleep(
     val stageMinutes: Map<SleepStage, Double>,
     /** Null while the night runs, or when too few minutes had a pulse. */
     val restingHeartRate: Int?,
+    /** When the wearer settled in for the night, before sleep onset. Null without a night. */
+    val bedTime: Instant? = null,
+    /** When sleep actually started, from the watch's own estimate. Null without a night. */
+    val fellAsleep: Instant? = null,
+    /** When the night's sleep ended. Null without a night. */
+    val wokeUp: Instant? = null,
 ) {
     /** What the sleep tile counts: the night and the day's naps. */
     val totalMinutes: Int get() = asleepMinutes + napMinutes
+
+    /** Time between settling in and actually falling asleep, or null without both. */
+    val latencyMinutes: Long?
+        get() = bedTime?.let { bed -> fellAsleep?.let { asleep -> (asleep.epochSecond - bed.epochSecond) / 60 } }
 }
 
 /** What the screens read: the tiles and last night's stages. */
 internal data class WearReadingsState(
     val metrics: Map<MetricTile, MetricUiState> = emptyMap(),
     val sleepStages: Map<SleepStage, Double> = emptyMap(),
+    val sleepTimes: SleepTimes = SleepTimes(),
+)
+
+/** Last night's clock times, for the sleep detail screen. Null fields mean no night was estimated. */
+data class SleepTimes(
+    val bedTime: Instant? = null,
+    val fellAsleep: Instant? = null,
+    val wokeUp: Instant? = null,
+    val latencyMinutes: Long? = null,
 )
 
 /** The Today tile's figures. */
@@ -137,6 +156,9 @@ internal object WearReadings {
             napMinutes = naps.sumOf { it.session.sleepMinutes },
             stageMinutes = stageMinutes,
             restingHeartRate = night?.let { WearNight.restingHeartRate(minutes, it) },
+            bedTime = night?.bedTime,
+            fellAsleep = night?.session?.onset,
+            wokeUp = night?.session?.end,
         )
     }
 
@@ -205,6 +227,17 @@ internal object WearReadings {
     /** Last night's stages, for the sleep detail screen. */
     fun sleepStages(days: List<DayReadings>): Map<SleepStage, Double> =
         days.lastOrNull()?.sleep?.stageMinutes.orEmpty()
+
+    /** Last night's bedtime, sleep onset and wake, for the sleep detail screen. */
+    fun sleepTimes(days: List<DayReadings>): SleepTimes {
+        val sleep = days.lastOrNull()?.sleep ?: return SleepTimes()
+        return SleepTimes(
+            bedTime = sleep.bedTime,
+            fellAsleep = sleep.fellAsleep,
+            wokeUp = sleep.wokeUp,
+            latencyMinutes = sleep.latencyMinutes,
+        )
+    }
 
     private fun EstimatedStage.toSleepStage(): SleepStage? = when (this) {
         EstimatedStage.AWAKE -> SleepStage.AWAKE

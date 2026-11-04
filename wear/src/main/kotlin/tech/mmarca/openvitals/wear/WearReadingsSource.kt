@@ -48,6 +48,7 @@ internal class WearReadingsSource(
         return WearReadingsState(
             metrics = WearReadings.metrics(days, clock.instant(), zone),
             sleepStages = WearReadings.sleepStages(days),
+            sleepTimes = WearReadings.sleepTimes(days),
         )
     }
 

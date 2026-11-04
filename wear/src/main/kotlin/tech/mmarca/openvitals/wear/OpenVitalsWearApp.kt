@@ -144,6 +144,7 @@ fun OpenVitalsWearApp(
                         maxHeartRate = currentState.preferences.maxHeartRate,
                         restingHeartRate = currentState.metrics[MetricTile.RESTING_HEART_RATE]?.current,
                         sleepStages = currentState.sleepStages,
+                        sleepTimes = currentState.sleepTimes,
                         onMeasure = measurement?.let { { navController.navigate(WearRoutes.measurement(it)) } },
                     )
                 }

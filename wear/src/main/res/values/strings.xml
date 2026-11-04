@@ -62,6 +62,7 @@
     <string name="unit_percent">%</string>
     <string name="unit_vo2_max">ml/kg/min</string>
     <string name="unit_ms">ms</string>
+    <string name="unit_min">min</string>
     <string name="unit_hours">h</string>
     <string name="unit_ml">ml</string>
     <string name="unit_fl_oz">fl oz</string>
@@ -115,6 +116,11 @@
     <string name="stat_resting">Resting</string>
     <string name="detail_heart_zones">Zones today</string>
     <string name="detail_sleep_stages">Sleep stages</string>
+    <string name="detail_sleep_times">Sleep times</string>
+    <string name="sleep_bedtime">Bedtime</string>
+    <string name="sleep_fell_asleep">Fell asleep</string>
+    <string name="sleep_woke_up">Woke up</string>
+    <string name="sleep_latency">Sleep latency</string>
     <string name="zone_very_light">Very light</string>
     <string name="zone_light">Light</string>
     <string name="zone_moderate">Moderate</string>
