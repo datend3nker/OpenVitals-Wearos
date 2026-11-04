@@ -68,4 +68,19 @@ class EntryLogTest {
         val state = WearUiState().withEntries(emptyList(), today, zone)
         assertNull(state.metrics[MetricTile.HYDRATION])
     }
+
+    @Test
+    fun waterOnDay_isTheLargerOfThePhoneTotalAndTheWatchEntries() {
+        val entries = listOf(
+            LoggedEntry(EntryType.WATER, at(today, 8), 250.0),
+            LoggedEntry(EntryType.WATER, at(today, 9), 250.0),
+            LoggedEntry(EntryType.WEIGHT, at(today, 9), 80.0),
+            LoggedEntry(EntryType.WATER, at(today.minusDays(1), 9), 900.0),
+        )
+
+        assertEquals(500.0, waterOnDay(null, entries, today, zone), 0.0)
+        assertEquals(1_200.0, waterOnDay(1_200.0, entries, today, zone), 0.0)
+        assertEquals(500.0, waterOnDay(300.0, entries, today, zone), 0.0)
+        assertEquals(700.0, waterOnDay(700.0, emptyList(), today, zone), 0.0)
+    }
 }
