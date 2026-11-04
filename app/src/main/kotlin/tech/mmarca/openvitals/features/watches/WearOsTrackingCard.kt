@@ -26,7 +26,7 @@ import tech.mmarca.openvitals.wearlink.HeartRateInterval
 private val IntervalChoices = listOf(
     HeartRateInterval.OFF,
     HeartRateInterval.EVERY_10_SECONDS,
-    HeartRateInterval.EVERY_MINUTE,
+    HeartRateInterval.POWER_SAVE,
 )
 
 /**
@@ -171,5 +171,5 @@ private fun IntervalRow(
 private fun intervalLabel(interval: HeartRateInterval): String = when (interval) {
     HeartRateInterval.OFF -> stringResource(R.string.settings_watch_wearos_interval_off)
     HeartRateInterval.EVERY_10_SECONDS -> stringResource(R.string.settings_watch_wearos_interval_10_seconds)
-    HeartRateInterval.EVERY_MINUTE -> stringResource(R.string.settings_watch_wearos_interval_minute)
+    HeartRateInterval.POWER_SAVE -> stringResource(R.string.settings_watch_wearos_interval_power_save)
 }
