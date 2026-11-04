@@ -77,6 +77,11 @@
             android:name=".WearPhoneConfirmReceiver"
             android:exported="false" />
 
+        <!-- AlarmManager wakes the watch through this for one power-save heart rate window. -->
+        <receiver
+            android:name=".HeartRateAlarmReceiver"
+            android:exported="false" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

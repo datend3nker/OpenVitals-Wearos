@@ -194,6 +194,8 @@ class WearAppService : Service() {
         } else if (intent?.action == ACTION_SET_INTERACTIVE) {
             val interactive = intent.getBooleanExtra(EXTRA_INTERACTIVE, false)
             stepRecorder.setInteractive(interactive)
+        } else if (intent?.action == ACTION_HEART_RATE_ALARM) {
+            recorder.onAlarmFired()
         }
         if (intent?.action in WORKOUT_ACTIONS) handleWorkoutAction(intent!!)
         link.start()
@@ -365,6 +367,9 @@ class WearAppService : Service() {
         private const val ACTION_TOGGLE_PPG_LOG = "tech.mmarca.openvitals.wear.TOGGLE_PPG_LOG"
         private const val ACTION_SET_INTERACTIVE = "tech.mmarca.openvitals.wear.SET_INTERACTIVE"
         private const val EXTRA_INTERACTIVE = "interactive"
+
+        /** [HeartRateAlarmReceiver] sends this to wake one power-save heart rate window. */
+        const val ACTION_HEART_RATE_ALARM = "tech.mmarca.openvitals.wear.HEART_RATE_ALARM"
 
         /** Sets whether the watch app UI is active so step counting flushes in real time. */
         fun setInteractive(context: Context, interactive: Boolean) {

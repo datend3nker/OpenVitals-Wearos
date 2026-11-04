@@ -6,7 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.wearlink.HeartRateInterval.EVERY_10_SECONDS
-import tech.mmarca.openvitals.wearlink.HeartRateInterval.EVERY_MINUTE
+import tech.mmarca.openvitals.wearlink.HeartRateInterval.POWER_SAVE
 import tech.mmarca.openvitals.wearlink.HeartRateInterval.OFF
 
 class HeartRateScheduleTest {
@@ -17,7 +17,7 @@ class HeartRateScheduleTest {
             for (sleep in listOf(false, true)) {
                 assertEquals(
                     OFF,
-                    HeartRateSchedule.interval(heartRate = false, sleepRecording = sleep, bedtime = bedtime, day = EVERY_MINUTE, night = EVERY_10_SECONDS),
+                    HeartRateSchedule.interval(heartRate = false, sleepRecording = sleep, bedtime = bedtime, day = POWER_SAVE, night = EVERY_10_SECONDS),
                 )
             }
         }
@@ -34,12 +34,12 @@ class HeartRateScheduleTest {
     @Test
     fun `by day the day setting applies`() {
         assertEquals(
-            EVERY_MINUTE,
-            HeartRateSchedule.interval(heartRate = true, sleepRecording = true, bedtime = false, day = EVERY_MINUTE, night = OFF),
+            POWER_SAVE,
+            HeartRateSchedule.interval(heartRate = true, sleepRecording = true, bedtime = false, day = POWER_SAVE, night = OFF),
         )
         assertEquals(
             OFF,
-            HeartRateSchedule.interval(heartRate = true, sleepRecording = false, bedtime = false, day = OFF, night = EVERY_MINUTE),
+            HeartRateSchedule.interval(heartRate = true, sleepRecording = false, bedtime = false, day = OFF, night = POWER_SAVE),
         )
     }
 
@@ -48,7 +48,7 @@ class HeartRateScheduleTest {
         for (night in HeartRateInterval.entries) {
             assertEquals(
                 EVERY_10_SECONDS,
-                HeartRateSchedule.interval(heartRate = true, sleepRecording = true, bedtime = true, day = EVERY_MINUTE, night = night),
+                HeartRateSchedule.interval(heartRate = true, sleepRecording = true, bedtime = true, day = POWER_SAVE, night = night),
             )
         }
     }
@@ -56,8 +56,8 @@ class HeartRateScheduleTest {
     @Test
     fun `in bedtime mode with sleep recording off the night setting applies`() {
         assertEquals(
-            EVERY_MINUTE,
-            HeartRateSchedule.interval(heartRate = true, sleepRecording = false, bedtime = true, day = EVERY_10_SECONDS, night = EVERY_MINUTE),
+            POWER_SAVE,
+            HeartRateSchedule.interval(heartRate = true, sleepRecording = false, bedtime = true, day = EVERY_10_SECONDS, night = POWER_SAVE),
         )
         assertEquals(
             OFF,
@@ -73,7 +73,7 @@ class HeartRateScheduleTest {
     @Test
     fun `the heart rate capability is offered while tracking is on and something can use the sensor`() {
         assertTrue(HeartRateSchedule.offered(heartRate = true, sleepRecording = true, day = OFF, night = OFF))
-        assertTrue(HeartRateSchedule.offered(heartRate = true, sleepRecording = false, day = EVERY_MINUTE, night = OFF))
+        assertTrue(HeartRateSchedule.offered(heartRate = true, sleepRecording = false, day = POWER_SAVE, night = OFF))
         assertTrue(HeartRateSchedule.offered(heartRate = true, sleepRecording = false, day = OFF, night = EVERY_10_SECONDS))
     }
 
