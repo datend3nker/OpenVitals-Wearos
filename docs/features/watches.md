@@ -50,7 +50,7 @@ The phone's Watches screen sets what the watch records. The switches go over the
 
 - **Heart rate** on or off. Off, the sensor stays off and the watch no longer offers heart rate to the phone.
 - **Heart rate by day**: off, every 10 seconds (the default), or power save.
-- **Heart rate at night**: the same three choices. Night is bedtime mode on the watch, the same mode the sleep recorder follows. While sleep is recorded the night stays every 10 seconds whatever this says, because sleep detection reads every sample; the night setting then applies only with sleep recording off.
+- **Heart rate at night**: the same three choices. Night is bedtime mode on the watch, the same mode the sleep recorder follows. While sleep is recorded the night stays every 10 seconds whatever this says, because sleep detection reads every sample; the night setting then applies only with sleep recording off. Both the phone's card and the watch's Tracking screen then show "every 10 seconds" for the night and lock the row, so no screen shows a value that does not apply (`HeartRateInterval.atNight`).
 - **Steps** and **height climbed**: off stops that recorder and the watch stops offering it. Data already on the watch stays there.
 - **Sleep**: as in the Sleep section.
 - Night-time HRV has no switch of its own: it runs only with heart rate and sleep both on, and the watch then offers it to the phone.

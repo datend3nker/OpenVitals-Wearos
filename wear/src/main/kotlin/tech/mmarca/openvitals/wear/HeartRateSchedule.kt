@@ -33,8 +33,7 @@ object HeartRateSchedule {
         // A workout records at the full rate, whatever the settings say.
         workout -> FULL_RATE
         !heartRate -> HeartRateInterval.OFF
-        bedtime && sleepRecording -> FULL_RATE
-        bedtime -> night
+        bedtime -> HeartRateInterval.atNight(night, sleepRecording)
         else -> day
     }
 

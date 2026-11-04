@@ -225,6 +225,7 @@
     <string name="settings_tracking_sleep">Schlaf aufzeichnen</string>
     <string name="settings_tracking_hr_day">Herzfrequenz tagsüber</string>
     <string name="settings_tracking_hr_night">Herzfrequenz zur Schlafenszeit</string>
+    <string name="settings_tracking_hr_night_sleep">Alle 10 Sekunden, solange Schlaf aufgezeichnet wird</string>
     <string name="interval_every_10_seconds">Alle 10 Sekunden</string>
     <string name="interval_power_save">Energiesparend</string>
     <string name="interval_off">Aus</string>

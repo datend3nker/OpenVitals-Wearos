@@ -54,4 +54,12 @@ class HeartRateIntervalTest {
             assertEquals(WearLinkProtocol.Request.SetPreference(key, "600"), WearLinkProtocol.parseRequest(line))
         }
     }
+
+    @Test
+    fun `while sleep is recorded the night is every 10 seconds whatever the setting says`() {
+        for (setting in HeartRateInterval.entries) {
+            assertEquals(HeartRateInterval.EVERY_10_SECONDS, HeartRateInterval.atNight(setting, sleepRecording = true))
+            assertEquals(setting, HeartRateInterval.atNight(setting, sleepRecording = false))
+        }
+    }
 }

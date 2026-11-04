@@ -60,7 +60,14 @@ fun TrackingSettingsScreen(
             intervalItem(transformationSpec, R.string.settings_tracking_hr_day, day) {
                 onChangeInterval(Keys.HEART_RATE_DAY, it)
             }
-            intervalItem(transformationSpec, R.string.settings_tracking_hr_night, night) {
+            // While sleep is recorded the night is every 10 seconds, so the row shows that and cannot be changed.
+            intervalItem(
+                transformationSpec,
+                R.string.settings_tracking_hr_night,
+                HeartRateInterval.atNight(night, sleep),
+                enabled = !sleep,
+                note = if (sleep) R.string.settings_tracking_hr_night_sleep else null,
+            ) {
                 onChangeInterval(Keys.HEART_RATE_NIGHT, it)
             }
         }
@@ -88,12 +95,15 @@ private fun TransformingLazyColumnScope.intervalItem(
     spec: TransformationSpec,
     label: Int,
     current: HeartRateInterval,
+    enabled: Boolean = true,
+    note: Int? = null,
     onNext: (HeartRateInterval) -> Unit,
 ) = item {
     Button(
         onClick = { onNext(current.next()) },
+        enabled = enabled,
         label = { Text(stringResource(label)) },
-        secondaryLabel = { Text(current.label()) },
+        secondaryLabel = { Text(note?.let { stringResource(it) } ?: current.label()) },
         colors = ButtonDefaults.filledTonalButtonColors(),
         modifier = Modifier
             .fillMaxWidth()

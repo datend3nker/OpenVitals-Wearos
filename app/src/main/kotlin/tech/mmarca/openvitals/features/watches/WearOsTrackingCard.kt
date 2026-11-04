@@ -73,10 +73,10 @@ internal fun WearOsTrackingCard(
                     enabled = enabled,
                     onChange = { onIntervalChange(WearOsHeartRatePeriod.DAY, it) },
                 )
-                // While sleep is recorded the night is the full rate, whatever this says.
+                // While sleep is recorded the night is the full rate, whatever this says: show what applies.
                 IntervalRow(
                     label = stringResource(R.string.settings_watch_wearos_interval_night),
-                    interval = tracking.heartRateNight,
+                    interval = HeartRateInterval.atNight(tracking.heartRateNight, state.wearOsSleepRecording),
                     enabled = enabled && !state.wearOsSleepRecording,
                     onChange = { onIntervalChange(WearOsHeartRatePeriod.NIGHT, it) },
                 )
