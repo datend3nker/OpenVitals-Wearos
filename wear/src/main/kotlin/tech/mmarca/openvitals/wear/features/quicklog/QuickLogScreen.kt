@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MonitorWeight
 import androidx.compose.material.icons.outlined.SelfImprovement
 import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -73,6 +74,8 @@ fun QuickLogScreen(
     onLogBloodPressure: () -> Unit,
     onLogValue: (EntryType) -> Unit,
     onBreathe: () -> Unit,
+    onCustomize: () -> Unit,
+    hidden: Set<QuickLogItem> = emptySet(),
 ) {
     val listState = rememberTransformingLazyColumnState()
     val transformationSpec = rememberTransformationSpec()
@@ -96,7 +99,7 @@ fun QuickLogScreen(
                     Text(stringResource(R.string.quicklog_title))
                 }
             }
-            item {
+            if (QuickLogItem.WATER !in hidden) item {
                 QuickLogButton(
                     label = stringResource(
                         R.string.quicklog_add_water,
@@ -119,7 +122,7 @@ fun QuickLogScreen(
                     transformation = SurfaceTransformation(transformationSpec),
                 )
             }
-            item {
+            if (QuickLogItem.WEIGHT !in hidden) item {
                 QuickLogButton(
                     label = stringResource(R.string.metric_weight),
                     secondary = lastWeight?.let { formatEntry(it, unitSystem) } ?: notLogged,
@@ -130,7 +133,7 @@ fun QuickLogScreen(
                     transformation = SurfaceTransformation(transformationSpec),
                 )
             }
-            item {
+            if (QuickLogItem.BLOOD_PRESSURE !in hidden) item {
                 QuickLogButton(
                     label = stringResource(R.string.quicklog_blood_pressure),
                     secondary = lastPressure?.let { formatEntry(it, unitSystem) } ?: notLogged,
@@ -142,7 +145,7 @@ fun QuickLogScreen(
                 )
             }
             // The one-number entries, in the order the phone lists them.
-            items(LogValueButtons) { (type, spec) ->
+            items(LogValueButtons.filter { (type, _) -> QuickLogItem.of(type) !in hidden }) { (type, spec) ->
                 QuickLogButton(
                     label = stringResource(spec.label),
                     secondary = state.entries.lastOrNull { it.type == type }?.let { formatEntry(it, unitSystem) } ?: notLogged,
@@ -153,7 +156,7 @@ fun QuickLogScreen(
                     transformation = SurfaceTransformation(transformationSpec),
                 )
             }
-            item {
+            if (QuickLogItem.BREATHE !in hidden) item {
                 QuickLogButton(
                     label = stringResource(R.string.breathe_title),
                     secondary = stringResource(R.string.breathe_description),
@@ -161,6 +164,18 @@ fun QuickLogScreen(
                     color = MindfulnessColor,
                     onClick = onBreathe,
                     modifier = Modifier.transformedHeight(this, transformationSpec),
+                    transformation = SurfaceTransformation(transformationSpec),
+                )
+            }
+            item {
+                Button(
+                    onClick = onCustomize,
+                    label = { Text(stringResource(R.string.quicklog_customize)) },
+                    icon = { Icon(Icons.Outlined.Tune, contentDescription = null) },
+                    colors = ButtonDefaults.outlinedButtonColors(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .transformedHeight(this, transformationSpec),
                     transformation = SurfaceTransformation(transformationSpec),
                 )
             }
@@ -232,7 +247,7 @@ private fun RecentEntryRow(entry: LoggedEntry, unitSystem: UnitSystem) {
 private fun QuickLogScreenPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            QuickLogScreen(SampleData.uiState, {}, {}, {}, {}, {})
+            QuickLogScreen(SampleData.uiState, {}, {}, {}, {}, {}, {})
         }
     }
 }
