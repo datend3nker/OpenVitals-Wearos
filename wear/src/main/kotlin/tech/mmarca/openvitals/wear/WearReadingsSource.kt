@@ -42,7 +42,12 @@ internal class WearReadingsSource(
         val today = LocalDate.now(clock)
         val days = (DAYS - 1 downTo 0).map { back ->
             val date = today.minusDays(back.toLong())
-            if (back == 0) read(date, zone) else pastDays.getOrPut(date) { read(date, zone) }
+            val day = if (back == 0) read(date, zone) else pastDays.getOrPut(date) { read(date, zone) }
+            // The phone may send a past day late, so these are read each time, not kept with the day.
+            day.copy(
+                hydrationMl = readDay(WearMetrics.DAY_HYDRATION, date),
+                weightKg = readDay(WearMetrics.DAY_WEIGHT, date),
+            )
         }
         pastDays.keys.retainAll { it >= today.minusDays(DAYS.toLong()) }
         return WearReadingsState(
@@ -81,6 +86,12 @@ internal class WearReadingsSource(
         val until = date.plusDays(1).atStartOfDay(zone).toInstant()
         val rows = store.since(WearMetrics.SLEEP_MINUTES, from.toEpochMilli() - 1, ROW_LIMIT, until.toEpochMilli())
         return WearReadings.night(date, offset, rows)
+    }
+
+    /** What the phone sent for [date], or null. The row's key is the day number, whatever the zone. */
+    private fun readDay(metric: WearMetric<DayValue>, date: LocalDate): Double? {
+        val key = DayValue(date.toEpochDay(), 0).keyMillis
+        return store.since(metric, key - 1, 1, key + 1).firstOrNull()?.value
     }
 
     /** The HRV windows of the night that ended on the morning of [date], as their mean. */

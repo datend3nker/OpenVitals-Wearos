@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.util.Log
 import java.io.IOException
+import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import tech.mmarca.openvitals.wear.features.quicklog.EntryType
@@ -143,6 +144,20 @@ class WearLinkServerHost(
             add(WearLinkProtocol.CAP_WORKOUTS)
             add(WearLinkProtocol.CAP_PREFERENCES)
             add(WearLinkProtocol.CAP_LOG)
+            add(WearLinkProtocol.CAP_DAY_VALUES)
+        }
+
+        override fun putDay(kind: WearLinkProtocol.DayKind, epochDay: Long, tenths: Int): Boolean {
+            val today = LocalDate.now().toEpochDay()
+            // A day the watch does not show is refused; one ahead covers a zone the phone is already in.
+            if (epochDay !in (today - WearLinkProtocol.DAY_VALUE_DAYS + 1)..(today + 1)) return false
+            val metric = when (kind) {
+                WearLinkProtocol.DayKind.WEIGHT -> WearMetrics.DAY_WEIGHT
+                WearLinkProtocol.DayKind.HYDRATION -> WearMetrics.DAY_HYDRATION
+            }
+            store.put(metric, DayValue(epochDay, tenths))
+            store.prune(metric, System.currentTimeMillis())
+            return true
         }
 
         override fun logEntriesSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.LogEntry> {

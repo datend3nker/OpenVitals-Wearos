@@ -139,8 +139,52 @@ object WearMetrics {
         retentionMillis = WORKOUT_RETENTION_MILLIS,
     )
 
+    /**
+     * A day's weight in tenths of a kilogram, sent by the phone with `PUT_DAY`; see
+     * [DayValue]. The phone sends the day again whenever it changes, so the newest wins.
+     */
+    val DAY_WEIGHT = dayMetric("dw")
+
+    /** A day's water in tenths of a millilitre, sent by the phone with `PUT_DAY`. */
+    val DAY_HYDRATION = dayMetric("dh")
+
+    private fun dayMetric(key: String) = WearMetric(
+        key = key,
+        encode = DayValue::encode,
+        decode = DayValue::decode,
+        timeOf = DayValue::keyMillis,
+        onSameTime = WearMetric.OnSameTime.REPLACE,
+        retentionMillis = DAY_VALUE_RETENTION_MILLIS,
+    )
+
+    /** Nine days, so the seven the watch shows are never cut by the zone's offset. */
+    private const val DAY_VALUE_RETENTION_MILLIS: Long = 9L * 24 * 60 * 60 * 1000
+
     /** A month: a workout is rare and big, and the phone may be away for a holiday. */
     private const val WORKOUT_RETENTION_MILLIS: Long = 30L * 24 * 60 * 60 * 1000
 
-    val ALL: List<WearMetric<*>> = listOf(HEART_RATE, SLEEP_MINUTES, STEPS, ASCENT, HRV, WORKOUTS, WORKOUT_PAUSES, WORKOUT_POINTS)
+    val ALL: List<WearMetric<*>> = listOf(HEART_RATE, SLEEP_MINUTES, STEPS, ASCENT, HRV, WORKOUTS, WORKOUT_PAUSES, WORKOUT_POINTS, DAY_WEIGHT, DAY_HYDRATION)
+}
+
+/**
+ * A value of one day the phone sent: [tenths] of the unit, for the day [epochDay]
+ * (days since 1970-01-01 in the wearer's zone). The store keys on [keyMillis], which
+ * is only a unique, ordered number per day, not a point in time.
+ */
+data class DayValue(val epochDay: Long, val tenths: Int) {
+    val keyMillis: Long get() = epochDay * DAY_MILLIS
+    val value: Double get() = tenths / TENTHS
+
+    fun encode(): String = "$epochDay $tenths"
+
+    companion object {
+        private const val DAY_MILLIS: Long = 24L * 60 * 60 * 1000
+        private const val TENTHS = 10.0
+
+        fun decode(line: String): DayValue? {
+            val fields = line.trim().split(' ')
+            if (fields.size != 2) return null
+            return DayValue(fields[0].toLongOrNull() ?: return null, fields[1].toIntOrNull() ?: return null)
+        }
+    }
 }

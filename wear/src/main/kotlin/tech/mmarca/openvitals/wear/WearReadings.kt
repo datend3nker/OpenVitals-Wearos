@@ -37,6 +37,10 @@ internal data class DayReadings(
     val sleep: NightSleep? = null,
     /** Mean RMSSD in milliseconds of the night's HRV windows, or null when the watch took none. */
     val nightHrv: Double? = null,
+    /** Millilitres of water the phone sent for the day, or null when it sent none. */
+    val hydrationMl: Double? = null,
+    /** Kilograms the phone sent for the day, or null when it sent none. */
+    val weightKg: Double? = null,
 )
 
 /**
@@ -102,6 +106,8 @@ internal object WearReadings {
         ascent: List<AscentMinute>,
         sleep: NightSleep? = null,
         nightHrv: Double? = null,
+        hydrationMl: Double? = null,
+        weightKg: Double? = null,
     ): DayReadings {
         val stepsAt = steps.associate { it.epochMillis to it.steps }
         val stepsByHour = DoubleArray(HOURS)
@@ -128,6 +134,8 @@ internal object WearReadings {
             hasAscent = ascent.isNotEmpty(),
             sleep = sleep,
             nightHrv = nightHrv,
+            hydrationMl = hydrationMl,
+            weightKg = weightKg,
         )
     }
 
@@ -208,6 +216,24 @@ internal object WearReadings {
                     MetricUiState(
                         current = today.nightHrv,
                         week = days.dropWhile { it.nightHrv == null }.map { it.nightHrv ?: 0.0 },
+                    ),
+                )
+            }
+            if (days.any { it.hydrationMl != null }) {
+                put(
+                    MetricTile.HYDRATION,
+                    MetricUiState(
+                        current = today.hydrationMl ?: 0.0,
+                        week = days.map { it.hydrationMl ?: 0.0 },
+                    ),
+                )
+            }
+            if (days.any { it.weightKg != null }) {
+                put(
+                    MetricTile.WEIGHT,
+                    MetricUiState(
+                        current = days.lastNotNullOfOrNull { it.weightKg },
+                        week = days.dropWhile { it.weightKg == null }.mapNotNull { it.weightKg },
                     ),
                 )
             }

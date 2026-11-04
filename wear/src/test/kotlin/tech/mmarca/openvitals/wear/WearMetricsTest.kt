@@ -71,9 +71,19 @@ class WearMetricsTest {
         val keys = WearMetrics.ALL.map { it.key }
         assertEquals(keys.size, keys.toSet().size)
         assertEquals(
-            listOf(WearLinkProtocol.CAP_HEART_RATE, WearLinkProtocol.CAP_SLEEP_MINUTES, WearLinkProtocol.CAP_STEPS, WearLinkProtocol.CAP_ASCENT, WearLinkProtocol.CAP_HRV, WearLinkProtocol.CAP_WORKOUTS, "wp", "wr"),
+            listOf(WearLinkProtocol.CAP_HEART_RATE, WearLinkProtocol.CAP_SLEEP_MINUTES, WearLinkProtocol.CAP_STEPS, WearLinkProtocol.CAP_ASCENT, WearLinkProtocol.CAP_HRV, WearLinkProtocol.CAP_WORKOUTS, "wp", "wr", "dw", "dh"),
             keys,
         )
+    }
+
+    @Test
+    fun `a day value reads back by its day and a newer one for the same day replaces it`() {
+        assertEquals(DayValue(20_000L, 812), DayValue.decode(DayValue(20_000L, 812).encode()))
+        assertEquals(81.2, DayValue(20_000L, 812).value, 0.0)
+        assertNull(DayValue.decode("20000"))
+        assertNull(DayValue.decode("20000 x"))
+        assertEquals(WearMetric.OnSameTime.REPLACE, WearMetrics.DAY_WEIGHT.onSameTime)
+        assertEquals(20_000L * 86_400_000L, WearMetrics.DAY_WEIGHT.timeOf(DayValue(20_000L, 1)))
     }
 
     @Test

@@ -24,11 +24,16 @@ internal fun WearUiState.withEntries(
     val updated = metrics.toMutableMap()
 
     byType[EntryType.WATER]?.let { water ->
+        // The phone's total for a day already holds what it synced from the watch, so the larger of the two stands.
+        val phoneWeek = metrics[MetricTile.HYDRATION]?.week.orEmpty()
+        val week = lastDays(today).mapIndexed { index, day ->
+            maxOf(water.onDay(day, zone).sumOf { it.value }, phoneWeek.getOrNull(index) ?: 0.0)
+        }
         updated[MetricTile.HYDRATION] = MetricUiState(
-            current = water.onDay(today, zone).sumOf { it.value },
+            current = week.last(),
             goal = preferences.waterGoalMl.toDouble(),
             today = water.onDay(today, zone).hourlyTotals(zone),
-            week = lastDays(today).map { day -> water.onDay(day, zone).sumOf { it.value } },
+            week = week,
         )
     }
     byType[EntryType.WEIGHT]?.let { weights ->

@@ -35,6 +35,24 @@ class WearReadingsTest {
         (6 downTo 1).map { back -> earlier[back] ?: day(today.minusDays(back.toLong())) } + todayReadings
 
     @Test
+    fun theTilesForWaterAndWeightAppearOnlyWhenThePhoneSentADay() {
+        assertFalse(MetricTile.HYDRATION in WearReadings.metrics(week(day(today)), now, zone))
+        assertFalse(MetricTile.WEIGHT in WearReadings.metrics(week(day(today)), now, zone))
+
+        val yesterday = today.minusDays(1)
+        val sent = week(
+            day(today).copy(hydrationMl = 1800.0, weightKg = 81.2),
+            earlier = mapOf(1 to day(yesterday).copy(hydrationMl = 2100.0, weightKg = 81.5)),
+        )
+        val metrics = WearReadings.metrics(sent, now, zone)
+
+        assertEquals(1800.0, metrics.getValue(MetricTile.HYDRATION).current!!, 0.0)
+        assertEquals(listOf(0.0, 0.0, 0.0, 0.0, 0.0, 2100.0, 1800.0), metrics.getValue(MetricTile.HYDRATION).week)
+        assertEquals(81.2, metrics.getValue(MetricTile.WEIGHT).current!!, 0.0)
+        assertEquals(listOf(81.5, 81.2), metrics.getValue(MetricTile.WEIGHT).week)
+    }
+
+    @Test
     fun stepsAddUpPerHourAndPerDay() {
         val readings = week(
             day(today, steps = listOf(StepMinute(at(today, 8, 0), 40), StepMinute(at(today, 8, 1), 60), StepMinute(at(today, 10, 5), 25))),
