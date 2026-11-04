@@ -128,6 +128,7 @@ class MemoryHandler(
         live.forEach(emit)
         return live.size
     }
+    override fun heldPreferences(): Map<String, String> = preferences.toMap()
     override fun setPreference(key: String, value: String): Boolean {
         if (key !in preferenceKeys) return false
         preferences += key to value

@@ -156,6 +156,8 @@ class WearLinkServerHost(
 
         override fun setPreference(key: String, value: String): Boolean = preferences.applyPreference(key, value)
 
+        override fun heldPreferences(): Map<String, String> = preferences.snapshot()
+
         override fun heartRateSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.HeartRateSample> =
             page(WearMetrics.HEART_RATE, sinceEpochMillis, limit)
 

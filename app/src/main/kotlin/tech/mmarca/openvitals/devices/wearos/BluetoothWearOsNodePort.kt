@@ -57,6 +57,7 @@ class BluetoothWearOsNodePort @Inject constructor(
         val status = try {
             withSession(match, targetAddress, PING_TIMEOUT_MS) { session ->
                 unwrap(session.ping())
+                adoptWatchPreferences(session, targetAddress)
                 WearOsAppStatus.APP_RUNNING
             }
         } catch (failure: WearOsLinkFailure) {
@@ -236,6 +237,27 @@ class BluetoothWearOsNodePort @Inject constructor(
         HeartRateInterval.fromWire(
             linkStore.watchValue(targetAddress, period.protocolKey, HeartRateInterval.EVERY_10_SECONDS.wire),
         ) ?: HeartRateInterval.EVERY_10_SECONDS
+
+    /**
+     * The watch is the truth for its settings: the wearer can change them on the watch itself. Reads
+     * them back into the store the phone's switches show. A watch app that does not know the request
+     * (older) or a failed read leaves the stored values as they were.
+     */
+    private fun adoptWatchPreferences(session: WearLinkSession, targetAddress: String?) {
+        if (WearLinkProtocol.CAP_PREFERENCES !in session.peer.capabilities) return
+        val held = (session.pullPreferences() as? WearLinkOutcome.Ok)?.value ?: return
+        for (setting in WearOsWatchSetting.entries) {
+            when (held[setting.protocolKey]) {
+                WearLinkProtocol.Preferences.ON -> linkStore.setWatchSetting(targetAddress, setting.protocolKey, true)
+                WearLinkProtocol.Preferences.OFF -> linkStore.setWatchSetting(targetAddress, setting.protocolKey, false)
+            }
+        }
+        for (period in WearOsHeartRatePeriod.entries) {
+            held[period.protocolKey]?.let { value ->
+                HeartRateInterval.fromWire(value)?.let { linkStore.setWatchValue(targetAddress, period.protocolKey, it.wire) }
+            }
+        }
+    }
 
     /** Sends one `SET_PREF`. False for a watch app with no settings channel; the caller tells the wearer to update it. */
     private suspend fun pushPreference(match: BondedWatch, targetAddress: String?, key: String, value: String): Boolean =
