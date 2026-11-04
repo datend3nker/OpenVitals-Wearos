@@ -52,6 +52,17 @@ class WearLinkProtocolTest {
     }
 
     @Test
+    fun `the debug data switch is a preference token that survives the wire`() {
+        assertEquals("debug_data", WearLinkProtocol.Preferences.DEBUG_DATA)
+        val request = WearLinkProtocol.Request.SetPreference(
+            WearLinkProtocol.Preferences.DEBUG_DATA,
+            WearLinkProtocol.Preferences.ON,
+        )
+        assertEquals("SET_PREF debug_data 1", WearLinkProtocol.formatRequest(request))
+        assertEquals(request, WearLinkProtocol.parseRequest("SET_PREF debug_data 1"))
+    }
+
+    @Test
     fun `a put-day request round-trips, and a malformed one parses to null`() {
         val request = WearLinkProtocol.Request.PutDay(WearLinkProtocol.DayKind.WEIGHT, 20_000L, 812)
         assertEquals(request, WearLinkProtocol.parseRequest(WearLinkProtocol.formatRequest(request)))

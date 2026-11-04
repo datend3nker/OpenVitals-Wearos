@@ -186,6 +186,12 @@ object WearLinkProtocol {
         /** The wearer's step length in centimetres, for the watch's distance estimate. */
         const val STRIDE_CM: String = "stride_cm"
 
+        /**
+         * Whether the watch and the phone keep debug files the wearer pulls with `adb`. Values [OFF] / [ON];
+         * off by default, unlike the other switches. See `DebugTraceFile`.
+         */
+        const val DEBUG_DATA: String = "debug_data"
+
         const val OFF: String = "0"
         const val ON: String = "1"
     }
