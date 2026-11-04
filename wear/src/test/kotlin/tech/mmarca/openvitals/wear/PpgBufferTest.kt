@@ -15,7 +15,7 @@ class PpgBufferTest {
         assertTrue(snapshot.spanMillis <= 1_000.0)
         assertEquals(snapshot.values.size, snapshot.times.size)
         assertEquals(100.0, snapshot.values.last(), 0.0)
-        assertTrue(snapshot.times.zipWithNext().all { (a, b) -> a < b })
+        assertTrue(snapshot.times.toList().zipWithNext().all { (a, b) -> a < b })
     }
 
     @Test
