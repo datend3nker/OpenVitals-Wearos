@@ -52,6 +52,23 @@ class WearLinkLoopbackTest {
     }
 
     @Test
+    fun `the phone sends a day value the watch keeps, and a refused day is a bad request`() {
+        val loopback = trusted()
+        val link = loopback.connect()
+
+        val session = (WearLinkClient.hello(link.clientConnection, hello()) as WearLinkOutcome.Ok).value
+        assertEquals(WearLinkOutcome.Ok(Unit), session.putDay(WearLinkProtocol.DayKind.HYDRATION, 20_000L, 18_000))
+        assertEquals(
+            WearLinkOutcome.Refused(WearLinkProtocol.ErrorCode.BAD_REQUEST),
+            session.putDay(WearLinkProtocol.DayKind.HYDRATION, -1L, 18_000),
+        )
+        session.close()
+
+        assertEquals(WearLinkServer.Outcome.SERVED, link.serverOutcome())
+        assertEquals(listOf(Triple(WearLinkProtocol.DayKind.HYDRATION, 20_000L, 18_000)), loopback.handler.days)
+    }
+
+    @Test
     fun `an unknown phone is pending, allowed, then served`() {
         val loopback = Loopback()
         val first = loopback.connect()

@@ -86,4 +86,10 @@ interface WearLinkRequestHandler {
      * Only called when the watch advertised [WearLinkProtocol.CAP_PREFERENCES].
      */
     fun setPreference(key: String, value: String): Boolean
+
+    /**
+     * Keeps the phone's [kind] value for [epochDay] (days since 1970-01-01 in the wearer's zone),
+     * in tenths of the unit. False when the watch refuses it, for a day it does not keep.
+     */
+    fun putDay(kind: WearLinkProtocol.DayKind, epochDay: Long, tenths: Int): Boolean
 }

@@ -97,6 +97,12 @@ class WearLinkSession internal constructor(
             if (line.trim() == WearLinkProtocol.PREFERENCE_OK) Reply.Done(Unit) else Reply.Unexpected
         }
 
+    /** Sends one day's value. Only call when the peer advertised [WearLinkProtocol.CAP_DAY_VALUES]. */
+    fun putDay(kind: WearLinkProtocol.DayKind, epochDay: Long, tenths: Int): WearLinkOutcome<Unit> =
+        exchange(WearLinkProtocol.Request.PutDay(kind, epochDay, tenths)) { line ->
+            if (line.trim() == WearLinkProtocol.DAY_OK) Reply.Done(Unit) else Reply.Unexpected
+        }
+
     fun pullHrv(sinceEpochMillis: Long, limit: Int): WearLinkOutcome<Page<WearLinkProtocol.HrvWindow>> {
         val items = ArrayList<WearLinkProtocol.HrvWindow>()
         return exchange(WearLinkProtocol.Request.HrvSince(sinceEpochMillis, limit)) { line ->

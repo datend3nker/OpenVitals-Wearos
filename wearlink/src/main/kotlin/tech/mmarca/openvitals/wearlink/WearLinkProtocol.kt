@@ -107,6 +107,8 @@ object WearLinkProtocol {
     const val LOG_ENTRY: String = "LG"
     const val SET_PREFERENCE: String = "SET_PREF"
     const val PREFERENCE_OK: String = "PREF_OK"
+    const val PUT_DAY: String = "PUT_DAY"
+    const val DAY_OK: String = "DAY_OK"
     const val END: String = "END"
 
     /** Longer than this a line is a protocol violation; the reader closes rather than buffers. */
@@ -132,7 +134,27 @@ object WearLinkProtocol {
 
     /** The watch accepts `SET_PREF`: the phone is its settings screen. */
     const val CAP_PREFERENCES: String = "pref"
+
+    /** The watch accepts `PUT_DAY`: the phone sends it a day's value the watch cannot know. */
+    const val CAP_DAY_VALUES: String = "dv"
     const val NO_CAPABILITIES: String = "-"
+
+    /** The days of values the phone sends are the last seven; a day further back is refused. */
+    const val DAY_VALUE_DAYS: Int = 7
+
+    /**
+     * What a `PUT_DAY` carries. The value is in tenths of the unit: kilograms
+     * for [WEIGHT], millilitres for [HYDRATION].
+     */
+    enum class DayKind(val word: String) {
+        WEIGHT("WEIGHT"),
+        HYDRATION("HYDRATION"),
+        ;
+
+        companion object {
+            fun fromWord(word: String): DayKind? = entries.firstOrNull { it.word == word }
+        }
+    }
 
     /**
      * Preference keys the phone may push with `SET_PREF`. Opaque strings on
@@ -212,6 +234,7 @@ object WearLinkProtocol {
         data class WorkoutsSince(val sinceEpochMillis: Long, val limit: Int) : Request()
         data class LiveHeartRate(val seconds: Int) : Request()
         data class SetPreference(val key: String, val value: String) : Request()
+        data class PutDay(val kind: DayKind, val epochDay: Long, val tenths: Int) : Request()
     }
 
     fun formatHello(hello: Hello): String =
@@ -273,6 +296,7 @@ object WearLinkProtocol {
         is Request.WorkoutsSince -> "$WORKOUTS_SINCE ${request.sinceEpochMillis} ${request.limit.coerceIn(1, MAX_WORKOUTS_PER_REQUEST)}"
         is Request.LiveHeartRate -> "$HEART_RATE_LIVE ${request.seconds.coerceIn(1, MAX_LIVE_SECONDS)}"
         is Request.SetPreference -> "$SET_PREFERENCE ${request.key} ${request.value}"
+        is Request.PutDay -> "$PUT_DAY ${request.kind.word} ${request.epochDay} ${request.tenths}"
     }
 
     /** Null unless [line] is a well-formed request. */
@@ -297,7 +321,17 @@ object WearLinkProtocol {
         }
         parseLiveRequest(line)?.let { return Request.LiveHeartRate(it) }
         parsePreferenceRequest(line)?.let { return it }
+        parsePutDayRequest(line)?.let { return it }
         return null
+    }
+
+    private fun parsePutDayRequest(line: String): Request.PutDay? {
+        val fields = fields(line)
+        if (fields.size != 4 || fields[0] != PUT_DAY) return null
+        val kind = DayKind.fromWord(fields[1]) ?: return null
+        val epochDay = fields[2].toLongOrNull()?.takeIf { it >= 0 } ?: return null
+        val tenths = fields[3].toIntOrNull()?.takeIf { it > 0 } ?: return null
+        return Request.PutDay(kind, epochDay, tenths)
     }
 
     private fun parsePreferenceRequest(line: String): Request.SetPreference? {

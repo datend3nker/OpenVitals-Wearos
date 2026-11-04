@@ -128,6 +128,12 @@ class MemoryHandler(
         live.forEach(emit)
         return live.size
     }
+    val days = mutableListOf<Triple<WearLinkProtocol.DayKind, Long, Int>>()
+    override fun putDay(kind: WearLinkProtocol.DayKind, epochDay: Long, tenths: Int): Boolean {
+        if (epochDay < 0) return false
+        days += Triple(kind, epochDay, tenths)
+        return true
+    }
     override fun setPreference(key: String, value: String): Boolean {
         if (key !in preferenceKeys) return false
         preferences += key to value

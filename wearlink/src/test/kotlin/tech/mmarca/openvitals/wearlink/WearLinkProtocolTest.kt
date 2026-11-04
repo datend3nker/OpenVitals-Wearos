@@ -52,6 +52,18 @@ class WearLinkProtocolTest {
     }
 
     @Test
+    fun `a put-day request round-trips, and a malformed one parses to null`() {
+        val request = WearLinkProtocol.Request.PutDay(WearLinkProtocol.DayKind.WEIGHT, 20_000L, 812)
+        assertEquals(request, WearLinkProtocol.parseRequest(WearLinkProtocol.formatRequest(request)))
+
+        assertNull(WearLinkProtocol.parseRequest("PUT_DAY WEIGHT 20000"))
+        assertNull(WearLinkProtocol.parseRequest("PUT_DAY SPEED 20000 5"))
+        assertNull(WearLinkProtocol.parseRequest("PUT_DAY WEIGHT -1 5"))
+        assertNull(WearLinkProtocol.parseRequest("PUT_DAY WEIGHT 20000 0"))
+        assertNull(WearLinkProtocol.parseRequest("PUT_DAY WEIGHT 20000 5 extra"))
+    }
+
+    @Test
     fun `a sleep minutes request round-trips and clamps its limit`() {
         val line = WearLinkProtocol.formatSleepMinutesRequest(1_700_000_000_000L, 99_999)
 
