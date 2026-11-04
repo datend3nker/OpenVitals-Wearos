@@ -8,5 +8,6 @@ These pages describe explorations or future work. They are not the source of tru
 - [Medical records through Health Connect](medical-records.md): the plan for FHIR medical records held in Health Connect. Phase 1 and part of phase 2 are built.
 - [Medical records: what is left](medical-records-left.md): the open work list: checks that need real data, small fixes, release steps, and the parsers not built.
 - [Watch tiles with real values](wear-computed-metrics.md): the watch computes what it measures with code shared with the phone; the phone sends only what the watch cannot know.
+- [Watch: automatic activity detection](wear-auto-activity.md): how other vendors detect activities, a rule for the watch without GPS, the data to tune it on, more metrics from the sensors, and the Wear OS workout idioms.
 
 Current implemented feature behavior lives in [Features](../features/README.md).
