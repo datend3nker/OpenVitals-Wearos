@@ -49,13 +49,15 @@ On Android 16 the heart rate sensor sits behind the Health Connect `READ_HEART_R
 The phone's Watches screen sets what the watch records. The switches go over the same settings channel as the sleep switch, and the watch keeps each value, so it applies them without the phone and after a restart:
 
 - **Heart rate** on or off. Off, the sensor stays off and the watch no longer offers heart rate to the phone.
-- **Heart rate by day**: off, every 10 seconds (the default), or every minute.
+- **Heart rate by day**: off, every 10 seconds (the default), or power save.
 - **Heart rate at night**: the same three choices. Night is bedtime mode on the watch, the same mode the sleep recorder follows. While sleep is recorded the night stays every 10 seconds whatever this says, because sleep detection reads every sample; the night setting then applies only with sleep recording off.
 - **Steps** and **height climbed**: off stops that recorder and the watch stops offering it. Data already on the watch stays there.
 - **Sleep**: as in the Sleep section.
 - Night-time HRV has no switch of its own: it runs only with heart rate and sleep both on, and the watch then offers it to the phone.
 
-An interval of every minute switches the sensor off between readings: the watch registers it for at most 20 seconds at the start of each minute and takes it off at the first usable reading. This is not only thinner storage. The readings are not batched, because a batch could not be delivered before the sensor is switched off without a race. How long the sensor takes to give a first reading on a real watch is not measured yet. Not yet tried on a watch.
+Power save switches the sensor off between readings. It does not run on a timer the app controls directly: `AlarmManager.setAndAllowWhileIdle` asks Android to wake the watch roughly every 10 minutes, and each wake opens the sensor until the first usable reading or 20 seconds, whichever comes first. The readings are not batched, because a batch could not be delivered before the sensor is switched off without a race.
+
+This was measured on a real watch, not assumed. The first wake after the watch goes idle can be delayed well past 10 minutes: Android's Doze ramps up a "maintenance window" backoff the first time a device goes idle, and one run saw a 17m42s gap before the first window opened. Once the schedule has settled, later wakes land close to the request, 20-30 seconds late on a 10-minute ask (roughly 3-5% over). The sensor itself stays open only a few seconds per window in practice, since a window closes on the first usable reading rather than waiting out the 20-second cap; that cap is only a safety ceiling for the rare window with no reading. Power save is an approximate interval, not an exact one: expect "about every 10 minutes while the watch is still," not a metronome.
 
 ### Heart rate variability at night
 
