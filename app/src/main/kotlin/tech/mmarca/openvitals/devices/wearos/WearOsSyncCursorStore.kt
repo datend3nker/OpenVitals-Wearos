@@ -83,6 +83,22 @@ class WearOsSyncCursorStore(private val prefs: SharedPreferences) {
         prefs.edit { putLong(workoutKey(deviceId), at.toEpochMilli()) }
     }
 
+    /**
+     * What the last successful day-value push to this watch held, as a fingerprint of the values and
+     * step profile, and when it went. Null for a watch never pushed to.
+     */
+    fun dayValuesSent(deviceId: String): SentDayValues? {
+        val fingerprint = prefs.getString(dayValuesKey(deviceId), null) ?: return null
+        return SentDayValues(fingerprint, prefs.getLong(dayValuesAtKey(deviceId), 0L))
+    }
+
+    fun setDayValuesSent(deviceId: String, sent: SentDayValues) {
+        prefs.edit {
+            putString(dayValuesKey(deviceId), sent.fingerprint)
+            putLong(dayValuesAtKey(deviceId), sent.atMillis)
+        }
+    }
+
     fun clear(deviceId: String) {
         prefs.edit {
             remove(key(deviceId))
@@ -92,8 +108,14 @@ class WearOsSyncCursorStore(private val prefs: SharedPreferences) {
             remove(logKey(deviceId))
             remove(hrvKey(deviceId))
             remove(workoutKey(deviceId))
+            remove(dayValuesKey(deviceId))
+            remove(dayValuesAtKey(deviceId))
         }
     }
+
+    private fun dayValuesKey(deviceId: String) = "day_values_$deviceId"
+
+    private fun dayValuesAtKey(deviceId: String) = "day_values_at_$deviceId"
 
     private fun workoutKey(deviceId: String) = "workout_cursor_$deviceId"
 
@@ -113,3 +135,6 @@ class WearOsSyncCursorStore(private val prefs: SharedPreferences) {
         const val PREFS_FILE = "wearos_sync_cursors"
     }
 }
+
+/** A push of day values that the watch took: a fingerprint of what went, and when. */
+data class SentDayValues(val fingerprint: String, val atMillis: Long)

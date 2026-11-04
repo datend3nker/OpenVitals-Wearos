@@ -158,12 +158,15 @@ class WearOsWatchSyncServiceTest {
         ): Int? {
             pushedDayValues += values
             pushedProfile = profile
-            return values.size
+            dayValuePushes++
+            // What the real port counts: each day taken, the step length, and the weight when there is one.
+            return values.size + 1 + (if (profile.weightTenthsKg != null) 1 else 0)
         }
     }
 
     private val pushedDayValues = mutableListOf<WearOsDayValue>()
     private var pushedProfile: WearOsStepProfile? = null
+    private var dayValuePushes = 0
 
     /**
      * Health Connect's rule for a `clientRecordId`: a batch is refused whole
@@ -1068,6 +1071,27 @@ class WearOsWatchSyncServiceTest {
 
         assertEquals(Instant.EPOCH, cursors.hrvCursor(WATCH.id))
         assertTrue(result is DeviceSyncResult.Succeeded)
+    }
+
+    @Test
+    fun `day values the watch already took are not sent again until they change`() = runTest {
+        val day = java.time.LocalDate.ofInstant(t0, zone)
+        coEvery { healthConnect.readDailyHydration(any(), any()) } returns
+            listOf(tech.mmarca.openvitals.domain.model.DailyHydration(day, 1.8))
+        coEvery { healthConnect.readWeightEntries(any(), any()) } returns emptyList()
+        val sync = service()
+
+        pages += WearOsHeartRatePage(emptyList(), hasMore = false)
+        sync.sync(WATCH, Duration.ZERO, null)
+        pages += WearOsHeartRatePage(emptyList(), hasMore = false)
+        sync.sync(WATCH, Duration.ZERO, null)
+        assertEquals(1, dayValuePushes)
+
+        coEvery { healthConnect.readDailyHydration(any(), any()) } returns
+            listOf(tech.mmarca.openvitals.domain.model.DailyHydration(day, 2.1))
+        pages += WearOsHeartRatePage(emptyList(), hasMore = false)
+        sync.sync(WATCH, Duration.ZERO, null)
+        assertEquals(2, dayValuePushes)
     }
 
     @Test
