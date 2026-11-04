@@ -5,6 +5,8 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import tech.mmarca.openvitals.data.repository.CsvImportPreferencesRepository
+import tech.mmarca.openvitals.data.repository.SleepSourcePreferencesRepository
+import tech.mmarca.openvitals.healthconnect.PreferredSleepSource
 import tech.mmarca.openvitals.data.repository.CyclePreferencesRepository
 import tech.mmarca.openvitals.data.repository.MedicalRecordsPreferencesRepository
 import tech.mmarca.openvitals.data.repository.PreferencesRepository
@@ -109,4 +111,7 @@ abstract class PreferencesModule {
     /** Its own store, for the same reason. */
     @Binds
     abstract fun bindCsvImportPreferences(impl: CsvImportPreferencesRepository): CsvImportPreferences
+
+    @Binds
+    abstract fun bindPreferredSleepSource(impl: SleepSourcePreferencesRepository): PreferredSleepSource
 }

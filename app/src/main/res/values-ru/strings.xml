@@ -2260,6 +2260,9 @@
     <string name="settings_sleep_night_start_body">Вечерний час, с которого начинается ночь. Сон с этого времени до утреннего часа считается одной ночью; более ранние сеансы считаются дневным сном.</string>
     <string name="settings_sleep_night_end_title">Конец ночи</string>
     <string name="settings_sleep_night_end_body">Утренний час, которым заканчивается ночь. Сон после этого времени и до начала вечера считается дневным сном.</string>
+    <string name="settings_sleep_source_title">Предпочитаемый источник сна</string>
+    <string name="settings_sleep_source_body">Health Connect не раскрывает приоритет приложений. Если два приложения записали одну и ту же ночь, показывается выбранное здесь. «Автоматически» оставляет более подробную запись.</string>
+    <string name="settings_sleep_source_automatic">Автоматически</string>
     <string name="settings_high_heart_rate_alert_title">Оповещение о высокой частоте сердечных сокращений</string>
     <string name="settings_high_heart_rate_alert_body">Порог для отметки высокой частоты сердечных сокращений в состоянии покоя.</string>
     <string name="settings_low_heart_rate_alert_title">Оповещение о низкой частоте сердечных сокращений</string>

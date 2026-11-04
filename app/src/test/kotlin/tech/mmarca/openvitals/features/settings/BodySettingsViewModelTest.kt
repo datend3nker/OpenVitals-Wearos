@@ -20,6 +20,8 @@ import org.junit.Rule
 import org.junit.Test
 import tech.mmarca.openvitals.data.repository.PreferencesRepository
 import tech.mmarca.openvitals.data.repository.contract.BodyRepository
+import tech.mmarca.openvitals.data.repository.contract.SleepRepository
+import tech.mmarca.openvitals.healthconnect.PreferredSleepSource
 import tech.mmarca.openvitals.data.sync.BmrEstimateService
 import tech.mmarca.openvitals.data.sync.BodyEnergyChainSyncService
 import tech.mmarca.openvitals.data.sync.DerivedMetricsResetService
@@ -188,6 +190,8 @@ class BodySettingsViewModelTest {
         bodyEnergyChainSyncService: BodyEnergyChainSyncService = mockk(relaxed = true),
         derivedMetricsResetService: DerivedMetricsResetService = mockk(relaxed = true),
         bmrEstimateService: BmrEstimateService = mockk(relaxed = true),
+        sleepRepository: SleepRepository = mockk(relaxed = true),
+        sleepSource: PreferredSleepSource = mockk(relaxed = true),
     ): BodySettingsViewModel =
         BodySettingsViewModel(
             preferencesRepository = preferencesRepository,
@@ -195,6 +199,8 @@ class BodySettingsViewModelTest {
             bodyEnergyChainSyncService = bodyEnergyChainSyncService,
             derivedMetricsResetService = derivedMetricsResetService,
             bmrEstimateService = bmrEstimateService,
+            sleepRepository = sleepRepository,
+            sleepSource = sleepSource,
         )
 
     private fun bodyRepo(): BodyRepository =

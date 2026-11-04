@@ -2311,6 +2311,9 @@
     <string name="settings_sleep_night_start_body">Illan tunti, jolloin yö alkaa. Uni tästä aamun tuntiin asti on yksi yö; aiemmat jaksot ovat päiväunia.</string>
     <string name="settings_sleep_night_end_title">Yö päättyy klo</string>
     <string name="settings_sleep_night_end_body">Aamun tunti, jolloin yö päättyy. Uni tämän jälkeen illan alkuun asti lasketaan päiväuniksi.</string>
+    <string name="settings_sleep_source_title">Ensisijainen unen lähde</string>
+    <string name="settings_sleep_source_body">Health Connect pitää sovellusten tärkeysjärjestyksen itsellään. Jos kaksi sovellusta tallensi saman yön, näytetään tässä valittu sovellus. Automaattinen säilyttää yksityiskohtaisemman.</string>
+    <string name="settings_sleep_source_automatic">Automaattinen</string>
     <string name="settings_high_heart_rate_alert_title">Korkean sykkeen hälytys</string>
     <string name="settings_high_heart_rate_alert_body">Kynnys korkean leposykkeen merkinnälle.</string>
     <string name="settings_low_heart_rate_alert_title">Matalan sykkeen hälytys</string>

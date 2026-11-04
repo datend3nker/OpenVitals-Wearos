@@ -10,9 +10,16 @@ private const val DUPLICATE_SLEEP_OVERLAP_RATIO = 0.85
 // Short quiet wake/no-data gaps keep one night together.
 private val DEFAULT_SLEEP_SESSION_MERGE_GAP: Duration = Duration.ofMinutes(60)
 
+/**
+ * Joins a night's parts and drops the same night recorded twice. Of two sessions from different
+ * sources that overlap, the one from [preferredSource] stays; with none preferred, or neither
+ * from it, the richer one stays. Health Connect does not let an app read the user's source
+ * priority, so this is the app's own setting.
+ */
 fun mergeSleepSessions(
     sessions: List<SleepData>,
     maxGap: Duration = DEFAULT_SLEEP_SESSION_MERGE_GAP,
+    preferredSource: String? = null,
 ): List<SleepData> {
     if (sessions.size < 2) return sessions.sortedByDescending { it.endTime }
 
@@ -39,7 +46,7 @@ fun mergeSleepSessions(
 
     return groups
         .map { group -> group.toMergedSleepSession(maxGap) }
-        .deduplicateOverlappingSleepSessions()
+        .deduplicateOverlappingSleepSessions(preferredSource)
         .sortedByDescending { it.endTime }
 }
 
@@ -110,7 +117,7 @@ private fun List<SleepData>.toMergedSleepSession(maxGap: Duration): SleepData {
     )
 }
 
-private fun List<SleepData>.deduplicateOverlappingSleepSessions(): List<SleepData> {
+private fun List<SleepData>.deduplicateOverlappingSleepSessions(preferredSource: String?): List<SleepData> {
     if (size < 2) return this
 
     val kept = mutableListOf<SleepData>()
@@ -120,7 +127,7 @@ private fun List<SleepData>.deduplicateOverlappingSleepSessions(): List<SleepDat
             if (duplicateIndex == -1) {
                 kept += session
             } else {
-                kept[duplicateIndex] = richerSleepSession(kept[duplicateIndex], session)
+                kept[duplicateIndex] = preferredOrRicherSleepSession(kept[duplicateIndex], session, preferredSource)
             }
         }
     return kept
@@ -139,6 +146,14 @@ private fun SleepData.isDuplicateSleepSession(other: SleepData): Boolean {
     // A high overlap of the shorter session is enough: a phone session swallowed
     // by a watch session is the same night twice.
     return overlapMs / shorterDuration.toDouble() >= DUPLICATE_SLEEP_OVERLAP_RATIO
+}
+
+private fun preferredOrRicherSleepSession(first: SleepData, second: SleepData, preferredSource: String?): SleepData {
+    if (preferredSource != null) {
+        val firstIsPreferred = first.source == preferredSource
+        if (firstIsPreferred != (second.source == preferredSource)) return if (firstIsPreferred) first else second
+    }
+    return richerSleepSession(first, second)
 }
 
 private fun richerSleepSession(first: SleepData, second: SleepData): SleepData =

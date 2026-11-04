@@ -113,6 +113,7 @@ class ImportedClientRecordIdLookupTest {
             context = context,
             syncGate = mockk(relaxed = true),
             mindfulnessGate = mockk(relaxed = true),
+            preferredSleepSource = mockk(relaxed = true),
             foregroundGate = AppForegroundGate(),
         )
     }

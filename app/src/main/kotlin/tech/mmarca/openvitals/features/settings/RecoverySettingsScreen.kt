@@ -82,6 +82,15 @@ private fun LazyListScope.recoverySettingsCards(
     }
     item { SettingsCardSpacer() }
     item {
+        SleepSourceCard(
+            selected = state.preferredSleepSource,
+            sources = state.sleepSources,
+            onSelect = viewModel::setPreferredSleepSource,
+            modifier = Modifier.padding(horizontal = LayoutMetrics.screenGutter),
+        )
+    }
+    item { SettingsCardSpacer() }
+    item {
         HeartRateThresholdCard(
             titleRes = R.string.settings_high_heart_rate_alert_title,
             bodyRes = R.string.settings_high_heart_rate_alert_body,

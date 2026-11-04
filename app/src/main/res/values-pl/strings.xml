@@ -2299,6 +2299,9 @@
     <string name="settings_sleep_night_start_body">Wieczorna godzina, o której zaczyna się noc. Sen od tej pory do porannej godziny to jedna noc; wcześniejsze sesje to drzemki w ciągu dnia.</string>
     <string name="settings_sleep_night_end_title">Noc kończy się o</string>
     <string name="settings_sleep_night_end_body">Poranna godzina, o której kończy się noc. Sen po niej, do wieczornego początku, liczy się jako drzemka w ciągu dnia.</string>
+    <string name="settings_sleep_source_title">Preferowane źródło snu</string>
+    <string name="settings_sleep_source_body">Health Connect zachowuje kolejność priorytetów aplikacji dla siebie. Gdy dwie aplikacje zapisały tę samą noc, pokazywana jest ta wybrana tutaj. Automatycznie zostawia bardziej szczegółową.</string>
+    <string name="settings_sleep_source_automatic">Automatycznie</string>
     <string name="settings_high_heart_rate_alert_title">Alert wysokiego tętna</string>
     <string name="settings_high_heart_rate_alert_body">Próg oznaczenia wysokiego tętna spoczynkowego.</string>
     <string name="settings_low_heart_rate_alert_title">Alert niskiego tętna</string>

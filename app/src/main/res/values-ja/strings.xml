@@ -2311,6 +2311,9 @@
     <string name="settings_sleep_night_start_body">夜が始まる夕方の時刻。ここから朝の時刻までの睡眠は 1 つの夜として扱い、それより前のセッションは昼寝です。</string>
     <string name="settings_sleep_night_end_title">夜の終了</string>
     <string name="settings_sleep_night_end_body">夜が終わる朝の時刻。これ以降、夕方の開始までの睡眠は昼寝として数えます。</string>
+    <string name="settings_sleep_source_title">優先する睡眠データの提供元</string>
+    <string name="settings_sleep_source_body">Health Connect はアプリの優先順位を他のアプリに公開しません。2 つのアプリが同じ夜を記録した場合は、ここで選んだアプリのデータを表示します。「自動」では詳細なほうを残します。</string>
+    <string name="settings_sleep_source_automatic">自動</string>
     <string name="settings_high_heart_rate_alert_title">高心拍のアラート</string>
     <string name="settings_high_heart_rate_alert_body">安静時心拍数が高いと判定するしきい値。</string>
     <string name="settings_low_heart_rate_alert_title">低心拍のアラート</string>
