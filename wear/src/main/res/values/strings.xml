@@ -180,6 +180,7 @@
     <string name="activity_strength">Strength</string>
     <string name="activity_hiit">HIIT</string>
     <string name="activity_yoga">Yoga</string>
+    <string name="activity_volleyball">Volleyball</string>
     <string name="recording_paused">Paused</string>
     <string name="recording_pause">Pause</string>
     <string name="recording_resume">Resume</string>

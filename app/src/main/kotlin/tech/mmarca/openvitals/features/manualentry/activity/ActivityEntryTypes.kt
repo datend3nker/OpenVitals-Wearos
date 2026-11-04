@@ -251,7 +251,7 @@ val DefaultActivityEntryTypes: List<ActivityEntryType> = listOf(
     indoorDistanceActivity(ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_POOL, R.string.hc_exercise_type_swimming_pool),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_TABLE_TENNIS, R.string.hc_exercise_type_table_tennis),
     timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_TENNIS, R.string.hc_exercise_type_tennis),
-    timedActivity(ExerciseSessionRecord.EXERCISE_TYPE_VOLLEYBALL, R.string.hc_exercise_type_volleyball),
+    sportEntry(WorkoutSport.VOLLEYBALL, R.string.hc_exercise_type_volleyball, ActivityRecordingSensor.BLE),
     // No standard has beach volleyball (Health Connect, FIT, Apple Health): a volleyball
     // session that carries its variant. After plain volleyball, which a lookup by
     // exercise type must find first.

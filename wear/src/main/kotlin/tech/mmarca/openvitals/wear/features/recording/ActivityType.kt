@@ -11,6 +11,7 @@ import androidx.compose.material.icons.outlined.Hiking
 import androidx.compose.material.icons.outlined.PedalBike
 import androidx.compose.material.icons.outlined.Rowing
 import androidx.compose.material.icons.outlined.SelfImprovement
+import androidx.compose.material.icons.outlined.SportsVolleyball
 import androidx.compose.ui.graphics.vector.ImageVector
 import tech.mmarca.openvitals.domain.workout.WorkoutSport
 import tech.mmarca.openvitals.wear.R
@@ -29,5 +30,6 @@ enum class ActivityType(@param:StringRes val label: Int, val icon: ImageVector, 
     STRENGTH(R.string.activity_strength, Icons.Outlined.FitnessCenter, WorkoutSport.STRENGTH_TRAINING),
     HIIT(R.string.activity_hiit, Icons.Outlined.Bolt, WorkoutSport.HIIT),
     YOGA(R.string.activity_yoga, Icons.Outlined.SelfImprovement, WorkoutSport.YOGA),
+    VOLLEYBALL(R.string.activity_volleyball, Icons.Outlined.SportsVolleyball, WorkoutSport.VOLLEYBALL),
     WORKOUT(R.string.activity_workout, Icons.Outlined.FitnessCenter, WorkoutSport.OTHER_WORKOUT),
 }

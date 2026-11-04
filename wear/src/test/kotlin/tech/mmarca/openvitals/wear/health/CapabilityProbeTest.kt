@@ -68,7 +68,7 @@ class CapabilityProbeTest {
     fun `indoor sports show only what the sensors give indoors`() {
         val workouts = capabilitiesOf(everything).workouts
         assertEquals(setOf(WorkoutField.HEART_RATE, WorkoutField.STEPS), workouts[ActivityType.TREADMILL])
-        for (sport in listOf(ActivityType.STATIONARY_BIKE, ActivityType.ROWING_MACHINE, ActivityType.STRENGTH, ActivityType.HIIT, ActivityType.YOGA)) {
+        for (sport in listOf(ActivityType.STATIONARY_BIKE, ActivityType.ROWING_MACHINE, ActivityType.STRENGTH, ActivityType.HIIT, ActivityType.YOGA, ActivityType.VOLLEYBALL)) {
             assertEquals(sport.name, setOf(WorkoutField.HEART_RATE), workouts[sport])
         }
     }
