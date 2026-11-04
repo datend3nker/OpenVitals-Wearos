@@ -1,10 +1,10 @@
 # Watch Tiles With Real Values
 
-> **Status (2026-11-03):** Proposal, not started. Current behaviour: [Watches](../features/watches.md).
+> **Status (2026-11-04):** Branch 1 is partly built: `:healthcalc` exists, and the watch computes sleep with stages, resting heart rate and night HRV from its own minutes. Distance and active calories are not computed yet, and branch 2 (the phone sends what the watch cannot know) is not started. Current behaviour: [Watches](../features/watches.md).
 
 ## Problem
 
-The watch computes only steps, heart rate, floors and elevation. Sleep, resting heart rate, HRV, distance, active calories, weight and hydration are marked `MetricSource.PHONE` or `LOGGED` in `wear/.../MetricTile.kt`. No path carries a value from the phone to the watch, so these tiles stay empty.
+The watch computes steps, heart rate, floors, elevation, sleep, resting heart rate and night HRV. Distance, active calories, weight and hydration stay empty: distance and calories are not computed yet, and weight and hydration are logged on the phone. No path carries a value from the phone to the watch.
 
 ## Plan
 

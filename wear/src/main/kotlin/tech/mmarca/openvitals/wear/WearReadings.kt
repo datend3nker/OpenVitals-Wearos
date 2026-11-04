@@ -135,7 +135,6 @@ internal object WearReadings {
     fun nightHrv(windows: List<HrvWindow>): Double? =
         windows.takeIf { it.isNotEmpty() }?.map { it.rmssdMillis }?.average()
 
-
     /**
      * The sleep of [date] from the watch's minute rows: the night that ended
      * that morning and the naps that began that day, or null when the rows
