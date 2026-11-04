@@ -6,6 +6,7 @@ import androidx.health.connect.client.time.TimeRangeFilter
 import tech.mmarca.openvitals.domain.model.DailySleepDuration
 import tech.mmarca.openvitals.domain.model.SleepData
 import tech.mmarca.openvitals.domain.model.SleepReadData
+import tech.mmarca.openvitals.domain.model.dailySleepDurationsFromSessions
 import tech.mmarca.openvitals.domain.model.mergeSleepSessions
 import tech.mmarca.openvitals.domain.model.mergedSleepSessionComponentIds
 import tech.mmarca.openvitals.domain.model.sleepRangeEndFor
@@ -98,6 +99,17 @@ internal class SleepHealthReader(
         sleepWindow: SleepWindow,
     ): List<DailySleepDuration> {
         if (startDate.isAfter(endDate)) return emptyList()
+
+        // Health Connect's daily total follows its own source priority. With a
+        // preferred source set, count the merged sessions the day view shows.
+        if (preferredSource() != null) {
+            val zone = ZoneId.systemDefault()
+            val sessions = readSleepSessions(
+                sleepRangeStartFor(startDate, sleepWindow).atZone(zone).toInstant().minus(Duration.ofDays(1)),
+                sleepRangeEndFor(endDate, sleepWindow).atZone(zone).toInstant().plus(Duration.ofDays(1)),
+            )
+            return dailySleepDurationsFromSessions(sessions, startDate, endDate, sleepWindow, zone)
+        }
 
         val durations = mutableMapOf<LocalDateTime, Long>()
         dailyAggregateDateChunks(startDate, endDate).forEach { (chunkStart, chunkEnd) ->
