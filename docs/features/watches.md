@@ -450,6 +450,29 @@ Sync, find, sending a point or the alarm list, settings on the watch, music cont
 
 Different devices do not contend with each other, so a Bluetooth LE sensor is unaffected by what a watch is doing.
 
+## Debug Data
+
+A switch for testing a Wear OS watch over several days. It is off until you turn it on. When something looks wrong, such as a nap by day while you were not in bed, the files say why.
+
+Turn it on in the phone's Watches screen (card "Tracking on the watch", switch "Collect debug data"), or on the watch under Settings, Tracking. The same switch turns on the phone's sync log. Both switches show what is collected.
+
+What the watch collects, in `Android/data/<package>/files/debug/` on shared storage, so `adb pull` reads it from a build that is not debuggable:
+
+- `trace-YYYYMMDD.log`: one line per decision, `epochMillis;source;event;key=value;...`. It covers bedtime mode, the heart rate interval and why, power-save windows (start, length, values), the sleep hold (start with its numbers, end with its reason), worn state and charger, night HRV windows and spot HRV, workouts, each phone connection (outcome, duration, request types, the exception class on a failure), and the day values and settings the phone sent. Every change of the watch's own sleep result is logged: the night, and each nap with the waking level, the drop it needed, the median pulse, the share of sleep minutes, the movement and the number of day minutes behind the level. One file per day, 7 days and 5 MB a file at most.
+- `minutes.csv`, `heartrate.csv`, `steps.csv`, `ascent.csv`, `hrv.csv`, `dayvalues.csv`, `workouts.csv` (headers only): the last 48 hours of the watch's store, rewritten every 15 minutes and when you switch the option on or off. The lines are the lines of the phone link, so the `:wearlink` parsers read them.
+
+The phone writes `wear-sync-YYYYMMDD.log` in its own `files/debug/` with the same limits: start and end of each sync with duration and outcome, which pulls ran and how many rows, the exception class of a failed link, the retry, the day values and settings sent, and the live heart rate sessions (start, end, length, reason). Counts and types only.
+
+Pull everything with `scripts/wear-debug-pull.sh`; add `--replay` to run the same calculation on the computer, or by hand:
+
+```sh
+env OPENVITALS_WEAR_DEBUG_DIR=<folder> ./gradlew :healthcalc:test --tests '*WearDebugReplayCheck*' --rerun -i
+```
+
+The check reads `minutes.csv` and prints the nights and naps with the numbers behind them (waking level, needed drop, pulse, thresholds, runs), and the minutes and median pulse per day. To follow up a case: find the nap in `trace-*.log` (source `Sleep`, event `nap`), then compare with the replay. A change to the thresholds in `WearNaps` can be tried on the same minutes before it goes on the watch.
+
+The files hold values on purpose: pulse, movement and times. Because you turn the switch on and pull the files yourself, they are not covered by the rule that text leaving the app holds structure only. For the same reason they never leave on their own. No report, e-mail draft, crash draft or diagnostics log includes them, the file provider shares no external folder, and `WearDebugFilesStayLocalTest` guards both. Turn the switch off when the test is over; the files stay until you delete them, and old days are removed after 7 days.
+
 ## Privacy
 
 Nothing leaves the phone. The watch is read over Bluetooth, the files are parsed on the device, and the results go to Health Connect or to OpenVitals' own local database.

@@ -48,6 +48,10 @@ Apple Health import reports are explicit user downloads with the importer summar
 
 Diagnostics builds export the process logcat from Settings → Debug diagnostics. Every line and tag is kept, so Health Connect and sync issues can be traced, and each line is masked: addresses, identifiers, file locations and dates, and an exception's message whole. The crash and Report an issue drafts carry no log in any build: the saved crash report holds the masked crash, is attached for seven days at most, and is deleted once it has gone into an email, a copy or a file. Copied reports are marked sensitive.
 
+### Wear OS Debug Data
+
+The switch "Collect debug data" for a Wear OS watch is off by default. When the wearer turns it on, the watch and the phone write files that do hold values (pulse, movement, times), for the wearer to pull with `adb`. They are an exception to the rule above because the wearer asks for them and fetches them. They are never part of a report, a crash draft, an e-mail or the diagnostics log. See [Debug Data](watches.md#debug-data).
+
 ## Support Links
 
 Settings and project metadata can point users toward support and community resources such as Zulip, GitHub, or donation links.

@@ -54,6 +54,14 @@ needs `./gradlew :wearlink:dependencies --write-locks` for its lockfile, like th
 
 The watch app logs its battery level and which recorders run every 15 minutes (two weeks kept). `run-as` fails on the installed watch app (it is not debuggable), so the file sits in the app's folder on shared storage: `adb -s <watch> pull /sdcard/Android/data/tech.mmarca.openvitals/files/diagnostics.csv`. Each line is `epochMillis;battery%;charging;heartRateOn;stepsOn;bedtimeState`. Pair it with `adb shell dumpsys batterystats --charged tech.mmarca.openvitals` for the cost per sensor.
 
+To follow a case across several days of a test, use the debug data switch (see [Debug Data](../features/watches.md#debug-data)): turn on "Collect debug data" on the phone or the watch, wear the watch for the days, then run
+
+```sh
+scripts/wear-debug-pull.sh --replay        # add --phone <serial> for the phone's sync log, --dry-run to see the commands
+```
+
+It pulls `files/debug/` and `diagnostics.csv` into `wear-debug-pull/<time>/` and runs `WearDebugReplayCheck` on `minutes.csv`. The check is skipped when `OPENVITALS_WEAR_DEBUG_DIR` is not set, so CI never runs it.
+
 The watch's instrumented tests (`wear/src/androidTest`, the metric store against real SQLite)
 are compiled by the gate but run only on a device. Do not use `connectedDebugAndroidTest` on a
 watch you wear: it uninstalls the app afterwards, which deletes the recorded data and the

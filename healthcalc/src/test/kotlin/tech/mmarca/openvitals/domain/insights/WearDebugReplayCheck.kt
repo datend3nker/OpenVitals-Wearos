@@ -41,7 +41,9 @@ class WearDebugReplayCheck {
         var date = first
         while (!date.isAfter(last.plusDays(1))) {
             val night = WearNight.estimate(rows, date, offset)
-            if (night != null) {
+            if (night == null) {
+                println("night ending $date: none found")
+            } else {
                 println("night ending $date: " + WearNight.reasons(night).joinToString(" ") { "${it.first}=${it.second}" })
                 println("  ${night.summary()}")
                 WearNight.restingHeartRate(rows, night)?.let { println("  resting heart rate $it") }
