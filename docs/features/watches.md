@@ -234,6 +234,10 @@ yet. They arrive on the next sync.
 
 At the end of a sync the phone sends the watch the last seven days of water (the day's total) and weight (the day's last entry) from Health Connect, after the logged entries are written, so the totals hold what the watch logged. The watch shows them on its water and weight tiles. A day you log again on the phone reaches the watch at the next sync. Without a read grant for them the phone sends nothing and the tiles show only what you logged on the watch. For water, the larger of the phone's total and the watch's own entries for the day stands, so an entry not yet synced still counts and a synced one is not counted twice. The watch refuses a day older than seven days. A watch app from before this has no such channel and the phone skips it.
 
+### Distance and active energy on the watch
+
+The watch's distance and active-energy tiles are estimates from its steps, worked out on the watch with the same code as the phone (`StepEstimates` in `:healthcalc`). Distance is the steps times the step length from the phone's Activities setting, 0.7 m until the phone has sent one. Active energy is the walking-energy estimate per minute from the cadence (Moore et al. 2021), which holds for level walking and leaves out hills, stairs and running, so it tends to come in low. It needs a weight: the phone sends its latest one from Health Connect, else the body profile's, at the end of each sync, and until it does the energy tile stays empty. Neither tile is a measurement and neither is written to Health Connect from the watch. The watch redoes the past days when the weight or step length changes.
+
 ### Logged Entries
 
 What the wearer logs on the watch (water, weight, blood pressure, a breathing

@@ -186,12 +186,26 @@ class BluetoothWearOsNodePort @Inject constructor(
         targetAddress: String?,
         targetName: String?,
         values: List<WearOsDayValue>,
+        profile: WearOsStepProfile,
     ): Int? = withContext(Dispatchers.IO) {
         val match = bondedWatchOrNull(targetAddress, targetName) ?: return@withContext null
         withSession(match, targetAddress, PULL_TIMEOUT_MS) { session ->
-            if (WearLinkProtocol.CAP_DAY_VALUES !in session.peer.capabilities) return@withSession 0
+            val caps = session.peer.capabilities
             // A day the watch refuses (one it no longer keeps) is skipped; the rest still go.
-            values.count { session.putDay(it.kind, it.epochDay, it.tenths) is WearLinkOutcome.Ok }
+            val days = if (WearLinkProtocol.CAP_DAY_VALUES in caps) {
+                values.count { session.putDay(it.kind, it.epochDay, it.tenths) is WearLinkOutcome.Ok }
+            } else {
+                0
+            }
+            val settings = if (WearLinkProtocol.CAP_PREFERENCES in caps) {
+                listOfNotNull(
+                    profile.weightTenthsKg?.let { WearLinkProtocol.Preferences.BODY_WEIGHT to it },
+                    WearLinkProtocol.Preferences.STRIDE_CM to profile.strideCm,
+                ).count { (key, value) -> session.setPreference(key, value.toString()) is WearLinkOutcome.Ok }
+            } else {
+                0
+            }
+            days + settings
         }
     }
 

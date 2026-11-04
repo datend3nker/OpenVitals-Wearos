@@ -11,6 +11,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.Dispatchers
 import tech.mmarca.openvitals.domain.insights.sleepNightWindow
+import tech.mmarca.openvitals.domain.preferences.StrideLength
+
+/** What the phone told the watch about the wearer: the weight (null until sent) and the step length. */
+internal data class StepProfile(val weightKg: Double?, val strideMeters: Double)
 
 /**
  * What the watch itself recorded, as the dashboard and the detail screens
@@ -23,8 +27,11 @@ import tech.mmarca.openvitals.domain.insights.sleepNightWindow
 internal class WearReadingsSource(
     private val store: MetricStore,
     private val clock: Clock = Clock.systemDefaultZone(),
+    /** The weight and step length the phone sent; the distance and energy estimates read them. */
+    private val profile: () -> StepProfile = { StepProfile(null, StrideLength.defaultMeters) },
 ) {
     private val pastDays = HashMap<LocalDate, DayReadings>()
+    private var pastDaysProfile: StepProfile? = null
 
     /** The tiles' values and last night's stages now, read again on store updates or ticker. */
     fun readings(): Flow<WearReadingsState> = merge(
@@ -40,6 +47,8 @@ internal class WearReadingsSource(
     internal fun load(): WearReadingsState {
         val zone = clock.zone
         val today = LocalDate.now(clock)
+        // A day that is over was worked out with the profile of its time; a new weight or step length redoes it.
+        profile().let { if (it != pastDaysProfile) pastDays.clear(); pastDaysProfile = it }
         val days = (DAYS - 1 downTo 0).map { back ->
             val date = today.minusDays(back.toLong())
             val day = if (back == 0) read(date, zone) else pastDays.getOrPut(date) { read(date, zone) }
@@ -72,6 +81,8 @@ internal class WearReadingsSource(
             ascent = store.since(WearMetrics.ASCENT, from, ROW_LIMIT, until),
             sleep = readNight(date, zone),
             nightHrv = readNightHrv(date, zone),
+            bodyWeightKg = profile().weightKg,
+            strideMeters = profile().strideMeters,
         )
     }
 

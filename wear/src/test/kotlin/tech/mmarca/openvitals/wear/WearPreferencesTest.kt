@@ -25,6 +25,25 @@ class WearPreferencesTest {
     }
 
     @Test
+    fun `the weight and step length from the phone are kept, and a value out of range is refused`() {
+        assertNull(preferences.weightKg)
+        assertEquals(0.7, preferences.strideMeters, 0.0)
+
+        assertTrue(preferences.applyPreference(WearLinkProtocol.Preferences.BODY_WEIGHT, "705"))
+        assertTrue(preferences.applyPreference(WearLinkProtocol.Preferences.STRIDE_CM, "82"))
+        assertEquals(70.5, preferences.weightKg!!, 0.0)
+        assertEquals(0.82, preferences.strideMeters, 0.0)
+        assertEquals(70.5, WearPreferences(prefs, WearLinkState).weightKg!!, 0.0)
+
+        assertFalse(preferences.applyPreference(WearLinkProtocol.Preferences.BODY_WEIGHT, "10"))
+        assertFalse(preferences.applyPreference(WearLinkProtocol.Preferences.BODY_WEIGHT, "heavy"))
+        assertFalse(preferences.applyPreference(WearLinkProtocol.Preferences.STRIDE_CM, "5"))
+        assertFalse(preferences.applyPreference(WearLinkProtocol.Preferences.STRIDE_CM, "400"))
+        assertEquals(70.5, preferences.weightKg!!, 0.0)
+        assertEquals(0.82, preferences.strideMeters, 0.0)
+    }
+
+    @Test
     fun `each switch takes on and off and keeps the value across a restart`() {
         val keys = listOf(
             WearLinkProtocol.Preferences.SLEEP_RECORDING,

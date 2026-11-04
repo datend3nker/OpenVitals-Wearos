@@ -267,7 +267,7 @@ interface WearOsNodePort {
     ): WearOsLogEntryPage?
 
     /**
-     * Sends [values] to the watch on one connection. The number the watch kept; 0 when the watch
+     * Sends [values] and the step [profile] to the watch on one connection. The number the watch kept; 0 when the watch
      * app is too old to take them. Null: no bonded watch matches. Any other failure throws
      * [WearOsLinkFailure].
      */
@@ -275,6 +275,7 @@ interface WearOsNodePort {
         targetAddress: String?,
         targetName: String?,
         values: List<WearOsDayValue>,
+        profile: WearOsStepProfile,
     ): Int? = 0
 
     /**

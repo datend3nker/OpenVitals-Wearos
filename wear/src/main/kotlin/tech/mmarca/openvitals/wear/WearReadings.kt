@@ -6,9 +6,11 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import tech.mmarca.openvitals.domain.insights.EstimatedStage
+import tech.mmarca.openvitals.domain.insights.StepEstimates
 import tech.mmarca.openvitals.domain.insights.WearNaps
 import tech.mmarca.openvitals.domain.insights.WearNight
 import tech.mmarca.openvitals.domain.model.WearSleepMinuteMapping
+import tech.mmarca.openvitals.domain.preferences.StrideLength
 import tech.mmarca.openvitals.wearlink.AscentCredit
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.AscentMinute
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.HeartRateSample
@@ -41,6 +43,10 @@ internal data class DayReadings(
     val hydrationMl: Double? = null,
     /** Kilograms the phone sent for the day, or null when it sent none. */
     val weightKg: Double? = null,
+    /** Metres per hour of the day from the steps and the step length, 24 values. */
+    val distanceByHour: List<Double> = List(24) { 0.0 },
+    /** Active kilocalories per hour from the step minutes, 24 values; empty with no known weight. */
+    val kcalByHour: List<Double> = emptyList(),
 )
 
 /**
@@ -108,10 +114,19 @@ internal object WearReadings {
         nightHrv: Double? = null,
         hydrationMl: Double? = null,
         weightKg: Double? = null,
+        bodyWeightKg: Double? = null,
+        strideMeters: Double = StrideLength.defaultMeters,
     ): DayReadings {
         val stepsAt = steps.associate { it.epochMillis to it.steps }
         val stepsByHour = DoubleArray(HOURS)
         for (minute in steps) stepsByHour[hourOf(minute.epochMillis, zone)] += minute.steps.toDouble()
+
+        val kcalByHour = DoubleArray(HOURS)
+        if (bodyWeightKg != null) {
+            steps.groupBy { hourOf(it.epochMillis, zone) }.forEach { (hour, minutes) ->
+                kcalByHour[hour] = StepEstimates.activeKcal(minutes.map { it.steps }, bodyWeightKg)
+            }
+        }
 
         val ascentByHour = DoubleArray(HOURS)
         for (minute in ascent) {
@@ -136,6 +151,8 @@ internal object WearReadings {
             nightHrv = nightHrv,
             hydrationMl = hydrationMl,
             weightKg = weightKg,
+            distanceByHour = stepsByHour.map { StepEstimates.distanceMetres(it, strideMeters) },
+            kcalByHour = if (bodyWeightKg != null) kcalByHour.toList() else emptyList(),
         )
     }
 
@@ -181,6 +198,12 @@ internal object WearReadings {
         return buildMap {
             if (days.any { it.hasSteps }) {
                 put(MetricTile.STEPS, cumulative(days, thisHour) { it.stepsByHour })
+            }
+            if (days.any { it.hasSteps }) {
+                put(MetricTile.DISTANCE, cumulative(days, thisHour) { it.distanceByHour })
+            }
+            if (days.any { it.kcalByHour.isNotEmpty() && it.hasSteps }) {
+                put(MetricTile.ACTIVE_CALORIES, cumulative(days, thisHour) { it.kcalByHour.ifEmpty { List(24) { 0.0 } } })
             }
             if (days.any { it.hasAscent }) {
                 put(MetricTile.ELEVATION, cumulative(days, thisHour) { it.ascentByHour })

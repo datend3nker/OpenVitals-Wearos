@@ -1,6 +1,6 @@
 # Watch Tiles With Real Values
 
-> **Status (2026-11-04):** Branch 1 is partly built: `:healthcalc` exists, and the watch computes sleep with stages, resting heart rate and night HRV from its own minutes. Distance and active calories are not computed yet. Branch 2 is built for weight and water: the phone sends them with `PUT_DAY` (see the architecture doc). Sleep from another source and the preferred-source setting are not built. Current behaviour: [Watches](../features/watches.md).
+> **Status (2026-11-04):** Branch 1 is partly built: `:healthcalc` exists, and the watch computes sleep with stages, resting heart rate and night HRV from its own minutes. Distance and active calories are computed on the watch from steps (`StepEstimates`), with the weight and step length sent by the phone. Branch 2 is built for weight and water: the phone sends them with `PUT_DAY` (see the architecture doc). Sleep from another source and the preferred-source setting are not built. Current behaviour: [Watches](../features/watches.md).
 
 ## Problem
 

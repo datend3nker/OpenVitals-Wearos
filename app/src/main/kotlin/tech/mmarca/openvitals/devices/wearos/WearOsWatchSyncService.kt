@@ -27,6 +27,7 @@ import tech.mmarca.openvitals.core.presentation.ScreenError
 import tech.mmarca.openvitals.core.presentation.isPermissionFailure
 import tech.mmarca.openvitals.data.repository.AppleHealthImportRepository
 import tech.mmarca.openvitals.data.repository.BleDeviceRepository
+import tech.mmarca.openvitals.data.repository.PreferencesRepository
 import tech.mmarca.openvitals.data.repository.contract.ActivityRepository
 import tech.mmarca.openvitals.data.repository.contract.BodyProfilePreferences
 import tech.mmarca.openvitals.data.repository.contract.BodyRepository
@@ -43,6 +44,7 @@ import tech.mmarca.openvitals.domain.model.BleSensorDevice
 import tech.mmarca.openvitals.domain.model.WearSleepMinute
 import tech.mmarca.openvitals.data.repository.isDuplicateClientRecordFailure
 import tech.mmarca.openvitals.features.manualentry.activity.recording.ActivityRecordingController
+import tech.mmarca.openvitals.domain.preferences.StrideLength
 import tech.mmarca.openvitals.healthconnect.HealthConnectManager
 import tech.mmarca.openvitals.wearlink.AscentCredit
 import tech.mmarca.openvitals.healthconnect.withStrictHealthConnectReads
@@ -86,12 +88,9 @@ import tech.mmarca.openvitals.healthconnect.withStrictHealthConnectReads
  * each is written as an activity session with its route, under an id from its
  * start. Without the activity write grants they wait on the watch.
  *
- * Last, what the wearer logged on the watch ([WearOsLogEntrySync]): each
- * kind is written as its Health Connect record, and a kind whose grant is
- * missing waits on the watch for the next sync.
- *
- * Then the other way: the last seven days of water and weight from Health
- * Connect go to the watch ([WearOsDayValuePush]) for its tiles. Optional.
+ * Then what the wearer logged on the watch ([WearOsLogEntrySync]), each kind as its Health
+ * Connect record (a kind without its grant waits on the watch). Last, the other way
+ * ([WearOsDayValuePush]): water, weight and step length for the watch's tiles.
  *
  * [DeviceSyncResult.Succeeded.fileCount] carries the number of heart rate
  * samples, [DeviceSyncResult.Succeeded.stepMinuteCount] the minutes of
@@ -113,6 +112,7 @@ class WearOsWatchSyncService(
     private val zone: () -> ZoneId,
     /** Writes the watch's workouts as sessions; null where a test has no activity store. */
     private val activityRepository: ActivityRepository? = null,
+    private val strideMeters: () -> Double = { StrideLength.defaultMeters },
 ) : DeviceSyncPort {
 
     @Inject
@@ -127,11 +127,12 @@ class WearOsWatchSyncService(
         bodyRepository: BodyRepository,
         bodyProfilePreferences: BodyProfilePreferences,
         activityRepository: ActivityRepository,
+        preferences: PreferencesRepository,
     ) : this(
         nodePort, cursors, importRepository, bleDeviceRepository, recordingController, healthConnect, linkStore,
         // Strict: the readers turn a failed read into null, which would pass for "no weight".
         { withStrictHealthConnectReads { bodyRepository.resolveBodyProfile(bodyProfilePreferences.bodyProfile()).weightKg } },
-        Instant::now, ZoneId::systemDefault, activityRepository,
+        Instant::now, ZoneId::systemDefault, activityRepository, { preferences.strideLengthMeters },
     )
 
     private val syncMutex = Mutex()
@@ -151,7 +152,7 @@ class WearOsWatchSyncService(
         zone = zone,
     )
 
-    private val dayValues = WearOsDayValuePush.of(healthConnect, nodePort, clock, zone)
+    private val dayValues = WearOsDayValuePush.of(healthConnect, nodePort, clock, zone, weightKg, strideMeters)
 
     private val workouts = WearOsWorkoutSync(
         cursors = cursors,

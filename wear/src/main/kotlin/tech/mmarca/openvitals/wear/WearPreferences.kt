@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import tech.mmarca.openvitals.domain.preferences.StrideLength
 import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 
@@ -55,6 +56,14 @@ class WearPreferences(
     val heartRateNight: HeartRateInterval
         get() = interval(WearLinkProtocol.Preferences.HEART_RATE_NIGHT)
 
+    /** The wearer's weight in kilograms as the phone last sent it, or null before it did. */
+    val weightKg: Double?
+        get() = prefs.getInt(KEY_WEIGHT, 0).takeIf { it > 0 }?.let { it / TENTHS }
+
+    /** The step length in metres as the phone last sent it, else the phone's own default. */
+    val strideMeters: Double
+        get() = prefs.getInt(KEY_STRIDE_CM, 0).takeIf { it > 0 }?.let { it / CENTIMETRES } ?: StrideLength.defaultMeters
+
     /** Once now and after every stored change, whichever instance made it. */
     val changes: Flow<Unit> = callbackFlow {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> trySend(Unit) }
@@ -99,9 +108,19 @@ class WearPreferences(
             in FLAG_KEYS -> applyFlag(key, value) ?: return false
             WearLinkProtocol.Preferences.HEART_RATE_DAY, WearLinkProtocol.Preferences.HEART_RATE_NIGHT ->
                 applyInterval(key, value) ?: return false
+            WearLinkProtocol.Preferences.BODY_WEIGHT -> applyNumber(KEY_WEIGHT, value, MIN_WEIGHT_TENTHS..MAX_WEIGHT_TENTHS) ?: return false
+            WearLinkProtocol.Preferences.STRIDE_CM -> applyNumber(KEY_STRIDE_CM, value, MIN_STRIDE_CM..MAX_STRIDE_CM) ?: return false
             else -> return false
         }
         if (changed) onChange?.invoke()
+        return true
+    }
+
+    /** Null for a value that is not a whole number in [range]; true when the stored value changed. */
+    private fun applyNumber(storageKey: String, value: String, range: IntRange): Boolean? {
+        val number = value.toIntOrNull()?.takeIf { it in range } ?: return null
+        if (prefs.getInt(storageKey, 0) == number) return false
+        prefs.edit().putInt(storageKey, number).apply()
         return true
     }
 
@@ -161,5 +180,17 @@ class WearPreferences(
         private val FLAG_KEYS: Set<String> = FLAG_STORAGE.keys
         private const val KEY_SLEEP_RECORDING = "sleep_recording"
         private const val KEY_UNIT_SYSTEM = "unit_system"
+        private const val KEY_WEIGHT = "body_weight_tenths"
+        private const val KEY_STRIDE_CM = "stride_cm"
+        private const val TENTHS = 10.0
+        private const val CENTIMETRES = 100.0
+
+        /** 20 to 500 kg, in tenths. */
+        private const val MIN_WEIGHT_TENTHS = 200
+        private const val MAX_WEIGHT_TENTHS = 5000
+
+        /** The bounds of `StrideLength`, in centimetres. */
+        private val MIN_STRIDE_CM = (StrideLength.minMeters * 100).toInt()
+        private val MAX_STRIDE_CM = (StrideLength.maxMeters * 100).toInt()
     }
 }

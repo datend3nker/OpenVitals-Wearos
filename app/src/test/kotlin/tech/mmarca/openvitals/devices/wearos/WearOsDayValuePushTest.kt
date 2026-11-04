@@ -18,7 +18,7 @@ class WearOsDayValuePushTest {
     private fun push(
         water: List<DailyHydration> = emptyList(),
         weights: List<WeightEntry> = emptyList(),
-    ) = WearOsDayValuePush(object : WearOsNodePort by io.mockk.mockk(relaxed = true) {}, { _, _ -> water }, { _, _ -> weights }, { zone }, { today })
+    ) = WearOsDayValuePush(object : WearOsNodePort by io.mockk.mockk(relaxed = true) {}, { 70.0 }, { 0.7 }, { _, _ -> water }, { _, _ -> weights }, { zone }, { today })
 
     private fun at(date: LocalDate, hour: Int): Instant = date.atTime(hour, 0).atZone(zone).toInstant()
 

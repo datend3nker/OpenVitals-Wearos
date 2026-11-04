@@ -150,13 +150,20 @@ class WearOsWatchSyncServiceTest {
         override fun heartRateInterval(targetAddress: String?, period: WearOsHeartRatePeriod): HeartRateInterval =
             HeartRateInterval.EVERY_10_SECONDS
 
-        override suspend fun pushDayValues(targetAddress: String?, targetName: String?, values: List<WearOsDayValue>): Int? {
+        override suspend fun pushDayValues(
+            targetAddress: String?,
+            targetName: String?,
+            values: List<WearOsDayValue>,
+            profile: WearOsStepProfile,
+        ): Int? {
             pushedDayValues += values
+            pushedProfile = profile
             return values.size
         }
     }
 
     private val pushedDayValues = mutableListOf<WearOsDayValue>()
+    private var pushedProfile: WearOsStepProfile? = null
 
     /**
      * Health Connect's rule for a `clientRecordId`: a batch is refused whole
@@ -379,7 +386,7 @@ class WearOsWatchSyncServiceTest {
     }
 
     @Test
-    fun `no minute above rest neither reads the weight nor asks for one`() = runTest {
+    fun `no minute above rest neither reads the weight for the energy nor asks for one`() = runTest {
         var weightReads = 0
         val counting = WearOsWatchSyncService(
             nodePort = nodePort,
@@ -399,7 +406,8 @@ class WearOsWatchSyncServiceTest {
         val result = counting.sync(WATCH, Duration.ZERO, null)
 
         assertEquals(DeviceSyncResult.Succeeded(0, stepMinuteCount = 1), result)
-        assertEquals(0, weightReads)
+        // The one read is the push of the weight to the watch, after the pulls.
+        assertEquals(1, weightReads)
     }
 
     @Test
@@ -1081,6 +1089,8 @@ class WearOsWatchSyncServiceTest {
             ),
             pushedDayValues.sortedBy { it.kind },
         )
+        // The weight the walking energy reads goes along, and the default step length of 0.7 m.
+        assertEquals(WearOsStepProfile(weightTenthsKg = 700, strideCm = 70), pushedProfile)
     }
 
     @Test

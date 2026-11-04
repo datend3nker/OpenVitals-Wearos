@@ -7,11 +7,18 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.CancellationException
 import tech.mmarca.openvitals.healthconnect.HealthConnectManager
 import tech.mmarca.openvitals.domain.model.DailyHydration
+import tech.mmarca.openvitals.domain.preferences.StrideLength
 import tech.mmarca.openvitals.domain.model.WeightEntry
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 
 /** One day's value for the watch, in tenths of the unit (see [WearLinkProtocol.DayKind]). */
 data class WearOsDayValue(val kind: WearLinkProtocol.DayKind, val epochDay: Long, val tenths: Int)
+
+/**
+ * What the watch needs to turn steps into distance and energy: the wearer's weight in tenths of a
+ * kilogram (null when unknown) and the step length in centimetres.
+ */
+data class WearOsStepProfile(val weightTenthsKg: Int?, val strideCm: Int)
 
 /**
  * The last seven days of what the phone knows and the watch cannot measure:
@@ -20,10 +27,13 @@ data class WearOsDayValue(val kind: WearLinkProtocol.DayKind, val epochDay: Long
  * safe and a late entry on the phone reaches the watch at the next one.
  *
  * Without a read grant Health Connect returns nothing, so nothing is sent and
- * the watch keeps what it has.
+ * the watch keeps what it has. The weight and step length go along as watch settings.
  */
 internal class WearOsDayValuePush(
     private val nodePort: WearOsNodePort,
+    /** The weight the watch's energy estimate uses: Health Connect's latest, else the profile's. Null when unknown. */
+    private val weightKg: suspend () -> Double?,
+    private val strideMeters: () -> Double,
     private val hydrationByDay: suspend (LocalDate, LocalDate) -> List<DailyHydration>,
     private val weights: suspend (Instant, Instant) -> List<WeightEntry>,
     private val zone: () -> ZoneId,
@@ -36,9 +46,12 @@ internal class WearOsDayValuePush(
     suspend fun send(address: String?, name: String?) {
         try {
             val values = values()
-            if (values.isEmpty()) return
-            val kept = nodePort.pushDayValues(address, name, values)
-            WearOsLog.log("day values: ${kept ?: 0} of ${values.size} kept by the watch")
+            val profile = WearOsStepProfile(
+                weightTenthsKg = weightKg()?.let { (it * TENTHS).roundToInt() },
+                strideCm = (StrideLength.normalize(strideMeters()) * CENTIMETRES_PER_METRE).roundToInt(),
+            )
+            val kept = nodePort.pushDayValues(address, name, values, profile)
+            WearOsLog.log("day values: ${kept ?: 0} of ${values.size + 2} kept by the watch")
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
@@ -67,9 +80,20 @@ internal class WearOsDayValuePush(
         private const val MILLILITRES_PER_LITRE = 1000.0
         private const val TENTHS = 10.0
 
-        fun of(healthConnect: HealthConnectManager, nodePort: WearOsNodePort, clock: () -> Instant, zone: () -> ZoneId) =
+        private const val CENTIMETRES_PER_METRE = 100.0
+
+        fun of(
+            healthConnect: HealthConnectManager,
+            nodePort: WearOsNodePort,
+            clock: () -> Instant,
+            zone: () -> ZoneId,
+            weightKg: suspend () -> Double?,
+            strideMeters: () -> Double,
+        ) =
             WearOsDayValuePush(
                 nodePort = nodePort,
+                weightKg = weightKg,
+                strideMeters = strideMeters,
                 hydrationByDay = { from, to -> healthConnect.readDailyHydration(from, to) },
                 weights = { from, to -> healthConnect.readWeightEntries(from, to) },
                 zone = zone,

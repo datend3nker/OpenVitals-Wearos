@@ -53,6 +53,25 @@ class WearReadingsTest {
     }
 
     @Test
+    fun distanceFollowsTheStepLengthAndEnergyNeedsAWeight() {
+        val steps = listOf(StepMinute(at(today, 8, 0), 100), StepMinute(at(today, 8, 1), 100), StepMinute(at(today, 10, 5), 20))
+        fun metrics(weightKg: Double?) = WearReadings.metrics(
+            week(WearReadings.day(today, zone, emptyList(), steps, emptyList(), bodyWeightKg = weightKg, strideMeters = 0.8)),
+            now,
+            zone,
+        )
+
+        val withoutWeight = metrics(null)
+        assertEquals(176.0, withoutWeight.getValue(MetricTile.DISTANCE).current!!, 1e-9)
+        assertFalse(MetricTile.ACTIVE_CALORIES in withoutWeight)
+
+        val withWeight = metrics(70.0)
+        // Two minutes at 100 steps count; 20 steps a minute is under one MET and adds nothing.
+        val expected = 2 * tech.mmarca.openvitals.domain.insights.WalkingEnergy.activeKcalPerMinute(100, 70.0)
+        assertEquals(expected, withWeight.getValue(MetricTile.ACTIVE_CALORIES).current!!, 1e-9)
+    }
+
+    @Test
     fun stepsAddUpPerHourAndPerDay() {
         val readings = week(
             day(today, steps = listOf(StepMinute(at(today, 8, 0), 40), StepMinute(at(today, 8, 1), 60), StepMinute(at(today, 10, 5), 25))),

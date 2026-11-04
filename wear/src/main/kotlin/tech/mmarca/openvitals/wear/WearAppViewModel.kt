@@ -25,7 +25,7 @@ class WearAppViewModel(application: Application) : AndroidViewModel(application)
     private val entryLog = EntryLog(application)
     private val wearPreferences = WearPreferences.shared(application)
     private val capabilities = MutableStateFlow(WearCapabilities())
-    private val readings = WearReadingsSource(MetricStore(application))
+    private val readings = WearReadingsSource(MetricStore(application), profile = { StepProfile(wearPreferences.weightKg, wearPreferences.strideMeters) })
 
     private val initial = WearUiState()
 

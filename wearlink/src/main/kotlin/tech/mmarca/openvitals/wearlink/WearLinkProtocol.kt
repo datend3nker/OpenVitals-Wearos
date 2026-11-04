@@ -180,6 +180,12 @@ object WearLinkProtocol {
         /** The heart rate interval in bedtime mode, when sleep recording is off. Values are [HeartRateInterval.wire]. */
         const val HEART_RATE_NIGHT: String = "hr_night"
 
+        /** The wearer's weight in tenths of a kilogram, for the watch's calorie estimate. Not sent when unknown. */
+        const val BODY_WEIGHT: String = "body_weight"
+
+        /** The wearer's step length in centimetres, for the watch's distance estimate. */
+        const val STRIDE_CM: String = "stride_cm"
+
         const val OFF: String = "0"
         const val ON: String = "1"
     }
