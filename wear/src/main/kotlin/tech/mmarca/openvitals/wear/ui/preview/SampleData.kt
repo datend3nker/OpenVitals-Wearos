@@ -4,6 +4,7 @@ import tech.mmarca.openvitals.wear.MetricUiState
 import tech.mmarca.openvitals.wear.RecordingUiState
 import tech.mmarca.openvitals.wear.SettingsUiState
 import tech.mmarca.openvitals.wear.SleepStage
+import tech.mmarca.openvitals.wear.SleepTimes
 import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.WearUiState
 import tech.mmarca.openvitals.wear.features.measure.Measurement
@@ -92,6 +93,14 @@ object SampleData {
         SleepStage.REM to 94.0,
         SleepStage.LIGHT to 243.0,
         SleepStage.DEEP to 84.0,
+    )
+
+    /** Bedtime, onset and wake for the same 7:22 night, 23 minutes of latency. */
+    val sleepTimes = SleepTimes(
+        bedTime = java.time.Instant.parse("2026-11-04T00:25:00Z"),
+        fellAsleep = java.time.Instant.parse("2026-11-04T00:48:00Z"),
+        wokeUp = java.time.Instant.parse("2026-11-04T08:10:00Z"),
+        latencyMinutes = 23,
     )
 
     /** A watch with Health Services, a barometer and no single-beat sensor. */

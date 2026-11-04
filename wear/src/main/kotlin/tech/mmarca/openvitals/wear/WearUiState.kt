@@ -22,6 +22,8 @@ data class WearUiState(
     val capabilities: WearCapabilities = WearCapabilities(),
     /** Last night's minutes per stage, as synced from the phone. */
     val sleepStages: Map<SleepStage, Double> = emptyMap(),
+    /** Last night's bedtime, sleep onset and wake. */
+    val sleepTimes: SleepTimes = SleepTimes(),
     /** Quick logs and spot measurements made on this watch, oldest first. */
     val entries: List<LoggedEntry> = emptyList(),
 )

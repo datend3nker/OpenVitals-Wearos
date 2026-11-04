@@ -36,6 +36,7 @@ class WearAppViewModel(application: Application) : AndroidViewModel(application)
                 recording = workout.toRecording(),
                 metrics = readings.metrics,
                 sleepStages = readings.sleepStages,
+                sleepTimes = readings.sleepTimes,
                 capabilities = capabilities,
                 preferences = DisplayPreferences(unitSystem = wearPreferences.unitSystem),
                 // Until the probe answers, keep offering what was on offer before.

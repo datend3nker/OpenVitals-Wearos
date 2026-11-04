@@ -39,6 +39,7 @@ import tech.mmarca.openvitals.wear.MetricKind
 import tech.mmarca.openvitals.wear.MetricUiState
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.SleepStage
+import tech.mmarca.openvitals.wear.SleepTimes
 import tech.mmarca.openvitals.wear.UnitSystem
 import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.DisplayPreferences
@@ -48,6 +49,7 @@ import tech.mmarca.openvitals.wear.ui.components.LegendRow
 import tech.mmarca.openvitals.wear.ui.components.MetricValueRow
 import tech.mmarca.openvitals.wear.ui.components.Sparkline
 import tech.mmarca.openvitals.wear.ui.components.StackedBar
+import tech.mmarca.openvitals.wear.ui.components.formatClockTime
 import tech.mmarca.openvitals.wear.ui.components.formatHoursMinutes
 import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
 import tech.mmarca.openvitals.wear.ui.components.metricUnitLabel
@@ -59,6 +61,14 @@ import tech.mmarca.openvitals.wear.ui.theme.OpenVitalsWearTheme
 
 private val ChartHeight = 44.dp
 private val SectionPadding = 12.dp
+
+/**
+ * Clears the app-wide `TimeText` clock `AppScaffold` draws above every
+ * screen (`OpenVitalsWearApp.kt`): it is not coordinated with this screen's
+ * `contentPadding`, so a goal-less hero (sleep, HRV, resting heart rate)
+ * needs enough of its own top space or the clock sits over its value.
+ */
+private val HeroTopPadding = 36.dp
 
 /**
  * One screen for every metric. The first screenful is the overview: the
@@ -74,6 +84,7 @@ fun MetricDetailScreen(
     maxHeartRate: Int = DisplayPreferences().maxHeartRate,
     restingHeartRate: Double? = null,
     sleepStages: Map<SleepStage, Double> = emptyMap(),
+    sleepTimes: SleepTimes = SleepTimes(),
     /** Starts a spot measurement of this metric; null when the watch cannot measure it. */
     onMeasure: (() -> Unit)? = null,
 ) {
@@ -113,6 +124,23 @@ fun MetricDetailScreen(
                             )
                         },
                     )
+                }
+            }
+            if (metric == MetricTile.SLEEP && sleepTimes.bedTime != null && sleepTimes.fellAsleep != null && sleepTimes.wokeUp != null) {
+                item { ListSubHeader { Text(stringResource(R.string.detail_sleep_times)) } }
+                item {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        SleepTimeRow(stringResource(R.string.sleep_bedtime), formatClockTime(sleepTimes.bedTime))
+                        SleepTimeRow(stringResource(R.string.sleep_fell_asleep), formatClockTime(sleepTimes.fellAsleep))
+                        SleepTimeRow(stringResource(R.string.sleep_woke_up), formatClockTime(sleepTimes.wokeUp))
+                        sleepTimes.latencyMinutes?.let { latency ->
+                            StatRow(
+                                label = stringResource(R.string.sleep_latency),
+                                value = latency.toString(),
+                                unit = stringResource(R.string.unit_min),
+                            )
+                        }
+                    }
                 }
             }
             if (state.today.size >= 2) {
@@ -216,7 +244,7 @@ private fun MetricHero(
     }
 
     if (goal == null) {
-        Box(modifier = Modifier.padding(vertical = 8.dp)) { content() }
+        Box(modifier = Modifier.padding(top = HeroTopPadding, bottom = 8.dp)) { content() }
     } else {
         Box(modifier = Modifier.size(136.dp), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(
@@ -268,6 +296,25 @@ private fun StatRow(label: String, value: String, unit: String) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         MetricValueRow(value = value, unit = unit, valueStyle = MaterialTheme.typography.titleMedium)
+    }
+}
+
+/** A clock time, labelled, with no unit suffix. */
+@Composable
+private fun SleepTimeRow(label: String, value: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = SectionPadding, vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        MetricValueRow(value = value, unit = null, valueStyle = MaterialTheme.typography.titleMedium)
     }
 }
 
@@ -368,6 +415,7 @@ private fun MetricDetailScreenSleepPreview() {
                 SampleData.metrics.getValue(MetricTile.SLEEP),
                 UnitSystem.METRIC,
                 sleepStages = SampleData.sleepStages,
+                sleepTimes = SampleData.sleepTimes,
             )
         }
     }
