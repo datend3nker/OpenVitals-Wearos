@@ -4008,7 +4008,6 @@
     <string name="settings_watch_wearos_interval_body">A noite é o modo de hora de dormir do relógio. Enquanto o sono é registado, a noite mantém-se a cada 10 segundos, porque a deteção do sono precisa de cada medição.</string>
     <string name="settings_watch_wearos_interval_off">Desligado</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
-    <string name="settings_watch_wearos_interval_minute">1 min</string>
     <string name="settings_watch_wearos_tracking_body">Desligar impede o relógio de medir isto. Os dados já registados ficam no relógio.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Sincronização do relógio</string>

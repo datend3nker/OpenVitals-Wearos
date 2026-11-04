@@ -4053,7 +4053,6 @@
     <string name="settings_watch_wearos_interval_body">Noc znamená režim spánku na hodinkách. Dokud se spánek zaznamenává, zůstává v noci měření každých 10 sekund, protože rozpoznání spánku potřebuje každé měření.</string>
     <string name="settings_watch_wearos_interval_off">Vypnuto</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
-    <string name="settings_watch_wearos_interval_minute">1 min</string>
     <string name="settings_watch_wearos_tracking_body">Vypnutí zastaví měření na hodinkách. Už zaznamenaná data zůstanou, kde jsou.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Synchronizace hodinek</string>

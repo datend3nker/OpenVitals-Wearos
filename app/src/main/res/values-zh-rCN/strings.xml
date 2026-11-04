@@ -3987,7 +3987,6 @@
     <string name="settings_watch_wearos_interval_body">夜间指手表的睡前模式。记录睡眠时，夜间保持每10秒一次，因为睡眠识别需要每一次测量。</string>
     <string name="settings_watch_wearos_interval_off">关闭</string>
     <string name="settings_watch_wearos_interval_10_seconds">10秒</string>
-    <string name="settings_watch_wearos_interval_minute">1分钟</string>
     <string name="settings_watch_wearos_tracking_body">关闭后手表将不再测量该项。已记录的数据仍保留在手表上。</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">手表同步</string>

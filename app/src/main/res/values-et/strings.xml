@@ -3981,7 +3981,6 @@
     <string name="settings_watch_wearos_interval_body">Öö on kellas unerežiim. Kui und salvestatakse, jääb öine mõõtmine iga 10 sekundi tagant, sest unetuvastus vajab iga mõõtmist.</string>
     <string name="settings_watch_wearos_interval_off">Väljas</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
-    <string name="settings_watch_wearos_interval_minute">1 min</string>
     <string name="settings_watch_wearos_tracking_body">Väljalülitamine lõpetab selle mõõtmise kellas. Juba salvestatud andmed jäävad alles.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Kella sünkroonimine</string>

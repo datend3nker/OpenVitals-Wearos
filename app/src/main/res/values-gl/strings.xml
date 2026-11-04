@@ -4056,7 +4056,6 @@ Podes desactivalo cando queiras e revogar o acceso ás notificacións desde os a
     <string name="settings_watch_wearos_interval_body">A noite é o modo de hora de durmir do reloxo. Mentres se rexistra o sono, a noite mantense cada 10 segundos, porque a detección do sono necesita cada medición.</string>
     <string name="settings_watch_wearos_interval_off">Desactivado</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
-    <string name="settings_watch_wearos_interval_minute">1 min</string>
     <string name="settings_watch_wearos_tracking_body">Desactivar detén a medición no reloxo. Os datos xa rexistrados quedan onde están.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Sincronización do reloxo</string>

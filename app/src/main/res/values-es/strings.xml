@@ -4017,7 +4017,6 @@
     <string name="settings_watch_wearos_interval_body">La noche es el modo de hora de dormir del reloj. Mientras se registra el sueño, la noche se mantiene cada 10 segundos, porque la detección del sueño necesita cada medición.</string>
     <string name="settings_watch_wearos_interval_off">Desactivado</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
-    <string name="settings_watch_wearos_interval_minute">1 min</string>
     <string name="settings_watch_wearos_tracking_body">Desactivar detiene la medición en el reloj. Los datos ya registrados se quedan donde están.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Sincronización del reloj</string>

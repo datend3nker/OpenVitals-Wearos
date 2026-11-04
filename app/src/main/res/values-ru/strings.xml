@@ -4054,7 +4054,6 @@
     <string name="settings_watch_wearos_interval_body">Ночь — это режим сна на часах. Пока записывается сон, ночью измерения идут каждые 10 секунд, потому что распознаванию сна нужно каждое измерение.</string>
     <string name="settings_watch_wearos_interval_off">Выкл.</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 с</string>
-    <string name="settings_watch_wearos_interval_minute">1 мин</string>
     <string name="settings_watch_wearos_tracking_body">Выключение прекращает это измерение на часах. Уже записанные данные остаются на часах.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Синхронизация часов</string>

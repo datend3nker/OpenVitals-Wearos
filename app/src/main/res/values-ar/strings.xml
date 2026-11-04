@@ -78,7 +78,6 @@
     <string name="settings_watch_wearos_interval_body">الليل يعني وضع النوم على الساعة. وما دام النوم مسجّلًا يبقى الليل كل 10 ثوانٍ لأن كشف النوم يحتاج كل قياس.</string>
     <string name="settings_watch_wearos_interval_off">إيقاف</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 ث</string>
-    <string name="settings_watch_wearos_interval_minute">دقيقة</string>
     <string name="settings_watch_wearos_tracking_body">إيقاف أي مفتاح يمنع الساعة من قياس ذلك. البيانات المسجّلة سابقًا تبقى على الساعة.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_needs_log_write">لم تُكتب الإدخالات المسجّلة: اسمح لـ OpenVitals بكتابتها في Health Connect، ثم زامن مرة أخرى.</string>

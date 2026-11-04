@@ -4011,7 +4011,6 @@
     <string name="settings_watch_wearos_interval_body">La notte corrisponde alla modalità orario di sonno dell\'orologio. Mentre il sonno viene registrato, la notte resta ogni 10 secondi, perché il riconoscimento del sonno ha bisogno di ogni misurazione.</string>
     <string name="settings_watch_wearos_interval_off">Disattivo</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
-    <string name="settings_watch_wearos_interval_minute">1 min</string>
     <string name="settings_watch_wearos_tracking_body">Disattivare interrompe la misurazione sull\'orologio. I dati già registrati restano dove sono.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Sincronizzazione orologio</string>

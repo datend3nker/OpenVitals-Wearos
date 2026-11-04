@@ -4053,7 +4053,6 @@
     <string name="settings_watch_wearos_interval_body">Noc to tryb snu zegarka. Dopóki zapisywany jest sen, w nocy pomiar pozostaje co 10 sekund, bo wykrywanie snu potrzebuje każdego pomiaru.</string>
     <string name="settings_watch_wearos_interval_off">Wyłączone</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
-    <string name="settings_watch_wearos_interval_minute">1 min</string>
     <string name="settings_watch_wearos_tracking_body">Wyłączenie zatrzymuje pomiar na zegarku. Dane już zapisane zostają na zegarku.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Synchronizacja zegarka</string>

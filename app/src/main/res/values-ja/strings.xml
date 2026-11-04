@@ -4053,7 +4053,6 @@
     <string name="settings_watch_wearos_interval_body">夜は時計の就寝モードのことです。睡眠を記録している間、夜は10秒ごとのままです。睡眠の判定には全ての測定が必要だからです。</string>
     <string name="settings_watch_wearos_interval_off">オフ</string>
     <string name="settings_watch_wearos_interval_10_seconds">10秒</string>
-    <string name="settings_watch_wearos_interval_minute">1分</string>
     <string name="settings_watch_wearos_tracking_body">オフにすると時計はその測定をしなくなります。すでに記録されたデータは時計に残ります。</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">ウォッチの同期</string>
