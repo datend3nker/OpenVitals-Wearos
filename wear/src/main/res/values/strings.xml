@@ -220,6 +220,6 @@
     <string name="settings_tracking_hr_day">Daytime heart rate</string>
     <string name="settings_tracking_hr_night">Bedtime heart rate</string>
     <string name="interval_every_10_seconds">Every 10 seconds</string>
-    <string name="interval_every_minute">Every minute</string>
+    <string name="interval_power_save">Power save</string>
     <string name="interval_off">Off</string>
 </resources>
