@@ -66,6 +66,9 @@ internal class WearReadingsSource(
         )
     }
 
+    /** The water the phone sent for today, in millilitres, or null: the quick log tile reads it. */
+    fun phoneHydrationToday(): Double? = readDay(WearMetrics.DAY_HYDRATION, LocalDate.now(clock))
+
     /** Today only, read now: what the Today tile shows. */
     fun today(): DayReadings = read(LocalDate.now(clock), clock.zone)
 

@@ -76,9 +76,10 @@ object HrvRmssd {
 
     /**
      * [beatMillis] are beat times in milliseconds, ascending. Null when too
-     * few beats are clean, or the result is not physiological.
+     * few beats are clean, or the result is not physiological. A shorter window than the night's
+     * five minutes passes a lower [minCleanBeats].
      */
-    fun of(beatMillis: DoubleArray): HrvWindowResult? {
+    fun of(beatMillis: DoubleArray, minCleanBeats: Int = MIN_CLEAN_BEATS): HrvWindowResult? {
         if (beatMillis.size < 3) return null
         val intervals = DoubleArray(beatMillis.size - 1) { beatMillis[it + 1] - beatMillis[it] }
         val good = cleanIntervals(intervals)
@@ -95,7 +96,7 @@ object HrvRmssd {
             used[i + 1] = true
         }
         val beats = used.count { it }
-        if (pairs == 0 || beats < MIN_CLEAN_BEATS || beats < MIN_CLEAN_SHARE * intervals.size) return null
+        if (pairs == 0 || beats < minCleanBeats || beats < MIN_CLEAN_SHARE * intervals.size) return null
         val rmssd = sqrt(sumSquares / pairs)
         if (rmssd > MAX_PLAUSIBLE_RMSSD_MILLIS) return null
         return HrvWindowResult(rmssd, beats)

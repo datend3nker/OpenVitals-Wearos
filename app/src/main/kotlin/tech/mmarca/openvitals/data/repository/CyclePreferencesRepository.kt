@@ -37,11 +37,16 @@ class CyclePreferencesRepository @Inject constructor(
     override val cycleTrackingProfileFlow: Flow<CycleTrackingProfile> = profile.asStateFlow()
 
     override fun setCycleTrackingProfile(profile: CycleTrackingProfile) {
+        // The profile that callers hand back may carry the pill overlay of an
+        // active scheme. That overlay is not a stored choice: keep what is stored.
+        val keepStoredMethod = prefs.getBoolean(KEY_PILL_ENABLED, false) &&
+            profile.hormonalContraception == readStoredProfile().withPillScheme().hormonalContraception
+        val storedMethod = readStoredProfile().hormonalContraception
         prefs.edit {
             putString(KEY_CONTEXTS, profile.contexts.map { it.id }.sorted().joinToString(SEPARATOR))
             val ageBand = profile.ageBand
             if (ageBand == null) remove(KEY_AGE_BAND) else putString(KEY_AGE_BAND, ageBand.id)
-            val hormonal = profile.hormonalContraception
+            val hormonal = if (keepStoredMethod) storedMethod else profile.hormonalContraception
             if (hormonal.isDeclared) putString(KEY_HORMONAL_KIND, hormonal.kind.id) else remove(KEY_HORMONAL_KIND)
             val stopped = hormonal.stoppedOn
             if (hormonal.isDeclared && stopped != null) {

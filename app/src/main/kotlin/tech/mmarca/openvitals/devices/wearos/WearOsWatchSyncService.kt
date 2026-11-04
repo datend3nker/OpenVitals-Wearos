@@ -152,7 +152,7 @@ class WearOsWatchSyncService(
         zone = zone,
     )
 
-    private val dayValues = WearOsDayValuePush.of(healthConnect, nodePort, clock, zone, weightKg, strideMeters)
+    private val dayValues = WearOsDayValuePush.of(healthConnect, nodePort, clock, zone, weightKg, strideMeters, cursors)
 
     private val workouts = WearOsWorkoutSync(
         cursors = cursors,
@@ -198,7 +198,7 @@ class WearOsWatchSyncService(
             if (!pullHrv(device, progress)) return notPaired(device)
             if (!pullWorkouts(device, progress)) return notPaired(device)
             if (!pullLogEntries(device, progress)) return notPaired(device)
-            dayValues.send(device.address, device.bluetoothName)
+            dayValues.send(device.id, device.address, device.bluetoothName)
         } catch (error: CancellationException) {
             throw error
         } catch (failure: WearOsLinkFailure) {

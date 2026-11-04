@@ -6,6 +6,7 @@ import java.time.ZoneId
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CancellationException
 import tech.mmarca.openvitals.healthconnect.HealthConnectManager
+import tech.mmarca.openvitals.healthconnect.withStrictHealthConnectReads
 import tech.mmarca.openvitals.domain.model.DailyHydration
 import tech.mmarca.openvitals.domain.preferences.StrideLength
 import tech.mmarca.openvitals.domain.model.WeightEntry
@@ -28,6 +29,11 @@ data class WearOsStepProfile(val weightTenthsKg: Int?, val strideCm: Int)
  *
  * Without a read grant Health Connect returns nothing, so nothing is sent and
  * the watch keeps what it has. The weight and step length go along as watch settings.
+ *
+ * The reads are strict and go through the shared Health Connect guard: under a rate-limit
+ * backoff they are skipped, and a refusal sends nothing. There is no retry here; the next
+ * sync tries again. A push that held the same values as the last one the watch took is
+ * not repeated, except after [RESEND_AFTER_MILLIS], in case the watch lost its data.
  */
 internal class WearOsDayValuePush(
     private val nodePort: WearOsNodePort,
@@ -38,19 +44,32 @@ internal class WearOsDayValuePush(
     private val weights: suspend (Instant, Instant) -> List<WeightEntry>,
     private val zone: () -> ZoneId,
     private val today: () -> LocalDate,
+    /** What the last push to this watch held; null where nothing is remembered. */
+    private val lastSent: (deviceId: String) -> SentDayValues? = { null },
+    private val markSent: (deviceId: String, SentDayValues) -> Unit = { _, _ -> },
+    private val nowMillis: () -> Long = System::currentTimeMillis,
 ) {
     /**
      * Sends the values to the watch after the sync's pulls, so the totals hold what the watch logged.
      * Optional: a failure here costs the tiles one sync and never fails it.
      */
-    suspend fun send(address: String?, name: String?) {
+    suspend fun send(deviceId: String, address: String?, name: String?) {
         try {
-            val values = values()
+            val values = withStrictHealthConnectReads { values() }
             val profile = WearOsStepProfile(
                 weightTenthsKg = weightKg()?.let { (it * TENTHS).roundToInt() },
                 strideCm = (StrideLength.normalize(strideMeters()) * CENTIMETRES_PER_METRE).roundToInt(),
             )
+            val fingerprint = fingerprint(values, profile)
+            val before = lastSent(deviceId)
+            if (before != null && before.fingerprint == fingerprint && nowMillis() - before.atMillis < RESEND_AFTER_MILLIS) {
+                WearOsLog.log("day values: unchanged, not sent")
+                return
+            }
             val kept = nodePort.pushDayValues(address, name, values, profile)
+            // Null: no bonded watch matched. Fewer than all: the watch app is too old or refused some. Try again next time.
+            val all = values.size + (if (profile.weightTenthsKg != null) 2 else 1)
+            if (kept != null && kept >= all) markSent(deviceId, SentDayValues(fingerprint, nowMillis()))
             WearOsLog.log("day values: ${kept ?: 0} of ${values.size + 2} kept by the watch")
         } catch (error: CancellationException) {
             throw error
@@ -58,6 +77,9 @@ internal class WearOsDayValuePush(
             WearOsLog.log("day values not sent: ${error::class.java.simpleName}")
         }
     }
+
+    internal fun fingerprint(values: List<WearOsDayValue>, profile: WearOsStepProfile): String =
+        values.joinToString(";") { "${it.kind}:${it.epochDay}:${it.tenths}" } + "|${profile.weightTenthsKg}|${profile.strideCm}"
 
     suspend fun values(): List<WearOsDayValue> {
         val last = today()
@@ -77,6 +99,9 @@ internal class WearOsDayValuePush(
     }
 
     companion object {
+        /** A day, so a watch that lost its data gets the values again. */
+        const val RESEND_AFTER_MILLIS = 24L * 60 * 60 * 1000
+
         private const val MILLILITRES_PER_LITRE = 1000.0
         private const val TENTHS = 10.0
 
@@ -89,6 +114,7 @@ internal class WearOsDayValuePush(
             zone: () -> ZoneId,
             weightKg: suspend () -> Double?,
             strideMeters: () -> Double,
+            cursors: WearOsSyncCursorStore? = null,
         ) =
             WearOsDayValuePush(
                 nodePort = nodePort,
@@ -98,6 +124,9 @@ internal class WearOsDayValuePush(
                 weights = { from, to -> healthConnect.readWeightEntries(from, to) },
                 zone = zone,
                 today = { clock().atZone(zone()).toLocalDate() },
+                lastSent = { id -> cursors?.dayValuesSent(id) },
+                markSent = { id, sent -> cursors?.setDayValuesSent(id, sent) },
+                nowMillis = { clock().toEpochMilli() },
             )
     }
 }

@@ -17,6 +17,7 @@ import tech.mmarca.openvitals.domain.workout.WorkoutSport
 import tech.mmarca.openvitals.wear.AscentMinuteCounter
 import tech.mmarca.openvitals.wear.MetricStore
 import tech.mmarca.openvitals.wear.SensorTime
+import tech.mmarca.openvitals.wearlink.WearLinkWorkoutLines
 
 /**
  * Records one workout at a time inside `WearAppService`: GPS from the
@@ -143,6 +144,11 @@ class WorkoutRecorder(
         override fun run() {
             val t = tracker ?: return
             val now = System.currentTimeMillis()
+            // The phone refuses a longer workout, so end it here instead of losing it.
+            if (now - t.startMillis >= WearLinkWorkoutLines.MAX_DURATION_MILLIS) {
+                finish()
+                return
+            }
             publish(t, now)
             if (now - lastCheckpointAt >= CHECKPOINT_MILLIS) {
                 lastCheckpointAt = now

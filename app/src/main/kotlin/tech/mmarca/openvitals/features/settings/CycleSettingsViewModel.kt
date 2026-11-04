@@ -93,10 +93,14 @@ class CycleSettingsViewModel @Inject constructor(
 
     fun setAgeBand(band: AgeBand?) = saveProfile(_uiState.value.profile.copy(ageBand = band))
 
-    /** Picking none clears the stop date too. An active pill scheme owns the kind, so the picker is hidden then. */
+    /** Picking none clears the stop date too, and so does a different method: the old date belongs to the old one. An active pill scheme owns the kind, so the picker is hidden then. */
     fun setHormonalKind(kind: HormonalContraceptionKind) {
         val current = _uiState.value.profile.hormonalContraception
-        val next = if (kind == HormonalContraceptionKind.NONE) HormonalContraception() else current.copy(kind = kind)
+        val next = when {
+            kind == HormonalContraceptionKind.NONE -> HormonalContraception()
+            kind == current.kind -> current
+            else -> HormonalContraception(kind)
+        }
         saveProfile(_uiState.value.profile.copy(hormonalContraception = next))
     }
 

@@ -270,4 +270,43 @@ class WorkoutTrackerTest {
         assertEquals(1, back.pauses.size)
         assertNotNull(back.distanceMetres)
     }
+
+    @Test fun `steps taken during a pause are not credited on resume`() {
+        val tracker = run()
+        tracker.onStepTotal(t0, 1_000)
+        tracker.onStepTotal(t0 + 30_000, 1_050)
+        tracker.pause(t0 + 31_000)
+        tracker.onStepTotal(t0 + 40_000, 1_120)
+        tracker.onStepTotal(t0 + 50_000, 1_200)
+        tracker.resume(t0 + 60_000)
+        tracker.onStepTotal(t0 + 70_000, 1_230)
+
+        assertEquals(80, tracker.snapshot(t0 + 70_000).steps)
+    }
+
+    @Test fun `a reading from before the start is only a baseline, never a gain`() {
+        val tracker = run()
+        tracker.onStepTotal(t0 - 3_600_000, 5_000)
+        tracker.onStepTotal(t0 + 5_000, 5_400)
+        tracker.onStepTotal(t0 + 65_000, 5_460)
+
+        assertEquals(60, tracker.snapshot(t0 + 65_000).steps)
+    }
+
+    @Test fun `a workout longer than the link allows is cut to the limit with its pauses and route`() {
+        val tracker = run()
+        val day = tech.mmarca.openvitals.wearlink.WearLinkWorkoutLines.MAX_DURATION_MILLIS
+        for (s in 0..60) tracker.onFix(fix(s, s * 3.0))
+        tracker.pause(t0 + day - 1_000)
+        tracker.resume(t0 + day + 5_000)
+        tracker.pause(t0 + day + 10_000)
+
+        val workout = tracker.finish(t0 + day + 20_000)
+
+        assertEquals(t0 + day, workout.endMillis)
+        assertEquals(listOf(tech.mmarca.openvitals.wearlink.WearLinkWorkout.Pause(t0 + day - 1_000, t0 + day)), workout.pauses)
+        assertNotNull(tech.mmarca.openvitals.wearlink.WearLinkWorkoutLines.parseHeader(
+            tech.mmarca.openvitals.wearlink.WearLinkWorkoutLines.formatHeader(workout),
+        ))
+    }
 }

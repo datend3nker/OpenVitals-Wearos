@@ -27,7 +27,7 @@ internal fun WearUiState.withEntries(
         // The phone's total for a day already holds what it synced from the watch, so the larger of the two stands.
         val phoneWeek = metrics[MetricTile.HYDRATION]?.week.orEmpty()
         val week = lastDays(today).mapIndexed { index, day ->
-            maxOf(water.onDay(day, zone).sumOf { it.value }, phoneWeek.getOrNull(index) ?: 0.0)
+            waterOnDay(phoneWeek.getOrNull(index), water, day, zone)
         }
         updated[MetricTile.HYDRATION] = MetricUiState(
             current = week.last(),
@@ -48,6 +48,22 @@ internal fun WearUiState.withEntries(
 
     return copy(metrics = updated, entries = entries)
 }
+
+/**
+ * Water drunk on [day] in millilitres: the larger of the phone's total for it
+ * ([phoneMl], null when none was sent) and the watch's own [entries]. The
+ * phone's total already holds what it synced from the watch. The main screen
+ * and the quick log tile both use this.
+ */
+internal fun waterOnDay(
+    phoneMl: Double?,
+    entries: List<LoggedEntry>,
+    day: LocalDate,
+    zone: ZoneId = ZoneId.systemDefault(),
+): Double = maxOf(
+    entries.filter { it.type == EntryType.WATER }.onDay(day, zone).sumOf { it.value },
+    phoneMl ?: 0.0,
+)
 
 private fun MutableMap<MetricTile, MetricUiState>.fillCurrent(metric: MetricTile, value: Double) {
     val existing = this[metric] ?: MetricUiState()

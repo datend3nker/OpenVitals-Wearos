@@ -93,4 +93,22 @@ class CyclePreferencesRepositoryTest {
 
         assertEquals(HormonalContraceptionKind.PILL, repository(prefs).cycleTrackingProfile().hormonalContraception.kind)
     }
+
+    @Test
+    fun `saving the profile that was read does not store the pill overlay`() {
+        val prefs = FakeSharedPreferences()
+        val repository = repository(prefs)
+        repository.setCycleTrackingProfile(
+            CycleTrackingProfile(hormonalContraception = HormonalContraception(HormonalContraceptionKind.IMPLANT, LocalDate.of(2026, 8, 1))),
+        )
+        repository.setPillPlan(PillPlan(enabled = true, packStart = LocalDate.of(2026, 9, 1), updatedAt = Instant.parse("2026-09-01T08:00:00Z")))
+
+        repository.setCycleTrackingProfile(repository.cycleTrackingProfile().copy(ageBand = AgeBand.AGE_25_29))
+        repository.setPillPlan(repository.pillPlan().copy(enabled = false))
+
+        assertEquals(
+            HormonalContraception(HormonalContraceptionKind.IMPLANT, LocalDate.of(2026, 8, 1)),
+            repository(prefs).cycleTrackingProfile().hormonalContraception,
+        )
+    }
 }

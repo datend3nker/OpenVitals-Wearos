@@ -24,7 +24,6 @@ import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TileService
 import com.google.common.util.concurrent.ListenableFuture
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +33,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.guava.future
 import tech.mmarca.openvitals.wear.MainActivity
 import tech.mmarca.openvitals.wear.R
-import tech.mmarca.openvitals.wear.UnitSystem
+import tech.mmarca.openvitals.wear.MetricStore
+import tech.mmarca.openvitals.wear.WearPreferences
+import tech.mmarca.openvitals.wear.WearReadingsSource
 import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.DisplayPreferences
 import tech.mmarca.openvitals.wear.WearRoutes
@@ -43,9 +44,11 @@ import tech.mmarca.openvitals.wear.features.quicklog.EntryLog
 import tech.mmarca.openvitals.wear.features.quicklog.EntryType
 import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
 import tech.mmarca.openvitals.wear.features.quicklog.WaterServingMl
+import tech.mmarca.openvitals.wear.features.quicklog.waterOnDay
 import tech.mmarca.openvitals.wear.health.CapabilityProbe
 import tech.mmarca.openvitals.wear.health.WearCapabilities
 import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
+import tech.mmarca.openvitals.wear.ui.components.metricUnitLabel
 import tech.mmarca.openvitals.wear.ui.theme.HeartColor
 import tech.mmarca.openvitals.wear.ui.theme.HydrationColor
 
@@ -82,10 +85,14 @@ class QuickLogTileService : TileService() {
                 .also { cachedCapabilities = it }
             val zone = ZoneId.systemDefault()
             val today = LocalDate.now(zone)
-            val waterToday = entryLog.load()
-                .filter { it.type == EntryType.WATER }
-                .filter { Instant.ofEpochMilli(it.timeMillis).atZone(zone).toLocalDate() == today }
-                .sumOf { it.value }
+            // Like the main screen: the larger of the phone's total and the watch's entries.
+            val waterToday = waterOnDay(
+                phoneMl = WearReadingsSource(MetricStore(this@QuickLogTileService)).phoneHydrationToday(),
+                entries = entryLog.load(),
+                day = today,
+                zone = zone,
+            )
+            val preferences = DisplayPreferences(unitSystem = WearPreferences.shared(this@QuickLogTileService).unitSystem)
 
             TileBuilders.Tile.Builder()
                 .setResourcesVersion(RESOURCES_VERSION)
@@ -95,6 +102,7 @@ class QuickLogTileService : TileService() {
                             context = this@QuickLogTileService,
                             deviceParameters = requestParams.deviceConfiguration,
                             waterToday = waterToday,
+                            preferences = preferences,
                             capabilities = capabilities,
                             addWaterId = addWaterId(clicks.getInt(KEY_CLICK_COUNT, 0)),
                         ),
@@ -118,14 +126,14 @@ class QuickLogTileService : TileService() {
         context: Context,
         deviceParameters: DeviceParameters,
         waterToday: Double,
+        preferences: DisplayPreferences,
         capabilities: WearCapabilities,
         addWaterId: String,
     ): LayoutElement {
-        val preferences = DisplayPreferences()
-        val unitSystem = UnitSystem.METRIC
+        val unitSystem = preferences.unitSystem
         val goal = preferences.waterGoalMl.toDouble()
         val hydration = HydrationColor.toArgb()
-        val unit = context.getString(R.string.unit_ml)
+        val unit = context.getString(metricUnitLabel(MetricTile.HYDRATION, unitSystem))
 
         val buttons = MultiButtonLayout.Builder()
             .addButtonContent(

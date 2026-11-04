@@ -59,4 +59,50 @@ class WearOsDayValuePushTest {
 
         assertEquals(listOf(today.minusDays(2).toEpochDay(), today.toEpochDay()), values.map { it.epochDay })
     }
+
+    @Test
+    fun `a refused read sends nothing and remembers nothing`() = runBlocking {
+        var pushes = 0
+        val port = object : WearOsNodePort by io.mockk.mockk(relaxed = true) {
+            override suspend fun pushDayValues(a: String?, n: String?, v: List<WearOsDayValue>, p: WearOsStepProfile): Int? {
+                pushes++
+                return v.size + 2
+            }
+        }
+        var remembered: SentDayValues? = null
+        val push = WearOsDayValuePush(
+            port, { 70.0 }, { 0.7 }, { _, _ -> throw IllegalStateException("rate limited") }, { _, _ -> emptyList() },
+            { zone }, { today }, { remembered }, { _, sent -> remembered = sent },
+        )
+
+        push.send("watch", "AA", "w")
+
+        assertEquals(0, pushes)
+        assertEquals(null, remembered)
+    }
+
+    @Test
+    fun `the same values are not pushed twice within a day, but are after it`() = runBlocking {
+        var pushes = 0
+        val port = object : WearOsNodePort by io.mockk.mockk(relaxed = true) {
+            override suspend fun pushDayValues(a: String?, n: String?, v: List<WearOsDayValue>, p: WearOsStepProfile): Int? {
+                pushes++
+                return v.size + 2
+            }
+        }
+        var remembered: SentDayValues? = null
+        var now = 1_000L
+        val push = WearOsDayValuePush(
+            port, { 70.0 }, { 0.7 }, { _, _ -> listOf(DailyHydration(today, 1.0)) }, { _, _ -> emptyList() },
+            { zone }, { today }, { remembered }, { _, sent -> remembered = sent }, { now },
+        )
+
+        push.send("watch", "AA", "w")
+        push.send("watch", "AA", "w")
+        assertEquals(1, pushes)
+
+        now += WearOsDayValuePush.RESEND_AFTER_MILLIS
+        push.send("watch", "AA", "w")
+        assertEquals(2, pushes)
+    }
 }
