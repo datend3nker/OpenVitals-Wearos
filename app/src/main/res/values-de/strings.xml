@@ -3978,10 +3978,10 @@
     <string name="settings_watch_wearos_ascent">Gestiegene Höhe auf der Uhr aufzeichnen</string>
     <string name="settings_watch_wearos_interval_day">Herzfrequenz tagsüber</string>
     <string name="settings_watch_wearos_interval_night">Herzfrequenz nachts</string>
-    <string name="settings_watch_wearos_interval_body">Nacht ist der Schlafmodus der Uhr. Solange Schlaf aufgezeichnet wird, bleibt die Nacht bei alle 10 Sekunden, weil die Schlaferkennung jede Messung braucht.</string>
+    <string name="settings_watch_wearos_interval_body">Nacht ist der Schlafmodus der Uhr. Solange Schlaf aufgezeichnet wird, bleibt die Nacht bei alle 10 Sekunden, weil die Schlaferkennung jede Messung braucht. Energiesparend ist ungefähr: etwa alle 10 Minuten, solange die Uhr ruhig liegt; die erste Messung, nachdem die Uhr in den Ruhezustand geht, kann merklich länger dauern.</string>
     <string name="settings_watch_wearos_interval_off">Aus</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
-    <string name="settings_watch_wearos_interval_minute">1 min</string>
+    <string name="settings_watch_wearos_interval_power_save">Energiesparend</string>
     <string name="settings_watch_wearos_tracking_body">Aus lässt die Uhr das nicht mehr messen. Schon aufgezeichnete Daten bleiben auf der Uhr.</string>
     <string name="settings_watch_wearos_setting_unsupported">Aktualisiere die Uhren-App, um diese Einstellung zu ändern.</string>
     <string name="settings_watch_wearos_sync_section">Uhr-Synchronisierung</string>

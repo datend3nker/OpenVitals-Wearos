@@ -4044,10 +4044,10 @@
     <string name="settings_watch_wearos_ascent">Record height climbed on the watch</string>
     <string name="settings_watch_wearos_interval_day">Heart rate by day</string>
     <string name="settings_watch_wearos_interval_night">Heart rate at night</string>
-    <string name="settings_watch_wearos_interval_body">Night means bedtime mode on the watch. While sleep is recorded, the night keeps every 10 seconds, because sleep detection needs every sample.</string>
+    <string name="settings_watch_wearos_interval_body">Night means bedtime mode on the watch. While sleep is recorded, the night keeps every 10 seconds, because sleep detection needs every sample. Power save is approximate: about every 10 minutes while the watch is still, and the first reading after the watch goes idle can take noticeably longer.</string>
     <string name="settings_watch_wearos_interval_off">Off</string>
     <string name="settings_watch_wearos_interval_10_seconds">10 s</string>
-    <string name="settings_watch_wearos_interval_minute">1 min</string>
+    <string name="settings_watch_wearos_interval_power_save">Power save</string>
     <string name="settings_watch_wearos_tracking_body">Turning a switch off stops the watch from measuring that. Data it has already recorded stays on the watch.</string>
     <string name="settings_watch_wearos_setting_unsupported">Update the watch app to change this setting.</string>
     <string name="settings_watch_wearos_sync_section">Watch Sync</string>
