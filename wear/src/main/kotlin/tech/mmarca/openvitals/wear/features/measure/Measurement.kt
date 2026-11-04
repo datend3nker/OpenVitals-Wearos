@@ -38,7 +38,7 @@ enum class Measurement(
         durationSeconds = 30,
     ),
 
-    /** RMSSD over a minute of single beats. Only on watches that report each beat. */
+    /** RMSSD from the raw PPG, in two to five minutes. Only on watches with Samsung's raw pulse sensor. */
     HRV(
         R.string.measure_hrv,
         R.string.measure_hrv_description,
@@ -46,7 +46,7 @@ enum class Measurement(
         Icons.Outlined.Insights,
         VitalsColor,
         needsHeartRatePermission = true,
-        durationSeconds = 60,
+        durationSeconds = 300,
     ),
 
     /** The barometer, with the altitude it implies at standard pressure. */

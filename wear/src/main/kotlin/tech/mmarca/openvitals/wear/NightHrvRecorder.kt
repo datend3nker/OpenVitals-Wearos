@@ -42,9 +42,7 @@ class NightHrvRecorder(
 ) : SensorEventListener {
 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    private val sensor: Sensor? = sensorManager.getSensorList(Sensor.TYPE_ALL).firstOrNull {
-        it.stringType == PpgRawLogger.SENSOR_TYPE
-    }
+    private val sensor: Sensor? = RawPpgSource.find(sensorManager)
     private val wakeLock = (context.getSystemService(Context.POWER_SERVICE) as PowerManager)
         .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKE_LOCK_TAG)
         .apply { setReferenceCounted(false) }
@@ -209,8 +207,7 @@ class NightHrvRecorder(
         const val TAG = "NightHrvRecorder"
         const val WAKE_LOCK_TAG = "OpenVitals:nightHrv"
 
-        /** Raw PPG channel `v5`: the pulsatile one, found by the research spike. */
-        const val PPG_CHANNEL = 5
+        const val PPG_CHANNEL = RawPpgSource.CHANNEL
 
         const val TICK_MILLIS = 30_000L
         const val WINDOW_TICK_MILLIS = 10_000L

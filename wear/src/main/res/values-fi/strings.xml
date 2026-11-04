@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Syke</string>
     <string name="measure_heart_rate_description">Noin 15 sekuntia</string>
     <string name="measure_hrv">Sykevaihtelu</string>
-    <string name="measure_hrv_description">1 minuutti istuen paikallaan</string>
     <string name="measure_air_pressure">Ilmanpaine</string>
     <string name="measure_air_pressure_description">Ilmapuntari ja korkeus</string>
     <string name="measure_instruction_still">Pidä kello tiukasti ranteessa ja pysy paikallaan.</string>
-    <string name="measure_instruction_still_minute">Istu, lepuuta kättä ja pysy paikallaan minuutin ajan.</string>
     <string name="measure_instruction_none">Kestää muutaman sekunnin.</string>
     <string name="measure_hint_detecting">Tunnistetaan…</string>
     <string name="measure_hint_off_body">Laita kello ranteeseen</string>

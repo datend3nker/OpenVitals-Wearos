@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Puls</string>
     <string name="measure_heart_rate_description">Cirka 15 sekunder</string>
     <string name="measure_hrv">Pulsvariabilitet</string>
-    <string name="measure_hrv_description">1 minut, siddende i ro</string>
     <string name="measure_air_pressure">Lufttryk</string>
     <string name="measure_air_pressure_description">Barometer og højde</string>
     <string name="measure_instruction_still">Sid med uret tæt på håndleddet, og hold stille.</string>
-    <string name="measure_instruction_still_minute">Sæt dig, hvil armen, og vær stille i et minut.</string>
     <string name="measure_instruction_none">Tager et par sekunder.</string>
     <string name="measure_hint_detecting">Finder…</string>
     <string name="measure_hint_off_body">Tag uret på håndleddet</string>

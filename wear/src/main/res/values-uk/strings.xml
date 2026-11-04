@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Пульс</string>
     <string name="measure_heart_rate_description">Близько 15 секунд</string>
     <string name="measure_hrv">Варіабельність серцевого ритму</string>
-    <string name="measure_hrv_description">1 хвилина, сидячи без руху</string>
     <string name="measure_air_pressure">Атмосферний тиск</string>
     <string name="measure_air_pressure_description">Барометр і висота</string>
     <string name="measure_instruction_still">Щільно прилягайте годинником до зап’ястя й тримайте руку нерухомо.</string>
-    <string name="measure_instruction_still_minute">Сядьте, покладіть руку й не рухайтеся хвилину.</string>
     <string name="measure_instruction_none">Триває кілька секунд.</string>
     <string name="measure_hint_detecting">Визначення…</string>
     <string name="measure_hint_off_body">Одягніть годинник на зап’ястя</string>

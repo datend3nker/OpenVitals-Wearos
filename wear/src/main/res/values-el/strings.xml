@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Καρδιακός ρυθμός</string>
     <string name="measure_heart_rate_description">Περίπου 15 δευτερόλεπτα</string>
     <string name="measure_hrv">Μεταβλητότητα καρδιακού ρυθμού</string>
-    <string name="measure_hrv_description">1 λεπτό, καθιστός και ακίνητος</string>
     <string name="measure_air_pressure">Ατμοσφαιρική πίεση</string>
     <string name="measure_air_pressure_description">Βαρόμετρο και υψόμετρο</string>
     <string name="measure_instruction_still">Κράτα το ρολόι σφιχτά στον καρπό και μείνε ακίνητος.</string>
-    <string name="measure_instruction_still_minute">Κάθισε, ακούμπησε το χέρι σου και μείνε ακίνητος για ένα λεπτό.</string>
     <string name="measure_instruction_none">Διαρκεί λίγα δευτερόλεπτα.</string>
     <string name="measure_hint_detecting">Ανίχνευση…</string>
     <string name="measure_hint_off_body">Φόρεσε το ρολόι στον καρπό σου</string>

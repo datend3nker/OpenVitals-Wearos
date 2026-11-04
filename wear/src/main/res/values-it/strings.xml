@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Frequenza cardiaca</string>
     <string name="measure_heart_rate_description">Circa 15 secondi</string>
     <string name="measure_hrv">Variabilità della frequenza cardiaca</string>
-    <string name="measure_hrv_description">1 minuto, seduto e fermo</string>
     <string name="measure_air_pressure">Pressione atmosferica</string>
     <string name="measure_air_pressure_description">Barometro e altitudine</string>
     <string name="measure_instruction_still">Tieni l\'orologio ben aderente al polso e stai fermo.</string>
-    <string name="measure_instruction_still_minute">Siediti, appoggia il braccio e resta fermo per un minuto.</string>
     <string name="measure_instruction_none">Richiede pochi secondi.</string>
     <string name="measure_hint_detecting">Rilevamento…</string>
     <string name="measure_hint_off_body">Metti l\'orologio al polso</string>

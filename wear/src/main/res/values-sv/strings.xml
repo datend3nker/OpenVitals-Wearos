@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Puls</string>
     <string name="measure_heart_rate_description">Cirka 15 sekunder</string>
     <string name="measure_hrv">Hjärtfrekvensvariabilitet</string>
-    <string name="measure_hrv_description">1 minut, sittande stilla</string>
     <string name="measure_air_pressure">Lufttryck</string>
     <string name="measure_air_pressure_description">Barometer och höjd</string>
     <string name="measure_instruction_still">Sitt klockan tätt mot handleden och håll dig stilla.</string>
-    <string name="measure_instruction_still_minute">Sätt dig ned, vila armen och var stilla en minut.</string>
     <string name="measure_instruction_none">Tar några sekunder.</string>
     <string name="measure_hint_detecting">Söker…</string>
     <string name="measure_hint_off_body">Sätt på klockan på handleden</string>

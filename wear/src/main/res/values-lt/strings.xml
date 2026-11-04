@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Pulsas</string>
     <string name="measure_heart_rate_description">Apie 15 sekundžių</string>
     <string name="measure_hrv">Širdies ritmo variabilumas</string>
-    <string name="measure_hrv_description">1 minutė, sėdint ramiai</string>
     <string name="measure_air_pressure">Oro slėgis</string>
     <string name="measure_air_pressure_description">Barometras ir aukštis</string>
     <string name="measure_instruction_still">Laikrodį laikykite priglaudę prie riešo ir nejudėkite.</string>
-    <string name="measure_instruction_still_minute">Atsisėskite, pasiremkite ranka ir minutę ramiai sėdėkite.</string>
     <string name="measure_instruction_none">Trunka kelias sekundes.</string>
     <string name="measure_hint_detecting">Aptinkama…</string>
     <string name="measure_hint_off_body">Uždėkite laikrodį ant riešo</string>

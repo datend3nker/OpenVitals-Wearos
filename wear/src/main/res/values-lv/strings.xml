@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Sirdsdarbība</string>
     <string name="measure_heart_rate_description">Apmēram 15 sekundes</string>
     <string name="measure_hrv">Sirdsdarbības variabilitāte</string>
-    <string name="measure_hrv_description">1 minūte, sēžot mierīgi</string>
     <string name="measure_air_pressure">Gaisa spiediens</string>
     <string name="measure_air_pressure_description">Barometrs un augstums</string>
     <string name="measure_instruction_still">Turiet pulksteni cieši pie plaukstas locītavas un nekustieties.</string>
-    <string name="measure_instruction_still_minute">Apsēdieties, atbalstiet roku un minūti paliekiet mierīgi.</string>
     <string name="measure_instruction_none">Aizņem dažas sekundes.</string>
     <string name="measure_hint_detecting">Notiek noteikšana…</string>
     <string name="measure_hint_off_body">Uzvelciet pulksteni uz plaukstas</string>

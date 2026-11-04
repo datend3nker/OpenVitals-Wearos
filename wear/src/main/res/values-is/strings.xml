@@ -132,11 +132,9 @@
     <string name="measure_heart_rate">Hjartsláttur</string>
     <string name="measure_heart_rate_description">Um 15 sekúndur</string>
     <string name="measure_hrv">Breytileiki hjartsláttar</string>
-    <string name="measure_hrv_description">1 mínúta, sitja kyrr</string>
     <string name="measure_air_pressure">Loftþrýstingur</string>
     <string name="measure_air_pressure_description">Loftvog og hæð</string>
     <string name="measure_instruction_still">Hafðu úrið þétt á úlnliðnum og vertu kyrr.</string>
-    <string name="measure_instruction_still_minute">Settu þig niður, hvíldu handlegginn og vertu kyrr í eina mínútu.</string>
     <string name="measure_instruction_none">Tekur nokkrar sekúndur.</string>
     <string name="measure_hint_detecting">Greini…</string>
     <string name="measure_hint_off_body">Settu úrið á úlnliðinn</string>
