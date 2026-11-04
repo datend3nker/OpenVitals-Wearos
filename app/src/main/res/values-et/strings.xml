@@ -2435,6 +2435,9 @@
     <string name="settings_sleep_night_start_body">Õhtune tund, mil öö algab. Uni sellest ajast hommikutunnini on üks öö; varasemad sessioonid on päevased uinakud.</string>
     <string name="settings_sleep_night_end_title">Öö lõpeb kell</string>
     <string name="settings_sleep_night_end_body">Hommikune tund, mil öö lõpeb. Uni pärast seda kuni õhtuse alguseni loetakse päevaseks uinakuks.</string>
+    <string name="settings_sleep_source_title">Eelistatud uneallikas</string>
+    <string name="settings_sleep_source_body">Health Connect hoiab rakenduste prioriteeti enda teada. Kui kaks rakendust salvestasid sama öö, kuvatakse siin valitud rakendus. Automaatne jätab üksikasjalikuma.</string>
+    <string name="settings_sleep_source_automatic">Automaatne</string>
     <string name="settings_high_heart_rate_alert_title">Kõrge pulsi hoiatus</string>
     <string name="settings_high_heart_rate_alert_body">Lävi, millest alates märgitakse puhkeoleku pulss kõrgeks.</string>
     <string name="settings_low_heart_rate_alert_title">Madala pulsi hoiatus</string>

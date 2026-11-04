@@ -1960,6 +1960,9 @@
     <string name="settings_sleep_night_start_body">夜晚开始的傍晚小时。从此到早晨小时之间的睡眠为一晚；更早的会话为白天小憩。</string>
     <string name="settings_sleep_night_end_title">夜晚结束于</string>
     <string name="settings_sleep_night_end_body">夜晚结束的早晨小时。此后直到傍晚开始之间的睡眠计为白天小憩。</string>
+    <string name="settings_sleep_source_title">首选睡眠来源</string>
+    <string name="settings_sleep_source_body">Health Connect 不会向应用公开您设置的应用优先级。当两个应用记录了同一晚的睡眠时，将显示您在此选择的应用。“自动”会保留更详细的一条。</string>
+    <string name="settings_sleep_source_automatic">自动</string>
     <string name="settings_high_heart_rate_alert_title">高心率提醒</string>
     <string name="settings_high_heart_rate_alert_body">高静息心率标记的阈值。</string>
     <string name="settings_low_heart_rate_alert_title">低心率提醒</string>

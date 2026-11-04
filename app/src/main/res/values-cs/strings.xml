@@ -1964,6 +1964,9 @@
     <string name="settings_sleep_night_start_body">Večerní hodina, kdy začíná noc. Spánek odtud až do ranní hodiny je jedna noc; dřívější relace jsou denní šlofíky.</string>
     <string name="settings_sleep_night_end_title">Noc končí v</string>
     <string name="settings_sleep_night_end_body">Ranní hodina, kdy noc končí. Spánek po ní až do večerního začátku se počítá jako denní šlofík.</string>
+    <string name="settings_sleep_source_title">Preferovaný zdroj spánku</string>
+    <string name="settings_sleep_source_body">Health Connect si pořadí aplikací nechává pro sebe. Když dvě aplikace zaznamenaly stejnou noc, zobrazí se ta, kterou zde vyberete. Automaticky se ponechá podrobnější.</string>
+    <string name="settings_sleep_source_automatic">Automaticky</string>
     <string name="settings_high_heart_rate_alert_title">Upozornění na vysoký tep</string>
     <string name="settings_high_heart_rate_alert_body">Práh pro označení vysokého klidového tepu.</string>
     <string name="settings_low_heart_rate_alert_title">Upozornění na nízký tep</string>

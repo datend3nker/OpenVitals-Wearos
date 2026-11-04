@@ -1964,6 +1964,9 @@
     <string name="settings_sleep_night_start_body">Heure du soir à laquelle commence une nuit. Le sommeil entre cette heure et l\'heure du matin compte comme une nuit ; les sessions plus tôt sont des siestes.</string>
     <string name="settings_sleep_night_end_title">La nuit se termine à</string>
     <string name="settings_sleep_night_end_body">Heure du matin à laquelle se termine une nuit. Le sommeil après cette heure, jusqu\'au début du soir, compte comme une sieste.</string>
+    <string name="settings_sleep_source_title">Source de sommeil préférée</string>
+    <string name="settings_sleep_source_body">Health Connect garde pour lui l\'ordre de priorité de vos applications. Quand deux applications ont enregistré la même nuit, celle choisie ici s\'affiche. Automatique garde la plus détaillée.</string>
+    <string name="settings_sleep_source_automatic">Automatique</string>
     <string name="settings_high_heart_rate_alert_title">Alerte de fréquence cardiaque élevée</string>
     <string name="settings_high_heart_rate_alert_body">Seuil de signalement d\'une fréquence cardiaque au repos élevée.</string>
     <string name="settings_low_heart_rate_alert_title">Alerte de fréquence cardiaque basse</string>

@@ -2407,6 +2407,9 @@
     <string name="settings_sleep_night_start_body">Hora de la tarde en que empieza una noche. El sueño desde aquí hasta la hora de la mañana es una noche; las sesiones anteriores son siestas diurnas.</string>
     <string name="settings_sleep_night_end_title">La noche termina a las</string>
     <string name="settings_sleep_night_end_body">Hora de la mañana en que termina una noche. El sueño posterior, hasta el inicio de la tarde, cuenta como siesta diurna.</string>
+    <string name="settings_sleep_source_title">Fuente de sueño preferida</string>
+    <string name="settings_sleep_source_body">Health Connect se guarda la prioridad de tus apps. Si dos apps registraron la misma noche, se muestra la que elijas aquí. Automático conserva la más detallada.</string>
+    <string name="settings_sleep_source_automatic">Automático</string>
     <string name="settings_high_heart_rate_alert_title">Alerta de frecuencia cardiaca alta</string>
     <string name="settings_high_heart_rate_alert_body">Umbral para marcar una frecuencia cardiaca en reposo alta.</string>
     <string name="settings_low_heart_rate_alert_title">Alerta de frecuencia cardiaca baja</string>

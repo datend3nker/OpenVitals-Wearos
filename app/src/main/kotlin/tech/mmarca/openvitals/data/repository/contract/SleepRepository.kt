@@ -23,4 +23,7 @@ interface SleepRepository {
     suspend fun loadSleepSessions(start: LocalDate, end: LocalDate): List<SleepData>
 
     suspend fun loadSleepSession(id: String): SleepData?
+
+    /** The apps that wrote sleep in the last 60 days, as Health Connect package names, for the preferred-source setting. */
+    suspend fun loadSleepSources(): List<String> = emptyList()
 }

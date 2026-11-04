@@ -2448,6 +2448,9 @@
     <string name="settings_sleep_night_start_body">Ora serale in cui inizia una notte. Il sonno da qui fino all\'ora mattutina è una notte; le sessioni precedenti sono pisolini diurni.</string>
     <string name="settings_sleep_night_end_title">La notte finisce alle</string>
     <string name="settings_sleep_night_end_body">Ora mattutina in cui finisce una notte. Il sonno dopo quest\'ora, fino all\'inizio serale, conta come pisolino diurno.</string>
+    <string name="settings_sleep_source_title">Fonte del sonno preferita</string>
+    <string name="settings_sleep_source_body">Health Connect tiene per sé la priorità delle tue app. Se due app hanno registrato la stessa notte, viene mostrata quella scelta qui. Automatico mantiene la più dettagliata.</string>
+    <string name="settings_sleep_source_automatic">Automatico</string>
     <string name="settings_high_heart_rate_alert_title">Avviso frequenza cardiaca alta</string>
     <string name="settings_high_heart_rate_alert_body">Soglia per una segnalazione di frequenza cardiaca a riposo alta.</string>
     <string name="settings_low_heart_rate_alert_title">Avviso frequenza cardiaca bassa</string>

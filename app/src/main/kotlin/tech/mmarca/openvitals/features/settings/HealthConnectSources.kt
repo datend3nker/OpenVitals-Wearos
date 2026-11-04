@@ -26,6 +26,7 @@ data class HealthConnectSource(
             "com.google.android.apps.fitness" to "Google Fit",
             "com.fitbit.FitbitMobile" to "Fitbit",
             "com.garmin.android.apps.connectmobile" to "Garmin Connect",
+            "com.urbandroid.sleep" to "Sleep as Android",
             UNKNOWN_PACKAGE to "Unknown source",
         )
     }

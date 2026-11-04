@@ -26,7 +26,9 @@ import tech.mmarca.openvitals.domain.insights.bmrMissingInputs
 import tech.mmarca.openvitals.domain.preferences.BodyEnergyCalibration
 import tech.mmarca.openvitals.domain.preferences.BodyProfile
 import tech.mmarca.openvitals.domain.preferences.CaffeinePreferences
+import tech.mmarca.openvitals.data.repository.contract.SleepRepository
 import tech.mmarca.openvitals.domain.preferences.SleepWindow
+import tech.mmarca.openvitals.healthconnect.PreferredSleepSource
 import tech.mmarca.openvitals.domain.preferences.UnitQuantity
 import tech.mmarca.openvitals.domain.preferences.UnitSystem
 
@@ -42,6 +44,10 @@ data class BodySettingsUiState(
     val caffeinePreferences: CaffeinePreferences = CaffeinePreferences(),
     val nightStartHour: Int = SleepWindow.Default.startHour,
     val nightEndHour: Int = SleepWindow.Default.endHour,
+    /** The package whose sleep wins an overlap, or null to let the richer session win. */
+    val preferredSleepSource: String? = null,
+    /** The apps that wrote sleep lately, newest first; empty until read or without the grant. */
+    val sleepSources: List<String> = emptyList(),
     val highHeartRateThresholdBpm: Int = HeartRateThresholds.DEFAULT_HIGH_BPM,
     val lowHeartRateThresholdBpm: Int = HeartRateThresholds.DEFAULT_LOW_BPM,
     val bodyEnergyCalibration: BodyEnergyCalibration = BodyEnergyCalibration.Automatic,
@@ -66,6 +72,8 @@ class BodySettingsViewModel @Inject constructor(
     private val bodyEnergyChainSyncService: BodyEnergyChainSyncService,
     private val derivedMetricsResetService: DerivedMetricsResetService,
     private val bmrEstimateService: BmrEstimateService,
+    private val sleepRepository: SleepRepository,
+    private val sleepSource: PreferredSleepSource,
 ) : ViewModel() {
     companion object {
         private const val TAG = "BodySettingsViewModel"
@@ -76,12 +84,30 @@ class BodySettingsViewModel @Inject constructor(
 
     init {
         resolveBodyProfileFromHealthConnect()
+        loadSleepSources()
     }
 
     /** Permissions are granted in Health Connect, so a return to the screen re-reads. */
     fun refresh() {
         _uiState.value = readPreferences(_uiState.value)
         resolveBodyProfileFromHealthConnect()
+        loadSleepSources()
+    }
+
+    private fun loadSleepSources() {
+        viewModelScope.launch {
+            val sources = runCatching { sleepRepository.loadSleepSources() }
+                .getOrElse { error ->
+                    Log.w(TAG, "loadSleepSources failed", error)
+                    return@launch
+                }
+            _uiState.value = _uiState.value.copy(sleepSources = sources)
+        }
+    }
+
+    fun setPreferredSleepSource(source: String?) {
+        sleepSource.preferredSleepSource = source
+        _uiState.value = _uiState.value.copy(preferredSleepSource = sleepSource.preferredSleepSource)
     }
 
     private fun readPreferences(state: BodySettingsUiState): BodySettingsUiState =
@@ -92,6 +118,7 @@ class BodySettingsViewModel @Inject constructor(
             caffeinePreferences = preferencesRepository.caffeinePreferences(),
             nightStartHour = preferencesRepository.nightStartHour,
             nightEndHour = preferencesRepository.nightEndHour,
+            preferredSleepSource = sleepSource.preferredSleepSource,
             highHeartRateThresholdBpm = preferencesRepository.highHeartRateThresholdBpm,
             lowHeartRateThresholdBpm = preferencesRepository.lowHeartRateThresholdBpm,
             bodyEnergyCalibration = preferencesRepository.bodyEnergyCalibration(),

@@ -2410,6 +2410,9 @@
     <string name="settings_sleep_night_start_body">Abendstunde, zu der eine Nacht beginnt. Schlaf von hier bis zur Morgenstunde zählt als eine Nacht; frühere Sitzungen sind Nickerchen am Tag.</string>
     <string name="settings_sleep_night_end_title">Nacht endet um</string>
     <string name="settings_sleep_night_end_body">Morgenstunde, zu der eine Nacht endet. Schlaf danach, bis zum Abendbeginn, zählt als Nickerchen am Tag.</string>
+    <string name="settings_sleep_source_title">Bevorzugte Schlafquelle</string>
+    <string name="settings_sleep_source_body">Health Connect behält die App-Reihenfolge für sich. Haben zwei Apps dieselbe Nacht aufgezeichnet, wird die hier gewählte App angezeigt. Automatisch behält die detailliertere.</string>
+    <string name="settings_sleep_source_automatic">Automatisch</string>
     <string name="settings_high_heart_rate_alert_title">Warnung bei hoher Herzfrequenz</string>
     <string name="settings_high_heart_rate_alert_body">Schwelle für eine Markierung bei hoher Ruheherzfrequenz.</string>
     <string name="settings_low_heart_rate_alert_title">Warnung bei niedriger Herzfrequenz</string>

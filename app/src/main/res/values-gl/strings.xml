@@ -2314,6 +2314,9 @@ Se Acceder a rutas de exercicio non aparece no diálogo de acceso, abre os axust
     <string name="settings_sleep_night_start_body">Hora da tarde na que comeza unha noite. O sono desde aquí ata a hora da mañá é unha noite; as sesións anteriores son sestas.</string>
     <string name="settings_sleep_night_end_title">A noite remata ás</string>
     <string name="settings_sleep_night_end_body">Hora da mañá na que remata unha noite. O sono despois desta, ata o inicio da tarde, conta como sesta.</string>
+    <string name="settings_sleep_source_title">Fonte de sono preferida</string>
+    <string name="settings_sleep_source_body">Health Connect garda para si a prioridade das túas apps. Se dúas apps rexistraron a mesma noite, móstrase a que escollas aquí. Automático mantén a máis detallada.</string>
+    <string name="settings_sleep_source_automatic">Automático</string>
     <string name="settings_high_heart_rate_alert_title">Alerta de frecuencia cardíaca alta</string>
     <string name="settings_high_heart_rate_alert_body">Limiar para marcar unha frecuencia cardíaca en repouso alta.</string>
     <string name="settings_low_heart_rate_alert_title">Alerta de frecuencia cardíaca baixa</string>

@@ -2314,6 +2314,9 @@
     <string name="settings_sleep_night_start_body">Evening hour a night begins. Sleep from here until the morning hour is one night; earlier sessions are daytime naps.</string>
     <string name="settings_sleep_night_end_title">Night ends at</string>
     <string name="settings_sleep_night_end_body">Morning hour a night ends. Sleep after this, until the evening start, counts as a daytime nap.</string>
+    <string name="settings_sleep_source_title">Preferred sleep source</string>
+    <string name="settings_sleep_source_body">Health Connect keeps your app priority to itself. When two apps recorded the same night, the app you pick here is shown. Automatic keeps the more detailed one.</string>
+    <string name="settings_sleep_source_automatic">Automatic</string>
     <string name="settings_high_heart_rate_alert_title">High heart-rate alert</string>
     <string name="settings_high_heart_rate_alert_body">Threshold for a high resting heart-rate flag.</string>
     <string name="settings_low_heart_rate_alert_title">Low heart-rate alert</string>

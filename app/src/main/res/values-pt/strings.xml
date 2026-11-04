@@ -1842,6 +1842,9 @@
     <string name="settings_sleep_night_start_body">Hora do fim do dia em que uma noite começa. O sono a partir daqui até à hora da manhã é uma noite; sessões anteriores são sestas diurnas.</string>
     <string name="settings_sleep_night_end_title">A noite termina às</string>
     <string name="settings_sleep_night_end_body">Hora da manhã em que uma noite termina. O sono depois desta hora, até ao início da noite, conta como sesta diurna.</string>
+    <string name="settings_sleep_source_title">Fonte de sono preferida</string>
+    <string name="settings_sleep_source_body">O Health Connect guarda para si a prioridade dos seus apps. Quando dois apps registaram a mesma noite, é mostrado o que escolher aqui. Automático mantém o mais detalhado.</string>
+    <string name="settings_sleep_source_automatic">Automático</string>
     <string name="settings_high_heart_rate_alert_title">Alerta de frequência cardíaca alta</string>
     <string name="settings_high_heart_rate_alert_body">Limiar para um aviso de frequência cardíaca em repouso alta.</string>
     <string name="settings_low_heart_rate_alert_title">Alerta de frequência cardíaca baixa</string>

@@ -103,6 +103,11 @@ class SleepRepositoryImpl @Inject constructor(
             }
     }
 
+    override suspend fun loadSleepSources(): List<String> {
+        if (readSleepPermission !in grantedPermissionsIfAvailable()) return emptyList()
+        return hc.readSleepSources()
+    }
+
     override suspend fun loadSleepSession(id: String): SleepData? {
         val granted = grantedPermissionsIfAvailable()
         if (readSleepPermission !in granted) {

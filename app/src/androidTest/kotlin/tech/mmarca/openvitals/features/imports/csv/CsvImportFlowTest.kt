@@ -41,6 +41,7 @@ import tech.mmarca.openvitals.domain.model.CycleJournalEntry
 import tech.mmarca.openvitals.healthconnect.HealthConnectManager
 import tech.mmarca.openvitals.healthconnect.HealthConnectSyncGate
 import tech.mmarca.openvitals.healthconnect.MindfulnessIntegrationGate
+import tech.mmarca.openvitals.data.repository.SleepSourcePreferencesRepository
 import tech.mmarca.openvitals.testing.string
 import tech.mmarca.openvitals.ui.theme.OpenVitalsTheme
 
@@ -270,6 +271,7 @@ class CsvImportFlowTest {
             context = context,
             syncGate = HealthConnectSyncGate(preferences),
             mindfulnessGate = MindfulnessIntegrationGate(preferences),
+            preferredSleepSource = SleepSourcePreferencesRepository(context),
             foregroundGate = AppForegroundGate(),
         )
         return CsvImportViewModel(

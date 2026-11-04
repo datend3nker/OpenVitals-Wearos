@@ -198,6 +198,30 @@ class SleepSessionMergingTest {
         assertEquals("watch", merged.single().id)
     }
 
+    @Test fun `the preferred source wins an overlap even when the other session is richer`() {
+        val richer = sleep(
+            id = "samsung",
+            source = "samsung",
+            start = "2026-05-06T22:00:00Z",
+            end = "2026-05-07T06:00:00Z",
+            stages = listOf(stage("2026-05-06T22:00:00Z", "2026-05-07T06:00:00Z", SleepStage.STAGE_LIGHT)),
+        )
+        val plainer = sleep(
+            id = "sleep-as-android",
+            source = "sleep-as-android",
+            start = "2026-05-06T22:05:00Z",
+            end = "2026-05-07T06:05:00Z",
+        )
+
+        assertEquals("samsung", mergeSleepSessions(listOf(richer, plainer)).single().id)
+        assertEquals("samsung", mergeSleepSessions(listOf(richer, plainer), preferredSource = "other").single().id)
+        assertEquals(
+            "sleep-as-android",
+            mergeSleepSessions(listOf(richer, plainer), preferredSource = "sleep-as-android").single().id,
+        )
+        assertEquals("samsung", mergeSleepSessions(listOf(plainer, richer), preferredSource = "samsung").single().id)
+    }
+
     @Test fun `mergeSleepSessions does not merge sessions beyond the max gap`() {
         val first = sleep(
             id = "nap",

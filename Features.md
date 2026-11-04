@@ -520,6 +520,7 @@ For the route, widget, package, and documentation mapping, see [`docs/features/f
 ### Sleep And Recovery Settings
 
 - Set the evening hour a night starts and the morning hour it ends. Sleep outside that window counts as a daytime nap.
+- Choose which app's sleep shows when two apps recorded the same night (Recovery settings). Health Connect does not show apps the user's own priority, so OpenVitals asks. Automatic keeps the more detailed session.
 - Set the high heart-rate alert threshold in beats per minute.
 - Set the low heart-rate alert threshold in beats per minute.
 - Adjust Body Energy calibration and reset the tuning learned from a watch.

@@ -84,6 +84,7 @@ class HealthConnectManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val syncGate: HealthConnectSyncGate,
     mindfulnessGate: MindfulnessIntegrationGate,
+    preferredSleepSource: PreferredSleepSource,
     private val foregroundGate: AppForegroundGate,
 ) {
     private val diagnostics = HealthConnectDiagnostics(context)
@@ -113,7 +114,7 @@ class HealthConnectManager @Inject constructor(
     )
     private val activityReader = ActivityHealthReader(readerSupport, context.packageName)
     private val hydrationReader = HydrationHealthReader(readerSupport, context.packageName)
-    private val sleepReader = SleepHealthReader(readerSupport)
+    private val sleepReader = SleepHealthReader(readerSupport) { preferredSleepSource.preferredSleepSource }
     private val heartReader = HeartHealthReader(readerSupport, context.packageName)
     private val bodyReader = BodyHealthReader(readerSupport, context.packageName)
     private val nutritionReader = NutritionHealthReader(readerSupport, context.packageName)
@@ -399,6 +400,9 @@ class HealthConnectManager @Inject constructor(
 
     suspend fun readSleepSessions(start: Instant, end: Instant): List<SleepData> =
         sleepReader.readSleepSessions(start, end)
+
+    /** The packages that wrote sleep in the last 60 days, for the preferred-source setting. */
+    suspend fun readSleepSources(): List<String> = sleepReader.readSleepSources()
 
     suspend fun readSleepData(
         startDate: LocalDate,

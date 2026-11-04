@@ -21,7 +21,20 @@ import java.time.ZoneId
 
 internal class SleepHealthReader(
     private val support: HealthConnectReaderSupport,
+    private val preferredSource: () -> String? = { null },
 ) {
+    /** The packages with a sleep session in the last [days] days, newest source first. */
+    suspend fun readSleepSources(days: Long = SOURCE_LOOKBACK_DAYS): List<String> =
+        support.withLogging("readSleepSources", emptyList()) {
+            support.client().readRecordsPaged(
+                recordType = SleepSessionRecord::class,
+                timeRangeFilter = TimeRangeFilter.between(Instant.now().minus(Duration.ofDays(days)), Instant.now()),
+                ascendingOrder = false,
+                pageSize = 100,
+                maxRecords = 500,
+            ).map { it.metadata.dataOrigin.packageName }.distinct()
+        }
+
     suspend fun readSleepSession(date: LocalDate): SleepData? {
         val (start, end) = support.dayRange(date)
         val queryStart = start.minus(Duration.ofDays(1))
@@ -33,7 +46,7 @@ internal class SleepHealthReader(
                 pageSize = 50,
             ).map { it.toSleepData() }
 
-            mergeSleepSessions(sessions).firstOrNull { session ->
+            mergeSleepSessions(sessions, preferredSource = preferredSource()).firstOrNull { session ->
                 !session.endTime.isBefore(start) && session.endTime.isBefore(end)
             }
         }
@@ -49,7 +62,7 @@ internal class SleepHealthReader(
                 maxRecords = 50,
             ).map { it.toSleepData() }
 
-            mergeSleepSessions(sessions).firstOrNull()
+            mergeSleepSessions(sessions, preferredSource = preferredSource()).firstOrNull()
         }
 
     suspend fun readSleepSessions(start: Instant, end: Instant): List<SleepData> =
@@ -61,7 +74,7 @@ internal class SleepHealthReader(
                 pageSize = 50,
             ).map { it.toSleepData() }
 
-            mergeSleepSessions(sessions)
+            mergeSleepSessions(sessions, preferredSource = preferredSource())
         }
 
     suspend fun readSleepData(
@@ -159,6 +172,8 @@ internal class SleepHealthReader(
             }
         }
 }
+
+private const val SOURCE_LOOKBACK_DAYS = 60L
 
 private fun datesBetween(startDate: LocalDate, endDate: LocalDate): List<LocalDate> =
     generateSequence(startDate) { current ->
