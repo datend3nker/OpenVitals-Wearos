@@ -110,9 +110,12 @@ class WearLinkServerHost(
                 return@Thread
             }
             state.update { it.copy(activeClients = server.activeClients + 1) }
+            val startedAt = System.currentTimeMillis()
+            DebugTrace.event("Link", "connection_open", "clients" to server.activeClients)
             val outcome = server.serve(connection)
             state.update { it.copy(activeClients = server.activeClients) }
             Log.i(TAG, "Served the phone link: $outcome")
+            DebugTrace.event("Link", "connection_end", "outcome" to outcome, "durationMs" to System.currentTimeMillis() - startedAt)
         }, "WearLinkServerHost-client").start()
     }
 
@@ -147,7 +150,26 @@ class WearLinkServerHost(
             add(WearLinkProtocol.CAP_DAY_VALUES)
         }
 
+        /** Runs one request and, with the debug switch on, logs its type, size and time; a failure logs the exception's class and passes on. */
+        private fun <T> traced(type: String, count: (T) -> Int, block: () -> T): T {
+            val startedAt = System.currentTimeMillis()
+            val result = try {
+                block()
+            } catch (e: Throwable) {
+                DebugTrace.event("Link", "request_failed", "type" to type, "error" to e::class.java.simpleName, "durationMs" to System.currentTimeMillis() - startedAt)
+                throw e
+            }
+            DebugTrace.event("Link", "request", "type" to type, "items" to count(result), "durationMs" to System.currentTimeMillis() - startedAt)
+            return result
+        }
+
         override fun putDay(kind: WearLinkProtocol.DayKind, epochDay: Long, tenths: Int): Boolean {
+            val kept = putDayChecked(kind, epochDay, tenths)
+            DebugTrace.event("Link", "put_day", "kind" to kind, "epochDay" to epochDay, "tenths" to tenths, "kept" to kept)
+            return kept
+        }
+
+        private fun putDayChecked(kind: WearLinkProtocol.DayKind, epochDay: Long, tenths: Int): Boolean {
             val today = LocalDate.now().toEpochDay()
             // A day the watch does not show is refused; one ahead covers a zone the phone is already in.
             if (epochDay !in (today - WearLinkProtocol.DAY_VALUE_DAYS + 1)..(today + 1)) return false
@@ -169,28 +191,32 @@ class WearLinkServerHost(
             )
         }
 
-        override fun setPreference(key: String, value: String): Boolean = preferences.applyPreference(key, value)
+        override fun setPreference(key: String, value: String): Boolean {
+            val applied = preferences.applyPreference(key, value)
+            DebugTrace.event("Link", "set_pref", "key" to key, "value" to value, "applied" to applied)
+            return applied
+        }
 
         override fun heartRateSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.HeartRateSample> =
-            page(WearMetrics.HEART_RATE, sinceEpochMillis, limit)
+            traced("HR_SINCE", { it.items.size }) { page(WearMetrics.HEART_RATE, sinceEpochMillis, limit) }
 
         override fun sleepMinutesSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.SleepMinute> =
-            page(WearMetrics.SLEEP_MINUTES, sinceEpochMillis, limit)
+            traced("SM_SINCE", { it.items.size }) { page(WearMetrics.SLEEP_MINUTES, sinceEpochMillis, limit) }
 
         override fun stepsSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.StepMinute> =
-            page(WearMetrics.STEPS, sinceEpochMillis, limit)
+            traced("ST_SINCE", { it.items.size }) { page(WearMetrics.STEPS, sinceEpochMillis, limit) }
 
         override fun ascentSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.AscentMinute> =
-            page(WearMetrics.ASCENT, sinceEpochMillis, limit)
+            traced("AS_SINCE", { it.items.size }) { page(WearMetrics.ASCENT, sinceEpochMillis, limit) }
 
         override fun hrvSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkProtocol.HrvWindow> =
-            page(WearMetrics.HRV, sinceEpochMillis, limit)
+            traced("HRV_SINCE", { it.items.size }) { page(WearMetrics.HRV, sinceEpochMillis, limit) }
 
         override fun workoutsSince(sinceEpochMillis: Long, limit: Int): Page<WearLinkWorkout> =
-            workouts(sinceEpochMillis, limit)
+            traced("WO_SINCE", { it.items.size }) { workouts(sinceEpochMillis, limit) }
 
         override fun liveHeartRate(seconds: Int, emit: (WearLinkProtocol.HeartRateSample) -> Unit): Int =
-            live.window(seconds, emit)
+            traced("LIVE_HR", { it }) { live.window(seconds, emit) }
 
         private fun <T> page(metric: WearMetric<T>, sinceEpochMillis: Long, limit: Int): Page<T> {
             // One more than asked tells whether the limit cut the reply.

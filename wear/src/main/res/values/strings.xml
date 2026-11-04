@@ -228,6 +228,8 @@
     <string name="settings_tracking_hr_day">Daytime heart rate</string>
     <string name="settings_tracking_hr_night">Bedtime heart rate</string>
     <string name="settings_tracking_hr_night_sleep">Every 10 seconds while sleep is recorded</string>
+    <string name="settings_tracking_debug">Debug data</string>
+    <string name="settings_tracking_debug_note">Keeps pulse, movement and decisions in files on the watch for adb. Off by default.</string>
     <string name="interval_every_10_seconds">Every 10 seconds</string>
     <string name="interval_power_save">Power save</string>
     <string name="interval_off">Off</string>

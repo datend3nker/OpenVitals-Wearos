@@ -47,6 +47,7 @@ class BedtimeMonitor(
         context.registerReceiver(receiver, IntentFilter(NotificationManager.ACTION_INTERRUPTION_FILTER_CHANGED), null, handler)
         isBedtime = read()
         Log.i(TAG, "Bedtime mode ${if (isBedtime) "on" else "off"} (from $source)")
+        DebugTrace.event("Bedtime", "mode_at_start", "on" to isBedtime, "from" to source)
     }
 
     fun stop() {
@@ -59,6 +60,7 @@ class BedtimeMonitor(
         if (now == isBedtime) return
         isBedtime = now
         Log.i(TAG, "Bedtime mode ${if (now) "on" else "off"} (from $source)")
+        DebugTrace.event("Bedtime", if (now) "mode_on" else "mode_off", "from" to source)
         onChange(now)
     }
 

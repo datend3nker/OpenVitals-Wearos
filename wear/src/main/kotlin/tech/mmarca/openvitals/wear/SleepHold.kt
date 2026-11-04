@@ -33,7 +33,11 @@ package tech.mmarca.openvitals.wear
  * Costs battery: the processor stays awake for as long as the hold lasts,
  * up to the cap.
  */
-class SleepHold(private val config: Config = Config()) {
+class SleepHold(
+    private val config: Config = Config(),
+    /** Called with an event name and its numbers when a hold starts or ends. For the debug trace; the decision does not depend on it. */
+    private val trace: (event: String, fields: List<Pair<String, Any?>>) -> Unit = { _, _ -> },
+) {
 
     data class Config(
         val quietMinutes: Int = 10,
@@ -73,7 +77,7 @@ class SleepHold(private val config: Config = Config()) {
     /** Feeds one closed minute, oldest first. Returns [isHolding] after it. */
     fun onMinute(minute: Minute): Boolean {
         if (!minute.worn) {
-            reset()
+            reset("not_worn", minute.epochMillis)
             return holding
         }
         val last = recent.lastOrNull()
@@ -93,9 +97,10 @@ class SleepHold(private val config: Config = Config()) {
     }
 
     /** The watch went on the charger or lost its wrist: nothing is held, and the evidence starts again. */
-    fun onNotWorn() = reset()
+    fun onNotWorn(reason: String = "not_worn") = reset(reason, null)
 
-    private fun reset() {
+    private fun reset(reason: String, at: Long?) {
+        if (holding) trace("hold_end", listOf("reason" to reason, "heldMin" to heldMinutes, "minute" to at))
         holding = false
         recent.clear()
         wakeStreak = 0
@@ -106,9 +111,11 @@ class SleepHold(private val config: Config = Config()) {
         val awake = minute.waking || minute.movement >= config.wakeMovement
         wakeStreak = if (awake) wakeStreak + 1 else 0
         if (wakeStreak >= config.wakeMinutesToRelease) {
+            trace("hold_end", listOf("reason" to "wake_streak", "heldMin" to heldMinutes, "minute" to minute.epochMillis))
             holding = false
             recent.clear()
         } else if (heldMinutes >= config.maxHoldMinutes) {
+            trace("hold_end", listOf("reason" to "limit", "heldMin" to heldMinutes, "minute" to minute.epochMillis))
             holding = false
             recent.clear()
             coolUntil = minute.epochMillis + config.cooldownMinutes * MINUTE_MILLIS
@@ -125,7 +132,19 @@ class SleepHold(private val config: Config = Config()) {
         if (earlier.isEmpty() || later.isEmpty() || earlier.size + later.size < MIN_READINGS) return false
         val laterMean = later.average()
         val level = levelSamples.sorted()[levelSamples.size / 2]
-        return laterMean <= earlier.average() - config.fallBpm && laterMean <= level - config.belowLevelBpm
+        val earlierMean = earlier.average()
+        val starts = laterMean <= earlierMean - config.fallBpm && laterMean <= level - config.belowLevelBpm
+        if (starts) {
+            trace(
+                "hold_start",
+                listOf(
+                    "meanEarlier" to earlierMean, "meanLater" to laterMean, "level" to level,
+                    "fall" to earlierMean - laterMean, "belowLevel" to level - laterMean,
+                    "minute" to recent.last().epochMillis,
+                ),
+            )
+        }
+        return starts
     }
 
     private companion object {

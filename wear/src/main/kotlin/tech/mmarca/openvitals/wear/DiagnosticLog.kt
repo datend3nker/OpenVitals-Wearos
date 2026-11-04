@@ -130,6 +130,8 @@ internal class DiagnosticLog(private val file: File, private val maxSamples: Int
 internal class DiagnosticsSampler(
     private val log: DiagnosticLog,
     private val now: () -> DiagnosticSample,
+    /** Runs on the writer thread after each reading; the debug snapshot uses it. It decides itself whether it is on. */
+    private val onTick: () -> Unit = {},
 ) {
     private val handler = Handler(Looper.getMainLooper())
     private val writer = Executors.newSingleThreadExecutor()
@@ -155,7 +157,15 @@ internal class DiagnosticsSampler(
         val sample = now()
         // A battery reading the system could not give is left out, not logged as zero.
         if (sample.batteryPercent !in 0..100) return
-        writer.execute { log.append(sample) }
+        writer.execute {
+            log.append(sample)
+            runCatching(onTick)
+        }
+    }
+
+    /** Runs [task] on the writer thread, after the readings already queued. Ignored once stopped. */
+    fun runNow(task: () -> Unit) {
+        runCatching { writer.execute { runCatching(task) } }
     }
 
     companion object {

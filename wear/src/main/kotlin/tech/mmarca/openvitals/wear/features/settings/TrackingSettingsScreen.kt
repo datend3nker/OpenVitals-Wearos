@@ -40,6 +40,7 @@ fun TrackingSettingsScreen(
     val sleep = remember(changed) { prefs.sleepRecording }
     val day = remember(changed) { prefs.heartRateDay }
     val night = remember(changed) { prefs.heartRateNight }
+    val debug = remember(changed) { prefs.debugData }
 
     ScreenScaffold(scrollState = listState) { contentPadding ->
         TransformingLazyColumn(state = listState, contentPadding = contentPadding) {
@@ -70,6 +71,10 @@ fun TrackingSettingsScreen(
             ) {
                 onChangeInterval(Keys.HEART_RATE_NIGHT, it)
             }
+            // Off by default. On, the watch keeps heart rate, movement and its decisions in files for `adb pull`.
+            switchItem(transformationSpec, R.string.settings_tracking_debug, debug, note = R.string.settings_tracking_debug_note) {
+                onToggleFlag(Keys.DEBUG_DATA, it)
+            }
         }
     }
 }
@@ -78,12 +83,14 @@ private fun TransformingLazyColumnScope.switchItem(
     spec: TransformationSpec,
     label: Int,
     checked: Boolean,
+    note: Int? = null,
     onChecked: (Boolean) -> Unit,
 ) = item {
     SwitchButton(
         checked = checked,
         onCheckedChange = onChecked,
         label = { Text(stringResource(label)) },
+        secondaryLabel = note?.let { { Text(stringResource(it)) } },
         modifier = Modifier
             .fillMaxWidth()
             .transformedHeight(this, spec),

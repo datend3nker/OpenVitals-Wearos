@@ -13,6 +13,7 @@ import kotlin.math.sqrt
 import kotlinx.coroutines.delay
 import tech.mmarca.openvitals.domain.insights.HrvWindowResult
 import tech.mmarca.openvitals.domain.insights.NightHrv
+import tech.mmarca.openvitals.wear.DebugTrace
 import tech.mmarca.openvitals.wear.PpgRawLogger
 import tech.mmarca.openvitals.wear.SensorTime
 import tech.mmarca.openvitals.wear.heartRateSensor
@@ -80,7 +81,13 @@ internal class RawPpgWindow(private val context: Context) {
         Log.i(TAG, "Spot HRV window: ${pulseTimes.size} raw readings in ${durationMillis / MILLIS_PER_SECOND} s")
         val (motionTimes, motionMagnitudes) = motion.snapshot()
         val moved = accelerometer != null && Stillness.moved(motionTimes.map { it.toLong() }.toLongArray(), motionMagnitudes)
-        return Outcome(NightHrv.analyze(pulseTimes, pulseValues), moved)
+        val result = NightHrv.analyze(pulseTimes, pulseValues)
+        DebugTrace.event(
+            "SpotHrv", "window",
+            "startedAt" to startedAt, "rawValues" to pulseTimes.size, "motionValues" to motionTimes.size,
+            "moved" to moved, "beats" to result?.beatCount, "rmssd" to result?.rmssdMillis,
+        )
+        return Outcome(result, moved)
     }
 
     /** Readings in time order, added from the sensor thread and read once after the sensors stop. */

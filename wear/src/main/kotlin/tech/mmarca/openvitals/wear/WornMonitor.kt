@@ -100,6 +100,7 @@ class WornMonitor(
         if (next != wanted) {
             wanted = next
             Log.i(TAG, if (next) "Heart rate on: worn or woken" else "Heart rate off: not worn")
+            DebugTrace.event("Worn", "heart_rate_wanted", "wanted" to next)
             onHeartRateWanted(next)
         }
         val workerHandler = handler ?: return

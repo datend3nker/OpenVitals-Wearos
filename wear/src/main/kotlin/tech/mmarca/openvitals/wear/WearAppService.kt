@@ -61,6 +61,7 @@ class WearAppService : Service() {
     private lateinit var ppgLogger: PpgRawLogger
     private lateinit var trust: WearTrustStore
     private lateinit var diagnostics: DiagnosticsSampler
+    private var debugSnapshot: DebugSnapshot? = null
     private lateinit var link: WearLinkServerHost
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -91,6 +92,7 @@ class WearAppService : Service() {
     override fun onCreate() {
         super.onCreate()
         store = MetricStore(this)
+        DebugTrace.install(this)
         // Off the main thread: a week of heart rate is tens of thousands of rows.
         Thread({ LegacyStoreImport.run(this, store) }, "LegacyStoreImport").start()
         ppgLogger = PpgRawLogger(this)
@@ -169,8 +171,14 @@ class WearAppService : Service() {
         wornMonitor.start()
         // Needs no grant: the accelerometer and the barometer are open to every app.
         reconcileRecorders()
-        diagnostics = DiagnosticsSampler(DiagnosticLog(diagnosticLogFile(this))) { takeDiagnosticSample() }
+        debugSnapshot = DebugTrace.folderOf(this)?.let { DebugSnapshot(it, StoreSnapshotSource(store)) }
+        diagnostics = DiagnosticsSampler(
+            DiagnosticLog(diagnosticLogFile(this)),
+            now = { takeDiagnosticSample() },
+            onTick = { if (DebugTrace.isEnabled) debugSnapshot?.write() },
+        )
         diagnostics.start()
+        applyDebugSwitch()
     }
 
     private fun takeDiagnosticSample(): DiagnosticSample {
@@ -289,12 +297,14 @@ class WearAppService : Service() {
      */
     private fun reconcileRecorders() {
         if (!isForeground) return
+        applyDebugSwitch()
         val heartRateGranted = WearPermissions.hasHeartRate(this)
         when {
             !heartRateGranted -> Log.i(TAG, "Heart rate not granted")
             !heartRateWanted -> Log.i(TAG, "Heart rate resting: not worn")
         }
         val wanted = if ((heartRateWanted || workout.isActive) && heartRateGranted) heartRateInterval() else HeartRateInterval.OFF
+        traceHeartRatePlan(heartRateGranted, wanted)
         recorder.setInterval(wanted)
         // Without the heart rate's wake-ups the step counter must wake the watch itself.
         stepRecorder.setHeartRateRunning(recorder.isRunning)
@@ -311,6 +321,43 @@ class WearAppService : Service() {
         if (preferences.sleepRecording) minuteRecorder.start() else minuteRecorder.stop()
         // The windows need heart rate tracking, and the minute rows that say the arm is still.
         nightHrv.setEnabled(heartRateGranted && preferences.heartRate && preferences.sleepRecording)
+    }
+
+    /**
+     * Follows the debug switch: on, the trace starts and a first snapshot is written; off, the last
+     * snapshot is written and the trace stops. Main thread.
+     */
+    private fun applyDebugSwitch() {
+        val on = preferences.debugData
+        if (on == DebugTrace.isEnabled || !::diagnostics.isInitialized) return
+        if (on) {
+            DebugTrace.shared.enabled = true
+            DebugTrace.event("Debug", "switch_on", "model" to Build.MODEL)
+            diagnostics.runNow { debugSnapshot?.write() }
+        } else {
+            DebugTrace.event("Debug", "switch_off")
+            diagnostics.runNow { debugSnapshot?.write() }
+            DebugTrace.shared.enabled = false
+            DebugTrace.shared.forgetChanges()
+        }
+    }
+
+    /** Says why the heart rate runs at the interval it does, when that changes. */
+    private fun traceHeartRatePlan(granted: Boolean, wanted: HeartRateInterval) {
+        if (!DebugTrace.isEnabled) return
+        val reason = when {
+            !granted -> "no_grant"
+            workout.isActive -> "workout"
+            !heartRateWanted -> "not_worn"
+            !preferences.heartRate -> "switch_off"
+            bedtimeMonitor.isBedtime -> "bedtime_mode"
+            minuteRecorder.isSleepHolding -> "sleep_hold"
+            else -> "day"
+        }
+        DebugTrace.eventIfChanged(
+            "hr-plan", "${wanted.wire}/$reason", "HeartRate", "plan",
+            "intervalSec" to wanted.seconds, "reason" to reason, "day" to preferences.heartRateDay.wire, "night" to preferences.heartRateNight.wire,
+        )
     }
 
     private fun setHeartRateWanted(wanted: Boolean) {

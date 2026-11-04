@@ -9,6 +9,7 @@ import tech.mmarca.openvitals.domain.insights.EstimatedStage
 import tech.mmarca.openvitals.domain.insights.StepEstimates
 import tech.mmarca.openvitals.domain.insights.WearNaps
 import tech.mmarca.openvitals.domain.insights.WearNight
+import tech.mmarca.openvitals.domain.insights.WearSleepEstimator
 import tech.mmarca.openvitals.domain.model.WearSleepMinuteMapping
 import tech.mmarca.openvitals.domain.preferences.StrideLength
 import tech.mmarca.openvitals.wearlink.AscentCredit
@@ -169,7 +170,9 @@ internal object WearReadings {
     fun night(date: LocalDate, offset: ZoneOffset, rows: List<SleepMinute>): NightSleep? {
         val minutes = rows.map(WearSleepMinuteMapping::toDomain)
         val night = WearNight.estimate(minutes, date, offset)?.takeIf { it.session.sleepMinutes > 0 }
-        val naps = WearNaps.ofDay(minutes, date, offset).filter { it.session.sleepMinutes > 0 }
+        val napReport = WearNaps.ofDayWithReasons(minutes, date, offset)
+        val naps = napReport.naps.map { it.nap }.filter { it.session.sleepMinutes > 0 }
+        traceSleep(date, night, napReport)
         if (night == null && naps.isEmpty()) return null
         val sessions = listOfNotNull(night?.session) + naps.map { it.session }
         val stageMinutes = sessions.flatMap { it.stages }
@@ -185,6 +188,42 @@ internal object WearReadings {
             fellAsleep = night?.session?.onset,
             wokeUp = night?.session?.end,
         )
+    }
+
+    /**
+     * Writes the night and the naps of [date] to the debug trace when the result changed since the
+     * last time it was written, with the numbers that decided it. Does nothing while the switch is off.
+     */
+    private fun traceSleep(date: LocalDate, night: WearSleepEstimator.Night?, report: WearNaps.Report) {
+        if (!DebugTrace.isEnabled) return
+        val nightFields = night?.let { WearNight.reasons(it) }.orEmpty()
+        val napSignature = report.naps.joinToString("|") {
+            "${it.nap.onset.toEpochMilli()}-${it.nap.end.toEpochMilli()}-${it.nap.session.sleepMinutes}"
+        }
+        val signature = nightFields.joinToString(",") { it.second.toString() } + "#" + napSignature +
+            "#${report.wakingLevel?.toInt()}"
+        if (!DebugTrace.changed("sleep-$date", signature)) return
+        run {
+            night?.let { DebugTrace.event("Sleep", "night", *(listOf<Pair<String, Any?>>("date" to date) + WearNight.reasons(it)).toTypedArray()) }
+            DebugTrace.event(
+                "Sleep", "nap_baseline",
+                "date" to date, "wakingLevel" to report.wakingLevel, "dayMinutes" to report.baselineMinutes,
+                "needed" to WearNaps.Config().minBaselineMinutes,
+            )
+            for (reason in report.naps) {
+                DebugTrace.event(
+                    "Sleep", "nap",
+                    "date" to date,
+                    "onset" to reason.nap.onset.toEpochMilli(), "end" to reason.nap.end.toEpochMilli(),
+                    "durationMin" to (reason.nap.end.epochSecond - reason.nap.onset.epochSecond) / 60,
+                    "sleepMin" to reason.nap.session.sleepMinutes,
+                    "wakingLevel" to reason.wakingLevel, "requiredDrop" to reason.requiredDrop,
+                    "daytime" to reason.daytime, "medianHr" to reason.medianHeartRate,
+                    "sleepShare" to reason.sleepShare, "movement" to reason.meanMovement,
+                    "lookbackMin" to reason.onsetLookbackMinutes,
+                )
+            }
+        }
     }
 
     /**

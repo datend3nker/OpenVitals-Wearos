@@ -20,7 +20,7 @@ import tech.mmarca.openvitals.wearlink.WearLinkProtocol
  * bad_request`. The current value feeds both the status screen (via
  * [WearLinkState]) and the link's advertised capabilities.
  *
- * Every switch defaults on and the heart rate runs every ten seconds, so a
+ * Every switch defaults on, except [debugData], and the heart rate runs every ten seconds, so a
  * watch that never heard from the phone records what it did before.
  */
 class WearPreferences(
@@ -47,6 +47,13 @@ class WearPreferences(
     /** Whether the watch records height climbed. */
     val ascent: Boolean
         get() = flag(WearLinkProtocol.Preferences.ASCENT)
+
+    /**
+     * Whether the watch keeps debug files for `adb pull` (see [DebugTrace]). Off until the wearer
+     * switches it on, unlike the other switches.
+     */
+    val debugData: Boolean
+        get() = flag(WearLinkProtocol.Preferences.DEBUG_DATA)
 
     /** The heart rate interval by day. */
     val heartRateDay: HeartRateInterval
@@ -92,7 +99,7 @@ class WearPreferences(
         applyPreference(protocolKey, interval.wire)
     }
 
-    private fun flag(key: String): Boolean = prefs.getBoolean(FLAG_STORAGE.getValue(key), true)
+    private fun flag(key: String): Boolean = prefs.getBoolean(FLAG_STORAGE.getValue(key), defaultOf(key))
 
     /** Publishes the stored values to the status screen; call once at startup. */
     fun publish() {
@@ -132,7 +139,7 @@ class WearPreferences(
             else -> return null
         }
         val stored = FLAG_STORAGE.getValue(key)
-        if (prefs.getBoolean(stored, true) == on) return false
+        if (prefs.getBoolean(stored, defaultOf(key)) == on) return false
         prefs.edit().putBoolean(stored, on).apply()
         if (key == WearLinkProtocol.Preferences.SLEEP_RECORDING) {
             state.update { it.copy(sleepRecording = on) }
@@ -176,7 +183,11 @@ class WearPreferences(
             WearLinkProtocol.Preferences.HEART_RATE to "heart_rate",
             WearLinkProtocol.Preferences.STEPS to "steps",
             WearLinkProtocol.Preferences.ASCENT to "ascent",
+            WearLinkProtocol.Preferences.DEBUG_DATA to "debug_data",
         )
+
+        /** Every switch starts on, except the debug files. */
+        private fun defaultOf(key: String): Boolean = key != WearLinkProtocol.Preferences.DEBUG_DATA
         private val FLAG_KEYS: Set<String> = FLAG_STORAGE.keys
         private const val KEY_SLEEP_RECORDING = "sleep_recording"
         private const val KEY_UNIT_SYSTEM = "unit_system"

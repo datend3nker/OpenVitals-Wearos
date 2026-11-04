@@ -60,7 +60,7 @@ class SleepMinuteRecorder(
     private var bedtime: BedtimeMonitor? = null
     private var hold = BedtimeHold.OFF
     private var holdRenewedAt = 0L
-    private val autoHold = SleepHold()
+    private val autoHold = SleepHold(trace = { event, fields -> DebugTrace.event("SleepHold", event, *fields.toTypedArray()) })
 
     /**
      * True while the wake lock is held for sleep, whatever started it:
@@ -158,6 +158,7 @@ class SleepMinuteRecorder(
     fun noteWorn(epochMillis: Long, worn: Boolean) {
         if (SensorTime.isStale(epochMillis)) return
         handler?.post {
+            if (worn != this.worn) DebugTrace.event("Worn", if (worn) "worn" else "not_worn", "sensorAt" to epochMillis)
             this.worn = worn
             if (!worn) autoHold.onNotWorn()
             aggregator.onWorn(epochMillis, worn)
@@ -187,8 +188,9 @@ class SleepMinuteRecorder(
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
 
     private fun setCharging(now: Long, plugged: Boolean) {
+        if (plugged != charging) DebugTrace.event("Power", if (plugged) "charger_on" else "charger_off")
         charging = plugged
-        if (plugged) autoHold.onNotWorn()
+        if (plugged) autoHold.onNotWorn("charger")
         aggregator.onCharging(now, plugged)
         applyHold()
     }
@@ -215,6 +217,7 @@ class SleepMinuteRecorder(
         if (next != hold) {
             hold = next
             Log.i(TAG, "Bedtime hold: $next")
+            DebugTrace.event("Hold", "bedtime_hold", "state" to next.name, "worn" to worn, "charging" to charging)
             WearLinkState.update { it.copy(bedtimeHold = next) }
         }
         setSleepHolding(holding)
@@ -224,6 +227,7 @@ class SleepMinuteRecorder(
         if (holding == isSleepHolding) return
         isSleepHolding = holding
         Log.i(TAG, "Sleep hold: $holding")
+        DebugTrace.event("Hold", "sleep_hold", "holding" to holding, "worn" to worn, "charging" to charging, "bedtime" to hold.name)
         WearLinkState.update { it.copy(sleepHoldActive = holding) }
         onSleepHoldChange(holding)
     }

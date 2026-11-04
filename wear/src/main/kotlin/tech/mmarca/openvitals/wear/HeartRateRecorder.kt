@@ -83,6 +83,7 @@ class HeartRateRecorder(
     // removing a timer needs the same Runnable that posted it.
     private var windowOpen = false
     private var windowOpenedAt = 0L
+    private var windowValues = 0
     private val openWindowTask = Runnable { openWindow() }
     private val closeWindowTask = Runnable { closeWindow() }
 
@@ -126,6 +127,7 @@ class HeartRateRecorder(
             workerHandler.post(openWindowTask)
         }
         Log.i(TAG, "Recording heart rate from ${found.name} every ${wanted.seconds} s")
+        DebugTrace.event("HeartRate", "sensor_start", "intervalSec" to wanted.seconds, "sensor" to found.name)
         return true
     }
 
@@ -158,8 +160,10 @@ class HeartRateRecorder(
         thread = null
         handler = null
         sensor = null
+        val was = interval
         interval = HeartRateInterval.OFF
         Log.i(TAG, "Stopped recording heart rate")
+        DebugTrace.event("HeartRate", "sensor_stop", "wasIntervalSec" to was.seconds)
     }
 
     /**
@@ -180,6 +184,7 @@ class HeartRateRecorder(
         val workerHandler = handler ?: return
         val found = sensor ?: return
         windowOpenedAt = SystemClock.elapsedRealtime()
+        windowValues = 0
         wakeLock.acquire(WINDOW_CAP_MILLIS + WAKE_LOCK_SLACK_MILLIS)
         val registered = try {
             sensorManager.registerListener(this, found, SAMPLING_PERIOD_MICROS, 0, workerHandler)
@@ -188,6 +193,7 @@ class HeartRateRecorder(
             false
         }
         if (!registered) {
+            DebugTrace.event("HeartRate", "power_save_window_failed")
             Log.w(TAG, "Heart rate window not registered")
             if (wakeLock.isHeld) wakeLock.release()
             scheduleNextWindow()
@@ -208,6 +214,11 @@ class HeartRateRecorder(
         windowOpen = false
         sensorManager.unregisterListener(this)
         if (wakeLock.isHeld) wakeLock.release()
+        DebugTrace.event(
+            "HeartRate", "power_save_window",
+            "startedAt" to System.currentTimeMillis() - (SystemClock.elapsedRealtime() - windowOpenedAt),
+            "durationMs" to SystemClock.elapsedRealtime() - windowOpenedAt, "values" to windowValues,
+        )
         scheduleNextWindow()
     }
 
@@ -240,6 +251,7 @@ class HeartRateRecorder(
             lastStoredAt = at
             store.put(WearMetrics.HEART_RATE, WearLinkProtocol.HeartRateSample(at, bpm))
             onSample(at, bpm)
+            windowValues++
             Log.d(TAG, "Stored $bpm bpm at $at")
             prune(at)
         }

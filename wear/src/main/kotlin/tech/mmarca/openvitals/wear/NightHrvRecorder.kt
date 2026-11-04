@@ -110,6 +110,7 @@ class NightHrvRecorder(
             when {
                 !isHolding() -> {
                     Log.i(TAG, "Window dropped: no longer in bedtime hold")
+                    DebugTrace.event("NightHrv", "window_dropped", "why" to "hold_ended", "startedAt" to windowStartedAt)
                     endWindow()
                 }
                 now - windowStartedAt >= NightHrv.WINDOW_MILLIS -> completeWindow(now)
@@ -138,6 +139,7 @@ class NightHrvRecorder(
         windowStartedAt = now
         wakeLock.acquire(NightHrv.WINDOW_MILLIS + WAKE_LOCK_SLACK_MILLIS)
         Log.i(TAG, "Window started")
+        DebugTrace.event("NightHrv", "window_started", "startedAt" to now)
     }
 
     override fun onSensorChanged(event: SensorEvent) {
@@ -167,6 +169,7 @@ class NightHrvRecorder(
         val result = NightHrv.analyze(t, v)
         if (result == null) {
             Log.i(TAG, "Window gave no value ($samples samples)")
+            DebugTrace.event("NightHrv", "window_dropped", "why" to "no_value_too_few_beats", "startedAt" to started, "samples" to samples)
             nextAllowedAt = NightHrvSchedule.nextStartAfter(started, spoiled = true)
             return
         }
@@ -190,6 +193,7 @@ class NightHrvRecorder(
             if (now - waiting.endMillis > PENDING_TIMEOUT_MILLIS) {
                 pending = null
                 Log.i(TAG, "Window dropped: no movement rows for it")
+                DebugTrace.event("NightHrv", "window_dropped", "why" to "no_movement_rows", "startedAt" to waiting.startMillis)
             }
             return
         }
@@ -197,12 +201,17 @@ class NightHrvRecorder(
         if (!NightHrvSchedule.wasStill(rows, waiting.startMillis, waiting.endMillis)) {
             nextAllowedAt = NightHrvSchedule.nextStartAfter(waiting.startMillis, spoiled = true)
             Log.i(TAG, "Window dropped: the arm moved")
+            DebugTrace.event("NightHrv", "window_dropped", "why" to "movement", "startedAt" to waiting.startMillis)
             return
         }
         val rmssd10 = Math.round(waiting.result.rmssdMillis * 10).toInt()
         store.put(WearMetrics.HRV, WearLinkProtocol.HrvWindow(waiting.startMillis, rmssd10, waiting.result.beatCount))
         store.prune(WearMetrics.HRV, now)
         Log.i(TAG, "Window stored (${waiting.result.beatCount} beats)")
+        DebugTrace.event(
+            "NightHrv", "window_stored",
+            "startedAt" to waiting.startMillis, "beats" to waiting.result.beatCount, "rmssd" to waiting.result.rmssdMillis,
+        )
     }
 
     private companion object {

@@ -15,6 +15,7 @@ import android.os.PowerManager
 import android.util.Log
 import tech.mmarca.openvitals.domain.workout.WorkoutSport
 import tech.mmarca.openvitals.wear.AscentMinuteCounter
+import tech.mmarca.openvitals.wear.DebugTrace
 import tech.mmarca.openvitals.wear.MetricStore
 import tech.mmarca.openvitals.wear.SensorTime
 import tech.mmarca.openvitals.wearlink.WearLinkWorkoutLines
@@ -75,6 +76,7 @@ class WorkoutRecorder(
         ascent = AscentMinuteCounter(null)
         wakeLock = context.getSystemService(PowerManager::class.java)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "OpenVitals:workout").apply { acquire() }
+        DebugTrace.event("Workout", "start", "sport" to sport.id, "gps" to usesGps)
         h.post { registerSensors(sport, now) }
         h.post(tick)
         WorkoutState.update { WorkoutUiState(sport = sport, running = true, snapshot = t.snapshot(now)) }
@@ -82,9 +84,17 @@ class WorkoutRecorder(
         return true
     }
 
-    fun pause() = post { it.pause(System.currentTimeMillis()); publish(it) }
+    fun pause() = post {
+        DebugTrace.event("Workout", "pause")
+        it.pause(System.currentTimeMillis())
+        publish(it)
+    }
 
-    fun resume() = post { it.resume(System.currentTimeMillis()); publish(it) }
+    fun resume() = post {
+        DebugTrace.event("Workout", "resume")
+        it.resume(System.currentTimeMillis())
+        publish(it)
+    }
 
     fun noteHeartRate(epochMillis: Long, bpm: Int) = post { it.onHeartRate(epochMillis, bpm) }
 
@@ -197,6 +207,10 @@ class WorkoutRecorder(
         val workout = t.finish(end)
         val kept = store.finish(workout, end)
         val last = t.snapshot(end)
+        DebugTrace.event(
+            "Workout", "stop",
+            "sport" to t.sport.id, "durationMs" to workout.endMillis - workout.startMillis, "steps" to workout.steps, "saved" to kept,
+        )
         teardown(keepState = false)
         WorkoutState.update { WorkoutUiState(sport = t.sport, running = false, snapshot = last, finished = kept) }
         if (!kept) WorkoutState.clearFinished()

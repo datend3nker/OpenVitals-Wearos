@@ -139,4 +139,23 @@ class WearPreferencesTest {
         preferences.unitSystem = UnitSystem.IMPERIAL
         assertEquals(UnitSystem.IMPERIAL, preferences.unitSystem)
     }
+
+    @Test
+    fun `the debug switch is off until it is switched on, and it is kept`() {
+        assertFalse(preferences.debugData)
+
+        var calls = 0
+        preferences.onChange = { calls++ }
+        assertTrue(preferences.applyPreference(WearLinkProtocol.Preferences.DEBUG_DATA, WearLinkProtocol.Preferences.ON))
+        assertTrue(preferences.debugData)
+        assertTrue(WearPreferences(prefs, WearLinkState).debugData)
+        assertEquals(1, calls)
+
+        // Off is the default, so switching off after on is a change and off again is none.
+        assertTrue(preferences.applyPreference(WearLinkProtocol.Preferences.DEBUG_DATA, WearLinkProtocol.Preferences.OFF))
+        assertTrue(preferences.applyPreference(WearLinkProtocol.Preferences.DEBUG_DATA, WearLinkProtocol.Preferences.OFF))
+        assertFalse(preferences.debugData)
+        assertEquals(2, calls)
+        assertFalse(preferences.applyPreference(WearLinkProtocol.Preferences.DEBUG_DATA, "maybe"))
+    }
 }
