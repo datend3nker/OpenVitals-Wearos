@@ -29,6 +29,28 @@ object WearNight {
     fun estimate(minutes: List<WearSleepMinute>, night: LocalDate, offset: ZoneOffset): WearSleepEstimator.Night? =
         WearSleepEstimator.estimate(minutesOf(minutes, night, offset))
 
+    /**
+     * The numbers behind [night], as key and value in a fixed order: what the log of a
+     * debug run shows. The same numbers [WearSleepEstimator.Night] holds, nothing recomputed.
+     */
+    fun reasons(night: WearSleepEstimator.Night): List<Pair<String, Any>> {
+        val session = night.session
+        return listOf(
+            "bedTime" to night.bedTime.toEpochMilli(),
+            "onset" to session.onset.toEpochMilli(),
+            "end" to session.end.toEpochMilli(),
+            "inProgress" to session.inProgress,
+            "sleepMin" to session.sleepMinutes,
+            "awakeMin" to session.awakeMinutes,
+            "unknownMin" to session.unknownMinutes,
+            "windowMin" to night.window.length,
+            "windowSource" to night.window.source,
+            "wornMin" to night.wornMinutes,
+            "notWornMin" to night.notWornMinutes,
+            "notWorn" to night.notWornReasons.entries.sortedByDescending { it.value }.joinToString(",") { "${it.key}:${it.value}" },
+        )
+    }
+
     /** The resting heart rate of a finished night, or null while it runs or when too few minutes count. */
     fun restingHeartRate(minutes: List<WearSleepMinute>, night: WearSleepEstimator.Night): Int? {
         val session = night.session

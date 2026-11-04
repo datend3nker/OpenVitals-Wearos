@@ -66,4 +66,18 @@ class WearNightTest {
         assertTrue(estimated!!.session.inProgress)
         assertNull(WearNight.restingHeartRate(rows, estimated))
     }
+
+    @Test
+    fun `the reasons repeat the numbers of the estimated night`() {
+        val estimated = WearNight.estimate(WearSleepFixtures.wornNight(start), night, offset)!!
+
+        val reasons = WearNight.reasons(estimated).toMap()
+
+        assertEquals(estimated.session.onset.toEpochMilli(), reasons["onset"])
+        assertEquals(estimated.session.end.toEpochMilli(), reasons["end"])
+        assertEquals(estimated.session.sleepMinutes, reasons["sleepMin"])
+        assertEquals(estimated.window.length, reasons["windowMin"])
+        assertEquals(estimated.window.source, reasons["windowSource"])
+        assertEquals(estimated.wornMinutes, reasons["wornMin"])
+    }
 }

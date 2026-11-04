@@ -64,25 +64,65 @@ object WearNaps {
     )
 
     /** The naps in [minutes], oldest first, outside the nights the same minutes hold. */
-    fun detectAll(minutes: List<WearSleepMinute>, offset: ZoneOffset, config: Config = Config()): List<WearNap> {
-        if (minutes.isEmpty()) return emptyList()
+    fun detectAll(minutes: List<WearSleepMinute>, offset: ZoneOffset, config: Config = Config()): List<WearNap> =
+        detectAllWithReasons(minutes, offset, config).naps.map { it.nap }
+
+    /** Like [detectAll], with the numbers behind each nap. */
+    fun detectAllWithReasons(minutes: List<WearSleepMinute>, offset: ZoneOffset, config: Config = Config()): Report {
+        if (minutes.isEmpty()) return Report(null, 0, emptyList())
         val first = minutes.minOf { it.time }.atOffset(offset).toLocalDate()
         val last = minutes.maxOf { it.time }.atOffset(offset).toLocalDate()
         val nights = generateSequence(first) { it.plusDays(1) }.takeWhile { !it.isAfter(last.plusDays(1)) }
             .mapNotNull { WearNight.estimate(minutes, it, offset)?.session }
             .toList()
-        return detect(minutes, nights, config)
+        return detectWithReasons(minutes, nights, config)
     }
 
     /** The naps on the calendar day [date] of [offset], from minutes that cover the day. */
-    fun ofDay(minutes: List<WearSleepMinute>, date: LocalDate, offset: ZoneOffset, config: Config = Config()): List<WearNap> {
+    fun ofDay(minutes: List<WearSleepMinute>, date: LocalDate, offset: ZoneOffset, config: Config = Config()): List<WearNap> =
+        ofDayWithReasons(minutes, date, offset, config).naps.map { it.nap }
+
+    /** Like [ofDay], with the numbers behind each nap. The waking level is the one the whole minute list gave. */
+    fun ofDayWithReasons(minutes: List<WearSleepMinute>, date: LocalDate, offset: ZoneOffset, config: Config = Config()): Report {
         val from = date.atStartOfDay().toInstant(offset)
         val to = date.plusDays(1).atStartOfDay().toInstant(offset)
-        return detectAll(minutes, offset, config).filter { !it.onset.isBefore(from) && it.onset.isBefore(to) }
+        val all = detectAllWithReasons(minutes, offset, config)
+        return all.copy(naps = all.naps.filter { !it.nap.onset.isBefore(from) && it.nap.onset.isBefore(to) })
     }
 
-    fun detect(minutes: List<WearSleepMinute>, nights: List<EstimatedSleepSession>, config: Config = Config()): List<WearNap> {
-        val grid = WearMinuteGrid.of(minutes) ?: return emptyList()
+    fun detect(minutes: List<WearSleepMinute>, nights: List<EstimatedSleepSession>, config: Config = Config()): List<WearNap> =
+        detectWithReasons(minutes, nights, config).naps.map { it.nap }
+
+    /** Why a nap was found: the numbers [detect] compared. */
+    data class NapReason(
+        val nap: WearNap,
+        /** The waking level the pulse was compared with, in beats per minute. */
+        val wakingLevel: Float,
+        /** The drop under the waking level that the run needed. */
+        val requiredDrop: Float,
+        /** True when the run started in the waking hours, so the larger day drop applied. */
+        val daytime: Boolean,
+        /** Median of the smoothed pulse over the nap, or null when it holds no pulse. */
+        val medianHeartRate: Float?,
+        /** The share of the nap's minutes labelled sleep, 0 to 1. */
+        val sleepShare: Float,
+        /** Mean movement count over the nap's minutes. */
+        val meanMovement: Float,
+        /** Minutes the onset moved back over still minutes with a low pulse. */
+        val onsetLookbackMinutes: Int,
+    )
+
+    /** The waking level and the naps with their reasons. [wakingLevel] is null when too few minutes made one. */
+    data class Report(
+        val wakingLevel: Float?,
+        /** Worn waking-hour minutes with a pulse outside the nights: the baseline's input. */
+        val baselineMinutes: Int,
+        val naps: List<NapReason>,
+    )
+
+    /** The one calculation behind [detect]: the same naps, each with the numbers that decided it. */
+    fun detectWithReasons(minutes: List<WearSleepMinute>, nights: List<EstimatedSleepSession>, config: Config = Config()): Report {
+        val grid = WearMinuteGrid.of(minutes) ?: return Report(null, 0, emptyList())
         val wear = WearStateDetector.detect(grid, config.wear)
         val inNight = BooleanArray(grid.size)
         val guarded = BooleanArray(grid.size)
@@ -94,7 +134,8 @@ object WearNaps {
                 guarded[index] = true
             }
         }
-        val baseline = wakingLevel(grid, wear, inNight, config) ?: return emptyList()
+        val (baselineOrNull, baselineMinutes) = wakingLevel(grid, wear, inNight, config)
+        val baseline = baselineOrNull ?: return Report(null, baselineMinutes, emptyList())
         val labels = SleepWakeScorer.score(grid, wear, config.scorer)
         val rate = FloatArray(grid.size) { if (wear.isWorn(it)) grid.heartRate[it] else Float.NaN }
         val smooth = SptWindowDetector.rollingMedian(rate, config.heartRateMedianHalf)
@@ -104,9 +145,23 @@ object WearNaps {
             (daytime || hasNight) && !guarded[index] && wear.isWorn(index) && labels[index] == SleepLabels.Sleep &&
                 !smooth[index].isNaN() && smooth[index] <= baseline - drop(baseline, daytime, config)
         }
-        return runs(quiet, wear, config).mapNotNull { run ->
-            napOf(grid, labels, earlier(grid, wear, smooth, baseline, labels, run, config), config)
+        val naps = runs(quiet, wear, config).mapNotNull { run ->
+            val widened = earlier(grid, wear, smooth, baseline, labels, run, config)
+            val nap = napOf(grid, labels, widened, config) ?: return@mapNotNull null
+            val daytime = isDaytime(grid, run.first, config)
+            val pulses = widened.map { smooth[it] }.filter { !it.isNaN() }.sorted()
+            NapReason(
+                nap = nap,
+                wakingLevel = baseline,
+                requiredDrop = drop(baseline, daytime, config),
+                daytime = daytime,
+                medianHeartRate = pulses.getOrNull(pulses.size / 2),
+                sleepShare = widened.count { labels[it] == SleepLabels.Sleep }.toFloat() / (widened.last - widened.first + 1),
+                meanMovement = widened.map { grid.movement[it] }.average().toFloat(),
+                onsetLookbackMinutes = run.first - widened.first,
+            )
         }
+        return Report(baseline, baselineMinutes, naps)
     }
 
     /**
@@ -143,16 +198,16 @@ object WearNaps {
     private fun drop(baseline: Float, daytime: Boolean, config: Config): Float =
         if (daytime) maxOf(config.dayDropBpm, config.dayDropShare * baseline) else maxOf(config.nightDropBpm, config.nightDropShare * baseline)
 
-    /** Median heart rate of worn waking-hour minutes outside the nights, or null with too few. */
-    private fun wakingLevel(grid: WearMinuteGrid, wear: WearStates, inNight: BooleanArray, config: Config): Float? {
+    /** Median heart rate of worn waking-hour minutes outside the nights (null with too few), and how many minutes it held. */
+    private fun wakingLevel(grid: WearMinuteGrid, wear: WearStates, inNight: BooleanArray, config: Config): Pair<Float?, Int> {
         val values = ArrayList<Float>()
         for (index in 0 until grid.size) {
             if (inNight[index] || !wear.isWorn(index) || !isDaytime(grid, index, config) || !grid.hasPulse(index)) continue
             values += grid.heartRate[index]
         }
-        if (values.size < config.minBaselineMinutes) return null
+        if (values.size < config.minBaselineMinutes) return null to values.size
         values.sort()
-        return values[values.size / 2]
+        return values[values.size / 2] to values.size
     }
 
     /** Runs of quiet minutes, a gap of at most the merge length joining two when it stays worn. */
