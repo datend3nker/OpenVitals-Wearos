@@ -33,6 +33,16 @@ class WearSleepEstimatorTest {
     }
 
     @Test
+    fun `bed time opens at or before sleep onset, and ends at or after it`() {
+        val night = WearSleepEstimator.estimate(WearSleepFixtures.wornNight(start))
+
+        assertNotNull(night)
+        night!!
+        assertTrue("bedTime ${night.bedTime} onset ${night.session.onset}", !night.bedTime.isAfter(night.session.onset))
+        assertTrue("bedTimeEnd ${night.bedTimeEnd} onset ${night.session.onset}", !night.bedTimeEnd.isBefore(night.session.onset))
+    }
+
+    @Test
     fun `a watch on the table all night is no session, with or without the heart rate grant`() {
         assertNull(WearSleepEstimator.estimate(minutes(start, 600) { _, time -> table(time) }))
         assertNull(WearSleepEstimator.estimate(minutes(start, 600) { _, time -> table(time, heartRateRecording = false) }))
