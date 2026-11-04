@@ -17,6 +17,8 @@ data class WearCapabilities(
     val sensorMetrics: Set<MetricTile> = emptySet(),
     /** Measurements a button can start right now. */
     val measurements: Set<Measurement> = emptySet(),
+    /** Measurements a screen can show as they happen, with no button: the value follows the sensor while the screen is open. */
+    val live: Set<Measurement> = emptySet(),
     /** Workouts its sensors support, with the fields each one reports. */
     val workouts: Map<ActivityType, Set<WorkoutField>> = emptyMap(),
 ) {

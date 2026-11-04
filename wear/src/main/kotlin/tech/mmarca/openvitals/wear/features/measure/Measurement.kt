@@ -38,7 +38,7 @@ enum class Measurement(
         durationSeconds = 30,
     ),
 
-    /** RMSSD over a minute of single beats. Only on watches that report each beat. */
+    /** RMSSD from the raw PPG. Shown live on its detail screen once enough signal is in; there is no button for it. */
     HRV(
         R.string.measure_hrv,
         R.string.measure_hrv_description,

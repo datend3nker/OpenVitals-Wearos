@@ -14,7 +14,7 @@ class CapabilityProbeTest {
 
     private val everything = WatchSensors(
         heartRate = true,
-        heartBeat = true,
+        rawPpg = true,
         stepCounter = true,
         barometer = true,
         gps = true,
@@ -22,7 +22,7 @@ class CapabilityProbeTest {
     )
     private val nothing = WatchSensors(
         heartRate = false,
-        heartBeat = false,
+        rawPpg = false,
         stepCounter = false,
         barometer = false,
         gps = false,
@@ -35,7 +35,8 @@ class CapabilityProbeTest {
         assertTrue(capabilities.probed)
         val sensorTiles = MetricTile.entries.filter { it.source == MetricSource.SENSOR }.toSet()
         assertEquals(sensorTiles - MetricTile.VO2_MAX, capabilities.sensorMetrics)
-        assertEquals(Measurement.entries.toSet(), capabilities.measurements)
+        assertEquals(Measurement.entries.toSet() - Measurement.HRV, capabilities.measurements)
+        assertEquals(Measurement.entries.toSet(), capabilities.live)
     }
 
     @Test

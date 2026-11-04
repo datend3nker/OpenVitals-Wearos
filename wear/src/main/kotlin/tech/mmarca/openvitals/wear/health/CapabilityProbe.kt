@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.RawPpgSource
 import tech.mmarca.openvitals.wear.features.measure.Measurement
 import tech.mmarca.openvitals.wear.features.recording.ActivityType
 import tech.mmarca.openvitals.wear.features.recording.WorkoutField
@@ -12,8 +13,8 @@ import tech.mmarca.openvitals.wear.features.recording.WorkoutField
 /** The sensors that decide what the watch offers. */
 data class WatchSensors(
     val heartRate: Boolean,
-    /** Single beats (`TYPE_HEART_BEAT`), for the HRV measurement. */
-    val heartBeat: Boolean,
+    /** Samsung's raw PPG, for the live HRV; the watch has no `TYPE_HEART_BEAT` to read single beats from. */
+    val rawPpg: Boolean,
     val stepCounter: Boolean,
     val barometer: Boolean,
     val gps: Boolean,
@@ -33,7 +34,7 @@ class CapabilityProbe(private val context: Context) {
         return capabilitiesOf(
             WatchSensors(
                 heartRate = has(Sensor.TYPE_HEART_RATE),
-                heartBeat = has(Sensor.TYPE_HEART_BEAT),
+                rawPpg = sensors?.let { RawPpgSource.find(it) } != null,
                 stepCounter = has(Sensor.TYPE_STEP_COUNTER),
                 barometer = has(Sensor.TYPE_PRESSURE),
                 gps = context.packageManager.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS),
@@ -59,13 +60,17 @@ fun capabilitiesOf(sensors: WatchSensors): WearCapabilities {
     }
     val measurements = buildSet {
         if (sensors.heartRate) add(Measurement.HEART_RATE)
-        if (sensors.heartBeat) add(Measurement.HRV)
         if (sensors.barometer) add(Measurement.AIR_PRESSURE)
+    }
+    // Variability needs minutes of signal: it is a live value on its detail screen, not a button.
+    val live = buildSet {
+        addAll(measurements)
+        if (sensors.rawPpg) add(Measurement.HRV)
     }
     val workouts = ActivityType.entries
         .associateWith { workoutFields(it, sensors) }
         .filterValues { it.isNotEmpty() }
-    return WearCapabilities(probed = true, sensorMetrics = sensorMetrics, measurements = measurements, workouts = workouts)
+    return WearCapabilities(probed = true, sensorMetrics = sensorMetrics, measurements = measurements, live = live, workouts = workouts)
 }
 
 private fun workoutFields(activity: ActivityType, sensors: WatchSensors): Set<WorkoutField> = buildSet {

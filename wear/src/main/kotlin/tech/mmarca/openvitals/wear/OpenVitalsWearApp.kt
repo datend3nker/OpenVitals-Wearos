@@ -2,6 +2,7 @@ package tech.mmarca.openvitals.wear
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -113,9 +114,13 @@ fun OpenVitalsWearApp(
                 startDestination = WearRoutes.DASHBOARD,
             ) {
                 composable(WearRoutes.DASHBOARD) {
+                    // The heart rate tile follows the sensor while the dashboard is open, rather than showing
+                    // only what the batched recorder has delivered. Variability stays the night's mean: a live
+                    // RMSSD is another quantity and would mislead on that tile.
+                    val liveHeartRate by liveValue(Measurement.HEART_RATE, currentState.capabilities.live)
                     DashboardScreen(
                         tiles = visibleTiles(),
-                        metrics = currentState.metrics,
+                        metrics = currentState.metrics.withLive(MetricTile.HEART_RATE, liveHeartRate),
                         unitSystem = currentState.preferences.unitSystem,
                         canMeasure = currentState.capabilities.measurements.isNotEmpty(),
                         onOpenMetric = { navController.navigate(WearRoutes.metric(it)) },
@@ -130,13 +135,7 @@ fun OpenVitalsWearApp(
                     val metric = MetricTile.valueOf(checkNotNull(entry.arguments?.getString(WearRoutes.METRIC_ARG)))
                     val measurement = metric.spotMeasurement?.takeIf { it in currentState.capabilities.measurements }
                     val recorded = currentState.metrics[metric] ?: MetricUiState()
-                    val live by remember(metric, measurement) {
-                        if (measurement != null) {
-                            MeasurementRunner(context).live(measurement).catch { }
-                        } else {
-                            emptyFlow()
-                        }
-                    }.collectAsStateWithLifecycle(null)
+                    val live by liveValue(metric.spotMeasurement, currentState.capabilities.live)
                     MetricDetailScreen(
                         metric = metric,
                         state = live?.let { recorded.copy(current = it) } ?: recorded,
@@ -282,7 +281,26 @@ fun OpenVitalsWearApp(
     }
 }
 
-/** The spot measurement that refreshes this metric, if there is one. */
+/**
+ * The value [measurement] reports as it happens while this destination is on screen, null before the
+ * first one or when the watch cannot show it live. The sensor stops with the destination.
+ */
+@Composable
+private fun liveValue(measurement: Measurement?, supported: Set<Measurement>): State<Double?> {
+    val context = LocalContext.current
+    return remember(measurement, measurement in supported) {
+        if (measurement != null && measurement in supported) {
+            MeasurementRunner(context).live(measurement).catch { }
+        } else {
+            emptyFlow()
+        }
+    }.collectAsStateWithLifecycle(null)
+}
+
+private fun Map<MetricTile, MetricUiState>.withLive(metric: MetricTile, live: Double?): Map<MetricTile, MetricUiState> =
+    if (live == null) this else this + (metric to (this[metric] ?: MetricUiState()).copy(current = live))
+
+/** The measurement behind this metric: a spot measurement for the heart rate, a live-only value for variability. */
 private val MetricTile.spotMeasurement: Measurement?
     get() = when (this) {
         MetricTile.HEART_RATE -> Measurement.HEART_RATE

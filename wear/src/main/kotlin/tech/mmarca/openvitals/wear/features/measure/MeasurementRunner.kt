@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.withTimeoutOrNull
+import tech.mmarca.openvitals.wear.RawPpgSource
 import tech.mmarca.openvitals.wear.SensorTime
 import tech.mmarca.openvitals.wear.isUsableHeartRate
 
@@ -23,9 +24,12 @@ import tech.mmarca.openvitals.wear.isUsableHeartRate
  */
 class MeasurementRunner(private val context: Context) {
 
+    private val rawPpg = RawPpgSource(context)
+
     fun run(measurement: Measurement): Flow<MeasureEvent> = when (measurement) {
         Measurement.HEART_RATE -> heartRate()
-        Measurement.HRV -> hrv()
+        // Heart rate variability has no button: it is only shown live.
+        Measurement.HRV -> flow { throw MeasureException(MeasureError.NOT_SUPPORTED) }
         Measurement.AIR_PRESSURE -> airPressure()
     }
 
@@ -62,34 +66,15 @@ class MeasurementRunner(private val context: Context) {
     /**
      * The measurement's value as it goes, for a screen that shows it: no end,
      * no result, and the sensor stops with the collector. HRV is the RMSSD of
-     * the last [LiveBeats] beats, first seen once enough intervals are in.
+     * the last three minutes of raw PPG, first seen once two and a half
+     * minutes are in (see [HrvSpot]) and renewed every [HrvLiveMillis].
      */
     fun live(measurement: Measurement): Flow<Double> = when (measurement) {
         Measurement.HEART_RATE ->
             sensorHeartRate().mapNotNull { (it as? HeartRateSample.Reading)?.bpm?.takeIf { bpm -> bpm > 0 } }
-        Measurement.HRV -> flow {
-            val beats = ArrayDeque<Long>()
-            sensorEvents(Sensor.TYPE_HEART_BEAT).collect { event ->
-                beats.addLast(event.timestamp)
-                if (beats.size > LiveBeats) beats.removeFirst()
-                rmssd(rrIntervalsMillis(beats.toList()))?.let { emit(it) }
-            }
-        }
+        Measurement.HRV -> rawPpg.windows(everyMillis = HrvLiveMillis, windowMillis = HrvSpot.WINDOW_MILLIS)
+            .mapNotNull { HrvSpot.read(it).rmssdMillis }
         Measurement.AIR_PRESSURE -> sensorEvents(Sensor.TYPE_PRESSURE).mapNotNull { it.values.firstOrNull()?.toDouble() }
-    }
-
-    private fun hrv(): Flow<MeasureEvent> = flow {
-        val beats = mutableListOf<Long>()
-        withTimeoutOrNull(Measurement.HRV.durationSeconds * 1000L) {
-            sensorEvents(Sensor.TYPE_HEART_BEAT).collect { event ->
-                beats += event.timestamp
-                rrIntervalsMillis(beats.takeLast(2)).lastOrNull()?.let { rr ->
-                    if (rr in 300.0..2000.0) emit(MeasureEvent.Live(60_000.0 / rr))
-                }
-            }
-        }
-        val value = rmssd(rrIntervalsMillis(beats)) ?: throw MeasureException(MeasureError.NO_SIGNAL)
-        emit(MeasureEvent.Result(value))
     }
 
     private fun airPressure(): Flow<MeasureEvent> = flow {
@@ -152,6 +137,6 @@ class MeasurementRunner(private val context: Context) {
 
     private companion object {
         const val PressureReadingsNeeded = 5
-        const val LiveBeats = 60
+        const val HrvLiveMillis = 10_000L
     }
 }
