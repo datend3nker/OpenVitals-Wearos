@@ -324,14 +324,14 @@ While forwarding is on, the link to the watch is held open for as long as the wa
 
 ## Workouts On The Watch
 
-> **Status:** Implemented for outdoor walking, running, hiking and cycling. Not yet verified on a watch: GPS fix time, battery use and the permission flow are untested on hardware. Indoor and time-and-heart-rate sports (treadmill, stairs, rowing machine, yoga and so on) are the next stage; the sport table (`WorkoutSport`) already lists them.
+> **Status:** Implemented for outdoor walking, running, hiking and cycling, and for six indoor sports: treadmill, indoor cycling, rowing machine, strength, HIIT and yoga. Not yet verified on a watch: GPS fix time, battery use, the permission flow, and the indoor sports (none has been recorded on hardware). Stairs and the other sports in the table (`WorkoutSport`) are not offered yet.
 
 The watch's **Start activity** entry records a workout of its own, with no Health Services and no Google Play services.
 
 - **Sensors.** GPS through the platform `LocationManager`, the step counter, the barometer (the same ascent counter as the all-day ascent) and the heart rate at the full ten-second rate for the whole workout, whatever the heart rate settings say.
 - **Permission.** Precise location is asked at the first workout that uses the GPS. If it is declined, the workout still records, without route or distance.
 - **Service.** `WearAppService` owns the recorder (`WorkoutRecorder`), so there is still one foreground service. It adds the `location` foreground type only while a workout reads the GPS, and a partial wake lock while any workout runs.
-- **Screens.** Elapsed time without pauses, heart rate and zone, distance, pace or speed, climb, steps and cadence, a pause and a stop control, and a summary of the real values.
+- **Screens.** Elapsed time without pauses, heart rate and zone, distance, pace or speed, climb, steps and cadence, a pause and a stop control, and a summary of the real values. What a sport shows follows its flags in `WorkoutSport` and the sensors on the watch: an indoor sport has no position, a treadmill counts steps, and strength, HIIT, yoga, rowing and indoor cycling show time and heart rate. Indoor sports ask for no location.
 - **If the app is killed.** A checkpoint is written every ten seconds and each route point as it arrives. At the next service start the interrupted workout is saved up to its last checkpoint. A workout shorter than half a minute is dropped.
 - **Storage.** A finished workout is kept on the watch for a month (header, pauses and route points as three series in `MetricStore`) until the phone has fetched it.
 - **On the phone.** The Wear OS sync pulls workouts (`WO_SINCE`, capability `wo`) and writes each as an activity session with route, pauses and distance. The session id comes from the workout's start, so a repeated pull does not duplicate it. Steps, climbed height and heart rate are not written again, because the watch's all-day series already cover those minutes. Calories are left to the phone's own estimates. Without the activity write grants the workouts wait on the watch.
