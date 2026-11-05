@@ -100,6 +100,7 @@ dependencies {
     // Ambient mode (AmbientLifecycleObserver) and the watch face pill of a running workout.
     implementation(libs.androidx.wear)
     implementation(libs.androidx.wear.ongoing)
+    implementation(libs.androidx.fragment)
     implementation(libs.androidx.wear.tiles)
     implementation(libs.androidx.wear.protolayout)
     implementation(libs.androidx.wear.protolayout.material)
