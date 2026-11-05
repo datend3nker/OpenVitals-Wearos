@@ -144,6 +144,19 @@ class WearOsLogEntrySyncTest {
     }
 
     @Test
+    fun `caffeine without the nutrition grant stays on the watch while the water is written`() {
+        watch += entry(LogKind.CAFFEINE, t1, 95.0)
+        watch += entry(LogKind.WATER, t2, 250.0)
+        allowed = ALL_PERMISSIONS - WearOsLogEntryImport.writePermission(LogKind.CAFFEINE)!!
+
+        val outcome = syncNow()
+
+        assertEquals(1, outcome?.written)
+        assertEquals(setOf(WearOsLogEntryImport.writePermission(LogKind.CAFFEINE)), outcome?.withheld)
+        assertEquals(t1.minusMillis(1), cursors.logCursor(DEVICE))
+    }
+
+    @Test
     fun `a write the platform refuses for want of its grant is held on the watch the same way`() {
         watch += entry(LogKind.WATER, t1, 250.0)
         watch += entry(LogKind.WATER, t2, 300.0)

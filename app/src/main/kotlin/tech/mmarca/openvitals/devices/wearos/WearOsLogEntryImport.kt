@@ -9,6 +9,7 @@ import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
 import androidx.health.connect.client.records.HeightRecord
 import androidx.health.connect.client.records.HydrationRecord
 import androidx.health.connect.client.records.MindfulnessSessionRecord
+import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.OxygenSaturationRecord
 import androidx.health.connect.client.records.Record
 import androidx.health.connect.client.records.RespiratoryRateRecord
@@ -28,6 +29,8 @@ import java.util.Locale
 import kotlin.reflect.KClass
 import tech.mmarca.openvitals.domain.model.BpRecordValues
 import tech.mmarca.openvitals.domain.model.GlucoseRecordValues
+import tech.mmarca.openvitals.domain.model.NutritionNutrient
+import tech.mmarca.openvitals.healthconnect.nutritionRecordOf
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol.LogKind
 
 /**
@@ -61,6 +64,7 @@ object WearOsLogEntryImport {
         LogKind.BODY_TEMPERATURE -> write(BodyTemperatureRecord::class)
         LogKind.BLOOD_GLUCOSE -> write(BloodGlucoseRecord::class)
         LogKind.HEIGHT -> write(HeightRecord::class)
+        LogKind.CAFFEINE -> write(NutritionRecord::class)
     }
 
     /** Deterministic: the kind, the time in epoch millis and the values as the watch sent them. */
@@ -152,6 +156,19 @@ object WearOsLogEntryImport {
                 mealType = GlucoseRecordValues.MEAL_TYPE_UNKNOWN,
                 relationToMeal = GlucoseRecordValues.RELATION_TO_MEAL_UNKNOWN,
             )
+            LogKind.CAFFEINE -> {
+                // Milligrams on the watch, grams in the phone's nutrition mapping. A drink is a second long, as water is.
+                val end = at.plusSeconds(1)
+                nutritionRecordOf(
+                    startTime = at,
+                    startZoneOffset = offset,
+                    endTime = end,
+                    endZoneOffset = zone.rules.getOffset(end),
+                    metadata = metadata,
+                    nutrientValues = mapOf(NutritionNutrient.CAFFEINE to value / MILLIGRAMS_PER_GRAM),
+                    name = null,
+                )
+            }
             // Centimetres on the watch, metres in Health Connect.
             LogKind.HEIGHT -> HeightRecord(at, offset, Length.meters(value / CENTIMETRES_PER_METRE), metadata)
         }
@@ -166,6 +183,7 @@ object WearOsLogEntryImport {
     private fun write(type: KClass<out Record>): String = HealthPermission.getWritePermission(type)
 
     private const val CENTIMETRES_PER_METRE = 100.0
+    private const val MILLIGRAMS_PER_GRAM = 1_000.0
     private const val MILLIS_PER_MINUTE = 60_000.0
     private const val MAX_MINDFULNESS_MINUTES = 1_440.0
 }

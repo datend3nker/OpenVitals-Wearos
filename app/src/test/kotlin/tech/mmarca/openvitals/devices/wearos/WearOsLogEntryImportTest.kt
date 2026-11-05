@@ -1,5 +1,6 @@
 package tech.mmarca.openvitals.devices.wearos
 
+import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.BloodGlucoseRecord
 import androidx.health.connect.client.records.BloodPressureRecord
 import androidx.health.connect.client.records.BodyFatRecord
@@ -8,6 +9,7 @@ import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
 import androidx.health.connect.client.records.HeightRecord
 import androidx.health.connect.client.records.HydrationRecord
 import androidx.health.connect.client.records.MindfulnessSessionRecord
+import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.OxygenSaturationRecord
 import androidx.health.connect.client.records.RespiratoryRateRecord
 import androidx.health.connect.client.records.WeightRecord
@@ -89,6 +91,21 @@ class WearOsLogEntryImportTest {
     fun `a value Health Connect refuses on its own checks is dropped, not thrown`() {
         // A hydration above Health Connect's 100 litres is refused by the record's constructor.
         assertNull(WearOsLogEntryImport.record(entry(LogKind.WATER, 200_000_000.0), zone))
+    }
+
+    @Test
+    fun `caffeine becomes a one second nutrition record with the milligrams as grams`() {
+        val record = WearOsLogEntryImport.record(entry(LogKind.CAFFEINE, 95.0), zone) as NutritionRecord
+
+        assertEquals(0.095, record.caffeine!!.inGrams, 1e-9)
+        assertEquals(at, record.startTime)
+        assertEquals(at.plusSeconds(1), record.endTime)
+        assertEquals("wearos_log_caffeine_${at.toEpochMilli()}_95.0", record.metadata.clientRecordId)
+        assertNull(record.energy)
+        assertEquals(
+            HealthPermission.getWritePermission(NutritionRecord::class),
+            WearOsLogEntryImport.writePermission(LogKind.CAFFEINE),
+        )
     }
 
     @Test
