@@ -9,7 +9,7 @@ Needs only the standard library.
 Readings come from the `Power;battery` lines of the trace (written whenever the level or the
 charging state changes while the trace runs), and from diagnostics.csv as a fallback for days
 the trace has none. The state at each moment comes from the trace: screen on or off, the heart
-rate plan (`HeartRate;plan`), the sleep hold, the wrist, the charger. The drop between two
+rate plan (`HeartRate;plan`), the sleep hold, the wrist, the charger, the power saver (`Power;saver_on`/`saver_off`). The drop between two
 readings is split over the states in proportion to the time spent in them, so a state's value
 is an estimate that gets better with more readings. The files hold values; keep them to yourself.
 """
@@ -90,11 +90,14 @@ class Timeline:
                 self.changes.append((t, "hold", f.get("holding") == "true"))
             elif source == "Power" and name in ("charger_on", "charger_off"):
                 self.changes.append((t, "charger", name == "charger_on"))
+            elif source == "Power" and name in ("saver_on", "saver_off"):
+                self.changes.append((t, "saver", name == "saver_on"))
+        self.has_saver = any(key == "saver" for _, key, _ in self.changes)
         self.links = [t for t, source, name, _ in events if source == "Link" and name == "connection_open"]
 
     def segments(self, start, end):
-        """(from, to, state) pieces in [start, end], state = (screen, hr label)."""
-        state = {"screen": False, "hr": "unknown", "hold": False, "charger": False}
+        """(from, to, state) pieces in [start, end], state = (screen, hr label, power saver)."""
+        state = {"screen": False, "hr": "unknown", "hold": False, "charger": False, "saver": False}
         for t, key, value in self.changes:
             if t <= start:
                 state[key] = value
@@ -109,7 +112,7 @@ class Timeline:
                 _, key, value = inside[index]
                 state[key] = value
                 index += 1
-            pieces.append((left, right, (state["screen"], state["hr"])))
+            pieces.append((left, right, (state["screen"], state["hr"], state["saver"])))
         return pieces
 
 
@@ -148,12 +151,14 @@ def report(folder, hourly):
         first, last, total_hours, charging_hours, total_drop))
     if total_hours:
         print("Overall %.2f %%/h\n" % (total_drop / total_hours))
-    print("%-34s %8s %8s %8s" % ("state (screen, heart rate plan)", "hours", "% used", "%/h"))
+    print("%-44s %8s %8s %8s" % ("state (screen, heart rate plan, power saver)", "hours", "% used", "%/h"))
     for state in sorted(hours, key=lambda s: -drops[s]):
-        screen, plan = state
+        screen, plan, saver = state
         label = "%s, %s" % ("screen on" if screen else "screen off", plan)
+        if timeline.has_saver:
+            label += ", saver on" if saver else ", saver off"
         rate = drops[state] / hours[state] if hours[state] else 0
-        print("%-34s %8.1f %8.1f %8.2f" % (label, hours[state], drops[state], rate))
+        print("%-44s %8.1f %8.1f %8.2f" % (label, hours[state], drops[state], rate))
     links = len(timeline.links)
     span = (readings[-1][0] - readings[0][0]) / HOUR
     if span:

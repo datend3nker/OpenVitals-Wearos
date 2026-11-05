@@ -70,7 +70,9 @@ class SleepMinuteRecorder(
     @Volatile
     var isSleepHolding: Boolean = false
         private set
-    private val wakeLock = (context.getSystemService(Context.POWER_SERVICE) as PowerManager)
+    private val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+    private var powerSave: Boolean? = null
+    private val wakeLock = powerManager
         .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKE_LOCK_TAG)
         .apply { setReferenceCounted(false) }
 
@@ -85,6 +87,7 @@ class SleepMinuteRecorder(
                 Intent.ACTION_SCREEN_OFF -> DebugTrace.event("Screen", "off")
                 Intent.ACTION_POWER_CONNECTED -> setCharging(now, true)
                 Intent.ACTION_POWER_DISCONNECTED -> setCharging(now, false)
+                PowerManager.ACTION_POWER_SAVE_MODE_CHANGED -> noteSaver()
             }
         }
     }
@@ -123,8 +126,10 @@ class SleepMinuteRecorder(
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_POWER_CONNECTED)
             addAction(Intent.ACTION_POWER_DISCONNECTED)
+            addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
         }
         context.registerReceiver(receiver, filter, null, workerHandler)
+        workerHandler.post { noteSaver() }
         thread = worker
         handler = workerHandler
         workerHandler.post {
@@ -191,6 +196,13 @@ class SleepMinuteRecorder(
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+
+    /** Traces the system's power saving mode when it differs from the last one seen, so the drain can be split by it. */
+    private fun noteSaver() {
+        val on = powerManager.isPowerSaveMode
+        if (on != powerSave) DebugTrace.event("Power", if (on) "saver_on" else "saver_off")
+        powerSave = on
+    }
 
     private fun setCharging(now: Long, plugged: Boolean) {
         if (plugged != charging) DebugTrace.event("Power", if (plugged) "charger_on" else "charger_off")
