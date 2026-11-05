@@ -167,6 +167,7 @@ class NightHrvRecorder(
         val v = values.copyOf(samples)
         endWindow()
         val result = NightHrv.analyze(t, v)
+        traceRespiration(started, t, v)
         if (result == null) {
             Log.i(TAG, "Window gave no value ($samples samples)")
             DebugTrace.event("NightHrv", "window_dropped", "why" to "no_value_too_few_beats", "startedAt" to started, "samples" to samples)
@@ -175,6 +176,22 @@ class NightHrvRecorder(
         }
         pending = Pending(started, now, result)
         finishPending(now)
+    }
+
+    /**
+     * The breathing rate of the window goes to the debug trace only, until nights recorded here
+     * agree with a reference. Worked out only while the trace is on.
+     */
+    private fun traceRespiration(startedAt: Long, times: DoubleArray, values: DoubleArray) {
+        if (!DebugTrace.isEnabled) return
+        val window = NightHrv.respiration(times, values)
+        DebugTrace.event(
+            "NightHrv", "window_respiration",
+            "startedAt" to startedAt,
+            "fromIntervals" to window.fromIntervals?.breathsPerMinute, "intervalShare" to window.fromIntervals?.peakShare,
+            "fromSignal" to window.fromSignal?.breathsPerMinute, "signalShare" to window.fromSignal?.peakShare,
+            "value" to window.value,
+        )
     }
 
     private fun endWindow() {
