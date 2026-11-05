@@ -105,7 +105,8 @@ class HeartRateRecorder(
     private fun start(wanted: HeartRateInterval): Boolean {
         // The wake-up variant empties its batch even while the watch sleeps; the
         // other one hands over only what survived until the next wake.
-        val found = sensorManager.heartRateSensor()
+        val found = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE, true)
+            ?: sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
         if (found == null) {
             Log.w(TAG, "No heart rate sensor")
             return false

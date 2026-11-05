@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.withTimeoutOrNull
 import tech.mmarca.openvitals.wear.SensorTime
-import tech.mmarca.openvitals.wear.heartRateSensor
 import tech.mmarca.openvitals.wear.isUsableHeartRate
 
 /**
@@ -145,8 +144,7 @@ class MeasurementRunner(private val context: Context) {
 
     private fun sensorEvents(type: Int): Flow<SensorEvent> = callbackFlow {
         val manager = context.getSystemService(SensorManager::class.java)
-        val sensor = (if (type == Sensor.TYPE_HEART_RATE) manager?.heartRateSensor() else manager?.getDefaultSensor(type))
-            ?: throw MeasureException(MeasureError.NOT_SUPPORTED)
+        val sensor = manager?.getDefaultSensor(type) ?: throw MeasureException(MeasureError.NOT_SUPPORTED)
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 trySend(event)

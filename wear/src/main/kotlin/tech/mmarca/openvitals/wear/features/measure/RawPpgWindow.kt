@@ -16,7 +16,6 @@ import tech.mmarca.openvitals.domain.insights.NightHrv
 import tech.mmarca.openvitals.wear.DebugTrace
 import tech.mmarca.openvitals.wear.PpgRawLogger
 import tech.mmarca.openvitals.wear.SensorTime
-import tech.mmarca.openvitals.wear.heartRateSensor
 
 /**
  * One spot HRV measurement from the raw pulse sensor of a watch that reports no single beats:
@@ -67,7 +66,7 @@ internal class RawPpgWindow(private val context: Context) {
         try {
             wakeLock.acquire(durationMillis + WAKE_LOCK_SLACK_MILLIS)
             // Keeps the LEDs on. Its readings are not used.
-            manager.heartRateSensor()
+            manager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
                 ?.let { manager.registerListener(listener, it, SensorManager.SENSOR_DELAY_FASTEST, 0, handler) }
             if (!manager.registerListener(listener, ppg, ppg.minDelay.coerceAtLeast(1), 0, handler)) return null
             accelerometer?.let { manager.registerListener(listener, it, SensorManager.SENSOR_DELAY_NORMAL, 0, handler) }
