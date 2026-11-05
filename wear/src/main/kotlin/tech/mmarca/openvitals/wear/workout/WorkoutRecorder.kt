@@ -18,6 +18,8 @@ import tech.mmarca.openvitals.wear.AscentMinuteCounter
 import tech.mmarca.openvitals.wear.DebugTrace
 import tech.mmarca.openvitals.wear.MetricStore
 import tech.mmarca.openvitals.wear.SensorTime
+import tech.mmarca.openvitals.wear.haptics.Haptics
+import tech.mmarca.openvitals.wear.haptics.hapticCueForWorkoutEnd
 import tech.mmarca.openvitals.wearlink.WearLinkWorkoutLines
 
 /**
@@ -214,6 +216,7 @@ class WorkoutRecorder(
         teardown(keepState = false)
         WorkoutState.update { WorkoutUiState(sport = t.sport, running = false, snapshot = last, finished = kept) }
         if (!kept) WorkoutState.clearFinished()
+        Haptics.play(context, hapticCueForWorkoutEnd(kept))
     }
 
     private fun teardown(keepState: Boolean) {
