@@ -33,6 +33,8 @@ The caffeine screen works like the other metric screens: Day, Week, Month and Ye
 
 The curve covers the whole day, from midnight to midnight. If your bedtime is after midnight, it runs on to your bedtime.
 
+A drink logged on a Wear OS watch arrives as a caffeine nutrition record of its own, without a hydration record, and shows on the caffeine screen like any other caffeine record. See [Watches](watches.md).
+
 ## Where The Caffeine Settings Live
 
 The caffeine model itself stays in Settings, Nutrition: half-life, absorption time, the sleep threshold, and bedtime, with the resulting effective half-life shown underneath.

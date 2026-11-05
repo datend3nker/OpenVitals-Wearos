@@ -261,7 +261,7 @@ existed count heart rate and HRV as measured and all other kinds as by hand.
 
 What the wearer logs on the watch (water, weight, blood pressure, a breathing
 session, a spot heart rate or HRV reading, body fat, blood oxygen, respiratory
-rate, body temperature, blood glucose, height) is kept on the watch and pulled
+rate, body temperature, blood glucose, height, the caffeine of a drink) is kept on the watch and pulled
 with the rest of a sync. Each kind is written as its own Health Connect record:
 
 | Watch kind | Health Connect record |
@@ -277,6 +277,14 @@ with the rest of a sync. Each kind is written as its own Health Connect record:
 | Body temperature | `BodyTemperatureRecord` |
 | Blood glucose | `BloodGlucoseRecord`, in mmol/L |
 | Height | `HeightRecord`, stored in centimetres on the watch |
+| Caffeine | `NutritionRecord` with the caffeine, milligrams on the watch and grams in the record, one second long |
+
+The watch offers five drinks for caffeine (coffee, espresso, black tea, cola,
+energy drink); one tap logs the drink now. The list sits in `:healthcalc`
+(`WatchCaffeineDrinks`), and a test in `:domain` holds its values to the phone's
+drink catalog. The caffeine tile is not a default tile; the tile editor offers it.
+The Koffein item of the quick log is on by default for a new list; a list the user
+saved earlier gets it through the editor.
 
 A spot heart rate is not written: the watch's own heart rate samples already
 reach Health Connect, and a spot reading would be a second sample of the same
