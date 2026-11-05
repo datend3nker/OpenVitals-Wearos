@@ -1,6 +1,7 @@
 package tech.mmarca.openvitals.wear.features.recording
 
 import android.text.format.DateUtils
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.keepScreenOn
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.pager.HorizontalPager
@@ -52,6 +52,8 @@ import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.features.metric.HeartZoneLabels
 import tech.mmarca.openvitals.wear.features.metric.heartRateZone
 import tech.mmarca.openvitals.wear.features.metric.heartRateZoneProgress
+import tech.mmarca.openvitals.wear.ui.ambient.ambientElapsedText
+import tech.mmarca.openvitals.wear.ui.ambient.rememberAmbient
 import tech.mmarca.openvitals.wear.ui.components.MetricValueRow
 import tech.mmarca.openvitals.wear.ui.components.formatCount
 import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
@@ -95,8 +97,16 @@ fun RecordingScreen(
     }
     val pagerState = rememberPagerState(initialPage = pages.indexOf(WorkoutPage.OVERVIEW)) { pages.size }
     var confirmStop by rememberSaveable { mutableStateOf(false) }
+    // The screen is not held bright any more. It may dim to the ambient view;
+    // the recorder keeps its own wake lock, so the workout goes on either way.
+    val ambient = rememberAmbient(wanted = true)
 
-    HorizontalPagerScaffold(pagerState = pagerState, modifier = Modifier.keepScreenOn()) {
+    if (ambient) {
+        AmbientRecording(state, fields)
+        return
+    }
+
+    HorizontalPagerScaffold(pagerState = pagerState) {
         HorizontalPager(state = pagerState) { page ->
             ScreenScaffold {
                 when (pages[page]) {
@@ -122,6 +132,40 @@ fun RecordingScreen(
         },
         title = { Text(stringResource(R.string.recording_stop_confirm)) },
     )
+}
+
+/**
+ * The dimmed view: black, the time in hours and minutes, and the pulse if the
+ * workout records one. No colour, no controls, nothing that moves.
+ */
+@Composable
+private fun AmbientRecording(state: RecordingUiState, fields: Set<WorkoutField>) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        Text(
+            text = stringResource(if (state.paused) R.string.recording_paused else state.activityType.label),
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.LightGray,
+        )
+        Text(
+            text = ambientElapsedText(state.elapsedSeconds),
+            style = MaterialTheme.typography.displayMedium.copy(fontFeatureSettings = "tnum"),
+            color = Color.White,
+        )
+        if (WorkoutField.HEART_RATE in fields && state.heartRateBpm != null) {
+            Text(
+                text = "${state.heartRateBpm} ${stringResource(R.string.unit_bpm)}",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.LightGray,
+            )
+        }
+    }
 }
 
 @Composable

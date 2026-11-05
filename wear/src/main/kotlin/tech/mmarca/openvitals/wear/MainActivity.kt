@@ -9,16 +9,21 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.wear.ambient.AmbientLifecycleObserver
 import tech.mmarca.openvitals.wear.features.recording.ActivityType
 import tech.mmarca.openvitals.wear.workout.WorkoutState
 import tech.mmarca.openvitals.wear.features.settings.PhoneScreen
 import tech.mmarca.openvitals.wear.features.settings.SensorAccess
 import tech.mmarca.openvitals.wear.features.settings.SensorAccessScreen
+import tech.mmarca.openvitals.wear.ui.ambient.AmbientRequest
+import tech.mmarca.openvitals.wear.ui.ambient.LocalAmbient
+import tech.mmarca.openvitals.wear.ui.ambient.LocalAmbientRequest
 
 /**
  * The watch app: the dashboard, tiles' screens and quick log, with the link
@@ -46,6 +51,49 @@ class MainActivity : ComponentActivity() {
         WearAppService.startIfPermitted(this)
         // The background grant is asked on its own, and only after the foreground one.
         requestBackgroundHeartRateIfNeeded()
+    }
+
+    /** True while the system shows the dimmed ambient screen. Only set while a screen asked for ambient mode. */
+    private var ambient by mutableStateOf(false)
+    private var ambientObserver: AmbientLifecycleObserver? = null
+    private var ambientAsks = 0
+
+    private val ambientCallback = object : AmbientLifecycleObserver.AmbientLifecycleCallback {
+        override fun onEnterAmbient(ambientDetails: AmbientLifecycleObserver.AmbientDetails) {
+            ambient = true
+        }
+
+        override fun onExitAmbient() {
+            ambient = false
+        }
+    }
+
+    /**
+     * The observer is added only while the workout screen or a running
+     * measurement asks for it. With it the app stays on screen when the
+     * display dims, so every other screen would have to draw an ambient
+     * variant too; without it the system hands over to the watch face.
+     */
+    private val ambientRequest = object : AmbientRequest {
+        override fun acquire() {
+            if (++ambientAsks == 1) {
+                val observer = AmbientLifecycleObserver(this@MainActivity, ambientCallback)
+                ambientObserver = observer
+                lifecycle.addObserver(observer)
+            }
+        }
+
+        override fun release() {
+            if (ambientAsks > 0 && --ambientAsks == 0) {
+                ambientObserver?.let {
+                    lifecycle.removeObserver(it)
+                    // Removing does not unregister from the system; destroying does.
+                    it.onDestroy(this@MainActivity)
+                }
+                ambientObserver = null
+                ambient = false
+            }
+        }
     }
 
     /** The sport waiting for the location answer; null when none is. */
@@ -84,20 +132,25 @@ class MainActivity : ComponentActivity() {
                         WearPermissions.hasHeartRateInBackground(this),
                 )
             }
-            OpenVitalsWearApp(
-                state = uiState.copy(settings = settings),
-                onLog = viewModel::log,
-                deepLinkRoute = pendingRoute,
-                onDeepLinkHandled = { pendingRoute = null },
-                statusScreen = { StatusScreen() },
-                phoneScreen = { PhoneRoute() },
-                sensorScreen = { onOpenDetails -> SensorAccessRoute(onOpenDetails) },
-                onStartWorkout = ::startWorkout,
-                onPauseWorkout = { WearAppService.pauseWorkout(this) },
-                onResumeWorkout = { WearAppService.resumeWorkout(this) },
-                onStopWorkout = { WearAppService.stopWorkout(this) },
-                onCloseSummary = WorkoutState::clearFinished,
-            )
+            CompositionLocalProvider(
+                LocalAmbient provides ambient,
+                LocalAmbientRequest provides ambientRequest,
+            ) {
+                OpenVitalsWearApp(
+                    state = uiState.copy(settings = settings),
+                    onLog = viewModel::log,
+                    deepLinkRoute = pendingRoute,
+                    onDeepLinkHandled = { pendingRoute = null },
+                    statusScreen = { StatusScreen() },
+                    phoneScreen = { PhoneRoute() },
+                    sensorScreen = { onOpenDetails -> SensorAccessRoute(onOpenDetails) },
+                    onStartWorkout = ::startWorkout,
+                    onPauseWorkout = { WearAppService.pauseWorkout(this) },
+                    onResumeWorkout = { WearAppService.resumeWorkout(this) },
+                    onStopWorkout = { WearAppService.stopWorkout(this) },
+                    onCloseSummary = WorkoutState::clearFinished,
+                )
+            }
         }
     }
 
