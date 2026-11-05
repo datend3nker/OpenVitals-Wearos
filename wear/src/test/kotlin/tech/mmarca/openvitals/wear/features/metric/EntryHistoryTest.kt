@@ -37,4 +37,11 @@ class EntryHistoryTest {
         assertEquals(listOf(7.0, 6.0, 5.0, 4.0, 3.0), recentEntries(entries, MetricTile.HRV, today, zone).map { it.value })
         assertEquals(emptyList<RecentEntry>(), recentEntries(entries, MetricTile.STEPS, today, zone))
     }
+
+    @Test
+    fun `the heart rate screen lists no entries, the curve of the day is its history`() {
+        val entries = listOf(LoggedEntry(EntryType.HEART_RATE, at(today, 9), 61.0))
+
+        assertEquals(emptyList<RecentEntry>(), recentEntries(entries, MetricTile.HEART_RATE, today, zone))
+    }
 }

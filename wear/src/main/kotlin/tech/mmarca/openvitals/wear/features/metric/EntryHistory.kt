@@ -8,9 +8,11 @@ import tech.mmarca.openvitals.wear.MetricTile
 import tech.mmarca.openvitals.wear.features.quicklog.EntryType
 import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
 
-/** The entries of one kind a tile's detail screen lists: what the wearer measured or logged on the watch. */
+/**
+ * The entries of one kind a tile's detail screen lists: what the wearer measured or logged on the
+ * watch. Heart rate has none: its detail screen already shows the day's curve.
+ */
 internal fun MetricTile.entryType(): EntryType? = when (this) {
-    MetricTile.HEART_RATE -> EntryType.HEART_RATE
     MetricTile.HRV -> EntryType.HRV
     MetricTile.WEIGHT -> EntryType.WEIGHT
     MetricTile.HYDRATION -> EntryType.WATER
