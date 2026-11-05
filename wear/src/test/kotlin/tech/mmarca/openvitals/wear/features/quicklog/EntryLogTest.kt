@@ -81,6 +81,24 @@ class EntryLogTest {
     }
 
     @Test
+    fun caffeine_sumsTodayAndEachDayOfTheWeek_andSurvivesEncoding() {
+        val entries = listOf(
+            LoggedEntry(EntryType.CAFFEINE, at(today.minusDays(1), 9), 95.0),
+            LoggedEntry(EntryType.CAFFEINE, at(today, 8), 95.0),
+            LoggedEntry(EntryType.CAFFEINE, at(today, 15), 48.0),
+        )
+        assertEquals(entries, decodeEntries(encodeEntries(entries)))
+
+        val caffeine = WearUiState().withEntries(entries, today, zone).metrics.getValue(MetricTile.CAFFEINE)
+
+        assertEquals(143.0, caffeine.current!!, 0.0)
+        assertEquals(16, caffeine.today.size)
+        assertEquals(48.0, caffeine.today[15], 0.0)
+        assertEquals(listOf(0.0, 0.0, 0.0, 0.0, 0.0, 95.0, 143.0), caffeine.week)
+        assertEquals(null, WearUiState().withEntries(entries, today, zone).metrics[MetricTile.HYDRATION])
+    }
+
+    @Test
     fun spotMeasurement_fillsAnEmptyMetric_butNeverOverridesAReading() {
         val measured = listOf(LoggedEntry(EntryType.HEART_RATE, at(today, 9), 64.0))
 

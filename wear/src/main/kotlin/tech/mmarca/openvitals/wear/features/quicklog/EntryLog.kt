@@ -46,6 +46,9 @@ enum class EntryType {
 
     /** Centimetres; shown in inches with the imperial units. */
     HEIGHT,
+
+    /** Milligrams of caffeine in one drink. */
+    CAFFEINE,
 }
 
 data class LoggedEntry(

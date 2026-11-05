@@ -3,6 +3,7 @@ package tech.mmarca.openvitals.wear.features.quicklog
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Air
 import androidx.compose.material.icons.outlined.Bloodtype
+import androidx.compose.material.icons.outlined.Coffee
 import androidx.compose.material.icons.outlined.Opacity
 import androidx.compose.material.icons.outlined.Thermostat
 import androidx.compose.material.icons.outlined.Favorite
@@ -24,6 +25,7 @@ import tech.mmarca.openvitals.wear.ui.components.formatCount
 import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
 import tech.mmarca.openvitals.wear.ui.components.metricUnitLabel
 import tech.mmarca.openvitals.wear.ui.theme.ActiveCaloriesColor
+import tech.mmarca.openvitals.wear.ui.theme.CaffeineColor
 import tech.mmarca.openvitals.wear.ui.theme.HeartColor
 import tech.mmarca.openvitals.wear.ui.theme.HydrationColor
 import tech.mmarca.openvitals.wear.ui.theme.MindfulnessColor
@@ -44,6 +46,7 @@ val EntryType.icon: ImageVector
         EntryType.BODY_TEMPERATURE -> Icons.Outlined.Thermostat
         EntryType.BLOOD_GLUCOSE -> Icons.Outlined.Opacity
         EntryType.HEIGHT -> Icons.Outlined.Straighten
+        EntryType.CAFFEINE -> Icons.Outlined.Coffee
     }
 
 val EntryType.color: Color
@@ -60,6 +63,7 @@ val EntryType.color: Color
         EntryType.BODY_TEMPERATURE -> ActiveCaloriesColor
         EntryType.BLOOD_GLUCOSE -> ActiveCaloriesColor
         EntryType.HEIGHT -> WeightColor
+        EntryType.CAFFEINE -> CaffeineColor
     }
 
 /** The entry's value with its unit, e.g. "72.4 kg" or "121/79 mmHg". */
@@ -69,6 +73,7 @@ fun formatEntry(entry: LoggedEntry, unitSystem: UnitSystem): String = when (entr
     EntryType.WEIGHT -> metricValue(MetricTile.WEIGHT, entry.value, unitSystem)
     EntryType.HEART_RATE -> metricValue(MetricTile.HEART_RATE, entry.value, unitSystem)
     EntryType.HRV -> metricValue(MetricTile.HRV, entry.value, unitSystem)
+    EntryType.CAFFEINE -> metricValue(MetricTile.CAFFEINE, entry.value, unitSystem)
     EntryType.MINDFULNESS -> stringResource(R.string.quicklog_minutes, entry.value.roundToInt())
     EntryType.BLOOD_PRESSURE -> stringResource(
         R.string.quicklog_blood_pressure_value,

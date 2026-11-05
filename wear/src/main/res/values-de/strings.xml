@@ -46,6 +46,7 @@
     <string name="metric_hrv">Herzfrequenzvariabilität</string>
     <string name="metric_sleep">Schlaf</string>
     <string name="metric_hydration">Wasser</string>
+    <string name="metric_caffeine">Koffein</string>
     <string name="metric_weight">Gewicht</string>
     <string name="metric_body_fat">Körperfett</string>
     <string name="metric_respiratory_rate">Atemfrequenz</string>
@@ -66,6 +67,7 @@
     <string name="unit_min">min</string>
     <string name="unit_hours">Std.</string>
     <string name="unit_ml">ml</string>
+    <string name="unit_mg">mg</string>
     <string name="unit_fl_oz">fl oz</string>
     <string name="unit_kg">kg</string>
     <string name="unit_breaths">Atemzüge/min</string>

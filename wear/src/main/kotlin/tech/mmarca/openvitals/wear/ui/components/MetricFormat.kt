@@ -87,6 +87,7 @@ fun metricUnitLabel(metric: MetricTile, unitSystem: UnitSystem): Int =
             UnitSystem.METRIC -> R.string.unit_ml
             UnitSystem.IMPERIAL -> R.string.unit_fl_oz
         }
+        MetricTile.CAFFEINE -> R.string.unit_mg
         MetricTile.WEIGHT -> when (unitSystem) {
             UnitSystem.METRIC -> R.string.unit_kg
             UnitSystem.IMPERIAL -> R.string.unit_lb

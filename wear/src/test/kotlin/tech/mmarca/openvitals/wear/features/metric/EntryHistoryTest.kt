@@ -31,6 +31,16 @@ class EntryHistoryTest {
     }
 
     @Test
+    fun `the caffeine tile lists the drinks, not the water`() {
+        val entries = listOf(
+            LoggedEntry(EntryType.CAFFEINE, at(today, 8), 95.0),
+            LoggedEntry(EntryType.WATER, at(today, 9), 250.0),
+        )
+
+        assertEquals(listOf(95.0), recentEntries(entries, MetricTile.CAFFEINE, today, zone).map { it.value })
+    }
+
+    @Test
     fun `at most five are listed, and a tile with no entry kind lists none`() {
         val entries = (0 until 8).map { LoggedEntry(EntryType.HRV, at(today, it), it.toDouble()) }
 

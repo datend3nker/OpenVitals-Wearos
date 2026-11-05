@@ -248,4 +248,5 @@ internal fun EntryType.wireKind(): WearLinkProtocol.LogKind = when (this) {
     EntryType.BODY_TEMPERATURE -> WearLinkProtocol.LogKind.BODY_TEMPERATURE
     EntryType.BLOOD_GLUCOSE -> WearLinkProtocol.LogKind.BLOOD_GLUCOSE
     EntryType.HEIGHT -> WearLinkProtocol.LogKind.HEIGHT
+    EntryType.CAFFEINE -> WearLinkProtocol.LogKind.CAFFEINE
 }

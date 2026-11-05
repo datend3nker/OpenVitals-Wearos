@@ -11,7 +11,7 @@ private const val DaysInWeek = 7
 
 /**
  * Folds the watch's own entries into the metrics they feed: water into
- * hydration, weigh-ins into weight, spot measurements into heart rate and
+ * hydration, drinks into caffeine, weigh-ins into weight, spot measurements into heart rate and
  * HRV where nothing else has a reading. A metric without entries keeps
  * whatever it had.
  */
@@ -33,6 +33,15 @@ internal fun WearUiState.withEntries(
             current = week.last(),
             goal = preferences.waterGoalMl.toDouble(),
             today = water.onDay(today, zone).hourlyTotals(zone),
+            week = week,
+        )
+    }
+    byType[EntryType.CAFFEINE]?.let { drinks ->
+        // The phone sends no caffeine total, so the watch's own entries are all there is.
+        val week = lastDays(today).map { day -> drinks.onDay(day, zone).sumOf { it.value } }
+        updated[MetricTile.CAFFEINE] = MetricUiState(
+            current = week.last(),
+            today = drinks.onDay(today, zone).hourlyTotals(zone),
             week = week,
         )
     }

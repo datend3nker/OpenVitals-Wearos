@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material.icons.outlined.Stairs
 import androidx.compose.material.icons.outlined.Straighten
 import androidx.compose.material.icons.outlined.Terrain
+import androidx.compose.material.icons.outlined.Coffee
 import androidx.compose.material.icons.outlined.WaterDrop
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -22,6 +23,7 @@ import tech.mmarca.openvitals.wear.ui.theme.DistanceColor
 import tech.mmarca.openvitals.wear.ui.theme.ElevationColor
 import tech.mmarca.openvitals.wear.ui.theme.FloorsColor
 import tech.mmarca.openvitals.wear.ui.theme.HeartColor
+import tech.mmarca.openvitals.wear.ui.theme.CaffeineColor
 import tech.mmarca.openvitals.wear.ui.theme.HydrationColor
 import tech.mmarca.openvitals.wear.ui.theme.SleepColor
 import tech.mmarca.openvitals.wear.ui.theme.StepsColor
@@ -115,6 +117,15 @@ enum class MetricTile(
         R.string.metric_hydration,
         Icons.Outlined.WaterDrop,
         HydrationColor,
+        MetricKind.CUMULATIVE,
+        MetricSource.LOGGED,
+    ),
+
+    /** Milligrams. Only from the drinks logged on the watch; not one of the default tiles. */
+    CAFFEINE(
+        R.string.metric_caffeine,
+        Icons.Outlined.Coffee,
+        CaffeineColor,
         MetricKind.CUMULATIVE,
         MetricSource.LOGGED,
     ),

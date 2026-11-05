@@ -16,6 +16,7 @@ internal fun MetricTile.entryType(): EntryType? = when (this) {
     MetricTile.HRV -> EntryType.HRV
     MetricTile.WEIGHT -> EntryType.WEIGHT
     MetricTile.HYDRATION -> EntryType.WATER
+    MetricTile.CAFFEINE -> EntryType.CAFFEINE
     else -> null
 }
 
