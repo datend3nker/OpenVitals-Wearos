@@ -240,6 +240,23 @@ At the end of a sync the phone sends the watch the last seven days of water (the
 
 The watch's distance and active-energy tiles are estimates from its steps, worked out on the watch with the same code as the phone (`StepEstimates` in `:healthcalc`). Distance is the steps times the step length from the phone's Activities setting, 0.7 m until the phone has sent one. Active energy is the walking-energy estimate per minute from the cadence (Moore et al. 2021), which holds for level walking and leaves out hills, stairs and running, so it tends to come in low. It needs a weight: the phone sends its latest one from Health Connect, else the body profile's, at the end of each sync, and until it does the energy tile stays empty. Neither tile is a measurement and neither is written to Health Connect from the watch. The watch redoes the past days when the weight or step length changes.
 
+### Choosing The Quick Log Entries
+
+The watch's Log screen lists water, weight, blood pressure, the one-number
+values (body fat, blood oxygen, respiratory rate, body temperature, blood
+glucose, height) and the breathing exercise. The button "Edit entries" at the
+end of the list opens an editor like the one for the dashboard tiles: a switch
+turns an entry on or off, and a long press with a drag moves an active entry.
+"Reset default" shows all entries in the original order. The choice stays on
+the watch only. If every entry is off, the screen says "No entries chosen" and
+keeps the edit button. The Log tile still adds only a glass of water.
+
+The "Recent" list on the Log screen shows only entries the wearer made by hand.
+A spot measurement (heart rate, HRV) is marked as measured when it is saved, so
+it stays out of that list. It is still kept, still synced to the phone and
+still listed on the metric's own detail screen. Entries saved before the mark
+existed count heart rate and HRV as measured and all other kinds as by hand.
+
 ### Logged Entries
 
 What the wearer logs on the watch (water, weight, blood pressure, a breathing
