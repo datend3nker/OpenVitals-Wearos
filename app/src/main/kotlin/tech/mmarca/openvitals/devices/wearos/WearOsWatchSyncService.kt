@@ -663,14 +663,14 @@ class WearOsWatchSyncService(
         }
     }
 
-    /** Whether the window has a record of [type] from another app. A read failure counts as no. */
+    /** Whether the window has a record of [type] from another app and none of ours; ours keeps growing with the night. A read failure counts as no. */
     private suspend fun hasForeignRecord(
         type: KClass<out Record>,
         from: Instant,
         to: Instant,
         isOwn: (String?) -> Boolean,
     ): Boolean = try {
-        holdings(type, from, to, isOwn).foreign
+        holdings(type, from, to, isOwn).let { it.foreign && !it.own }
     } catch (error: CancellationException) {
         throw error
     } catch (error: Exception) {

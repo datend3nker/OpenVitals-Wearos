@@ -661,6 +661,22 @@ class WearOsWatchSyncServiceTest {
     }
 
     @Test
+    fun `a night we wrote keeps growing after a vendor session arrives`() = runTest {
+        pages += WearOsHeartRatePage(emptyList(), hasMore = false)
+        sleepPages += WearOsSleepMinutePage(nightMinutes(), hasMore = false)
+        val records = listOf("samsung_sleep_1", "wearos_sleep_est_2026-10-07").map { id ->
+            mockk<SleepSessionRecord> { every { metadata } returns Metadata.manualEntry(clientRecordId = id) }
+        }
+        coEvery { healthConnect.forEachSyncRecordPage(SleepSessionRecord::class, any(), any(), any()) } coAnswers {
+            arg<suspend (List<androidx.health.connect.client.records.Record>) -> Unit>(3).invoke(records)
+        }
+
+        service().sync(WATCH, Duration.ZERO, null)
+
+        assertEquals(1, insertedOf<SleepSessionRecord>().size)
+    }
+
+    @Test
     fun `a nap becomes its own session under its onset's id`() = runTest {
         pages += WearOsHeartRatePage(emptyList(), hasMore = false)
         sleepPages += WearOsSleepMinutePage(napDayMinutes(), hasMore = false)
