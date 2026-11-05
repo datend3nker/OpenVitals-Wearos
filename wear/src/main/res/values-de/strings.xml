@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">OpenVitals Wear</string>
     <string name="link_channel_name">Telefonverbindung</string>
+    <string name="workout_channel_name">Laufendes Training</string>
     <string name="link_notification_text">Erfasst Herzfrequenz und Schlaf · erreichbar für OpenVitals auf dem Telefon</string>
     <string name="status_heart_rate_not_granted">Zugriff auf die Herzfrequenz ist aus</string>
     <string name="status_heart_rate_waiting">Warte auf eine Herzfrequenz…</string>

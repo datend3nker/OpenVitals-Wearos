@@ -97,6 +97,8 @@ dependencies {
     implementation(libs.androidx.wear.compose.navigation)
     // Same drag-to-reorder library as the phone dashboard.
     implementation(libs.reorderable)
+    // The watch face pill of a running workout.
+    implementation(libs.androidx.wear.ongoing)
     implementation(libs.androidx.wear.tiles)
     implementation(libs.androidx.wear.protolayout)
     implementation(libs.androidx.wear.protolayout.material)
