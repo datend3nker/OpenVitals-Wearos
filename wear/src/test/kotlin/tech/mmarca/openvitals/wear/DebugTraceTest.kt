@@ -40,6 +40,32 @@ class DebugTraceTest {
     }
 
     @Test
+    fun `the battery is written before the line that finds it changed`() {
+        val log = file
+        var reading: Pair<Int, Boolean>? = 54 to false
+        val trace = DebugTrace(log, { 7L }, async = false, battery = { reading }).apply { enabled = true }
+
+        trace.record("A", "x")
+        trace.record("A", "y")
+        reading = 53 to false
+        trace.record("A", "z")
+        reading = 150 to false
+        trace.record("A", "w")
+
+        assertEquals(
+            listOf(
+                "7;Power;battery;level=54;charging=false",
+                "7;A;x",
+                "7;A;y",
+                "7;Power;battery;level=53;charging=false",
+                "7;A;z",
+                "7;A;w",
+            ),
+            log.files().single().readLines(),
+        )
+    }
+
+    @Test
     fun `a result is written again only when it changes`() {
         val log = file
         val trace = trace(log).apply { enabled = true }

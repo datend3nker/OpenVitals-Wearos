@@ -60,7 +60,7 @@ To follow a case across several days of a test, use the debug data switch (see [
 scripts/wear-debug-pull.sh --replay        # add --phone <serial> for the phone's sync log, --dry-run to see the commands
 ```
 
-It pulls `files/debug/` and `diagnostics.csv` into `wear-debug-pull/<time>/` and runs `WearDebugReplayCheck` on `minutes.csv`. The check is skipped when `OPENVITALS_WEAR_DEBUG_DIR` is not set, so CI never runs it.
+It pulls `files/debug/` and `diagnostics.csv` into `wear-debug-pull/<time>/`, prints the battery use (`scripts/wear-battery-report.py <folder> [--hours]`) and runs `WearDebugReplayCheck` on `minutes.csv`. With the debug switch on, the trace holds a `Power;battery` line whenever the level changes, plus `Screen;on` and `Screen;off`; the report splits the drop between readings over the states (screen, heart rate plan, sleep hold) and lists the link connections per hour. The check is skipped when `OPENVITALS_WEAR_DEBUG_DIR` is not set, so CI never runs it.
 
 The watch's instrumented tests (`wear/src/androidTest`, the metric store against real SQLite)
 are compiled by the gate but run only on a device. Do not use `connectedDebugAndroidTest` on a

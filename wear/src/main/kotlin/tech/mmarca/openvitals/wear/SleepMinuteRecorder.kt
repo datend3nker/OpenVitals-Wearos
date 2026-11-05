@@ -78,7 +78,11 @@ class SleepMinuteRecorder(
         override fun onReceive(context: Context, intent: Intent) {
             val now = System.currentTimeMillis()
             when (intent.action) {
-                Intent.ACTION_SCREEN_ON -> aggregator.onScreenOn(now)
+                Intent.ACTION_SCREEN_ON -> {
+                    DebugTrace.event("Screen", "on")
+                    aggregator.onScreenOn(now)
+                }
+                Intent.ACTION_SCREEN_OFF -> DebugTrace.event("Screen", "off")
                 Intent.ACTION_POWER_CONNECTED -> setCharging(now, true)
                 Intent.ACTION_POWER_DISCONNECTED -> setCharging(now, false)
             }
@@ -116,6 +120,7 @@ class SleepMinuteRecorder(
         workerHandler.post { setCharging(System.currentTimeMillis(), plugged != 0) }
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_POWER_CONNECTED)
             addAction(Intent.ACTION_POWER_DISCONNECTED)
         }

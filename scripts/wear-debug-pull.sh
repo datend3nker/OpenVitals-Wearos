@@ -76,6 +76,13 @@ if [ "$DRY" = no ]; then
     ls -l "$DEST" | sed 's/^/  /'
 fi
 
+if [ "$DRY" = yes ]; then
+    note "would run: $REPO_ROOT/scripts/wear-battery-report.py $DEST"
+else
+    say "Battery use"
+    "$REPO_ROOT/scripts/wear-battery-report.py" "$DEST" || note "no battery report"
+fi
+
 if [ "$REPLAY" = yes ]; then
     say "Offline check on $DEST"
     if [ "$DRY" = yes ]; then

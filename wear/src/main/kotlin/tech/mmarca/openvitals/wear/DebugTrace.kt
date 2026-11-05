@@ -20,6 +20,8 @@ internal class DebugTrace(
     private val file: DebugTraceFile?,
     private val clock: () -> Long = System::currentTimeMillis,
     private val async: Boolean = true,
+    /** The battery percent and whether it charges, or null when unknown. Read with every line. */
+    private val battery: (() -> Pair<Int, Boolean>?)? = null,
 ) {
     @Volatile
     var enabled: Boolean = false
@@ -28,13 +30,33 @@ internal class DebugTrace(
         Executors.newSingleThreadExecutor { runnable -> Thread(runnable, "DebugTrace").apply { isDaemon = true } }
     }
     private val lastSeen = HashMap<String, String>()
+    private var lastBattery: Pair<Int, Boolean>? = null
 
     /** Writes one line. Does nothing while the switch is off. */
     fun record(source: String, event: String, vararg fields: Pair<String, Any?>) {
         if (!enabled) return
         val target = file ?: return
         val at = clock()
+        noteBattery(target, at)
         val line = DebugTraceFile.line(at, source, event, fields.toList())
+        write(target, at, line)
+    }
+
+    /**
+     * Writes a `Power;battery` line when the level or the charging state differs from the last
+     * one written. Every line of the trace is a wake-up of the watch, so the level is read as
+     * often as the watch runs, with no timer of its own: the drain per state comes from these.
+     */
+    private fun noteBattery(target: DebugTraceFile, at: Long) {
+        val reading = battery?.invoke()?.takeIf { it.first in 0..100 } ?: return
+        synchronized(this) {
+            if (reading == lastBattery) return
+            lastBattery = reading
+        }
+        write(target, at, DebugTraceFile.line(at, "Power", "battery", listOf("level" to reading.first, "charging" to reading.second)))
+    }
+
+    private fun write(target: DebugTraceFile, at: Long, line: String) {
         if (async) executor.execute { target.append(at, line) } else target.append(at, line)
     }
 
@@ -78,7 +100,7 @@ internal class DebugTrace(
         /** Makes the shared instance write into the app's debug folder. Call once at startup. */
         fun install(context: Context) {
             val folder = folderOf(context) ?: return
-            shared = DebugTrace(DebugTraceFile(folder, PREFIX))
+            shared = DebugTrace(DebugTraceFile(folder, PREFIX), battery = { batteryReading(context).takeIf { it.first >= 0 } })
         }
 
         /** A line on the shared instance. */
