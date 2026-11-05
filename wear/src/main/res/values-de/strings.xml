@@ -106,6 +106,7 @@
     <string name="action_save">Speichern</string>
     <string name="detail_today">Heute</string>
     <string name="detail_week">Letzte 7 Tage</string>
+    <string name="detail_recent_entries">Letzte Einträge</string>
     <string name="detail_no_data">Noch keine Daten</string>
     <string name="stat_low">Niedrig</string>
     <string name="stat_average">Mittel</string>
