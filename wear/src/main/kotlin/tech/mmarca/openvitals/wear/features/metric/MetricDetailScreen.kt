@@ -1,6 +1,8 @@
 package tech.mmarca.openvitals.wear.features.metric
 
 import androidx.annotation.StringRes
+import java.time.Instant
+import java.time.ZoneId
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +40,7 @@ import kotlin.math.roundToInt
 import tech.mmarca.openvitals.wear.MetricKind
 import tech.mmarca.openvitals.wear.MetricUiState
 import tech.mmarca.openvitals.wear.R
+import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
 import tech.mmarca.openvitals.wear.SleepStage
 import tech.mmarca.openvitals.wear.SleepTimes
 import tech.mmarca.openvitals.wear.UnitSystem
@@ -87,10 +90,13 @@ fun MetricDetailScreen(
     sleepTimes: SleepTimes = SleepTimes(),
     /** Starts a spot measurement of this metric; null when the watch cannot measure it. */
     onMeasure: (() -> Unit)? = null,
+    /** What the wearer measured or logged on the watch, any kind; the screen lists the ones of this metric. */
+    entries: List<LoggedEntry> = emptyList(),
 ) {
     val listState = rememberTransformingLazyColumnState()
     val unit = stringResource(metricUnitLabel(metric, unitSystem))
     val stats = remember(metric, state, restingHeartRate) { metricStats(metric, state, restingHeartRate) }
+    val recent = remember(metric, entries) { recentEntries(entries, metric, LocalDate.now(), ZoneId.systemDefault()) }
     val zoneShares = remember(metric, state.today, maxHeartRate) {
         if (metric == MetricTile.HEART_RATE) heartRateZoneShares(state.today, maxHeartRate) else emptyList()
     }
@@ -168,6 +174,17 @@ fun MetricDetailScreen(
                                 share = share,
                             )
                         },
+                    )
+                }
+            }
+            if (recent.isNotEmpty()) {
+                item { ListSubHeader { Text(stringResource(R.string.detail_recent_entries)) } }
+                items(recent) { entry ->
+                    val time = formatClockTime(Instant.ofEpochMilli(entry.timeMillis))
+                    StatRow(
+                        label = if (entry.dayLabel.isEmpty()) time else "${entry.dayLabel} $time",
+                        value = formatMetricValue(metric, entry.value, unitSystem),
+                        unit = unit,
                     )
                 }
             }

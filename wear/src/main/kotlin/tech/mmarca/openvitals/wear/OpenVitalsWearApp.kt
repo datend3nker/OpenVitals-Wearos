@@ -146,6 +146,7 @@ fun OpenVitalsWearApp(
                         sleepStages = currentState.sleepStages,
                         sleepTimes = currentState.sleepTimes,
                         onMeasure = measurement?.let { { navController.navigate(WearRoutes.measurement(it)) } },
+                        entries = currentState.entries,
                     )
                 }
                 composable(WearRoutes.TILE_EDITOR) {
