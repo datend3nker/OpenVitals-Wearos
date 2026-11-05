@@ -99,7 +99,7 @@ The Watch8's accelerometer cannot wake the watch and buffers 300 readings, 48 se
 
 `WearNaps` (in `:healthcalc`) finds sleep outside the main night in the same rows. It reads the day, not only the night window, and leaves the night to `WearNight`: the night's estimate does not change, a test checks that.
 
-A nap is a run of minutes that are all of: worn, scored as sleep by `SleepWakeScorer` (still arm, quiet pulse), and with the 5-minute median heart rate clearly under the wearer's waking level. The waking level is the median heart rate of the worn minutes between 06:00 and 22:00 outside the night sessions; with fewer than 90 such minutes there is no level and no nap.
+A nap is a run of minutes that are all of: worn, scored as sleep by `SleepWakeScorer` (still arm, quiet pulse), and with the 5-minute median heart rate clearly under the wearer's waking level. The waking level is the lower quarter (`levelQuantile`, 0.25) of the heart rate of the worn minutes between 06:00 and 22:00 outside the night sessions; with fewer than 90 such minutes there is no level and no nap. The median was used first and failed on 2026-11-04: after a busy day it was so high that 52 minutes of resting on a sofa (57 to 61 bpm) counted as a nap. The lower quarter is the wearer's own rest. The price is that a real nap whose pulse is only a few beats under the resting level is now missed. The quantile is judgement, not fitted.
 
 | Rule | Value |
 | --- | --- |

@@ -62,6 +62,16 @@ class WearNapsTest {
     }
 
     @Test
+    fun `resting on the sofa after an active day is not a nap`() {
+        // A busy day lifts the median pulse to 100; sitting at 62 is far under it, but it is the wearer's rest, not sleep.
+        val rows = WearSleepFixtures.minutes(morning, 120) { i, t -> awake(i, t, bpm = 100f) } +
+            WearSleepFixtures.minutes(morning.plusSeconds(120 * 60L), 90) { i, t -> still(i, t, 62f) } +
+            WearSleepFixtures.minutes(morning.plusSeconds(210 * 60L), 120) { i, t -> awake(i, t, bpm = 100f) }
+
+        assertEquals(emptyList<WearNap>(), WearNaps.ofDay(rows, date, offset))
+    }
+
+    @Test
     fun `a still period with a small drop is not a nap by day`() {
         val rows = WearSleepFixtures.minutes(morning, 120) { i, t -> awake(i, t) } +
             WearSleepFixtures.minutes(morning.plusSeconds(120 * 60L), 60) { i, t -> still(i, t, 67f) } +

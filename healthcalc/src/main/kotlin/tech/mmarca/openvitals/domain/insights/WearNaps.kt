@@ -18,9 +18,11 @@ data class WearNap(val session: EstimatedSleepSession) {
  * A nap is a run of minutes that are all of: worn, scored as sleep by
  * [SleepWakeScorer] (still arm, quiet pulse), and with a 5-minute median
  * heart rate clearly below the wearer's waking level. The waking level is
- * the median heart rate over the worn minutes between 06:00 and 22:00
- * outside the night sessions. Sitting still on a sofa lowers the pulse by
- * a few beats at most, so by day the drop must be at least
+ * the lower quarter ([Config.levelQuantile]) of the heart rate over the worn
+ * minutes between 06:00 and 22:00 outside the night sessions. The median
+ * was used first: after a busy day it was so high that resting on a sofa
+ * (2026-11-04, 52 minutes at 57 to 61 bpm) counted as a nap. Sitting still
+ * on a sofa lowers the pulse by a few beats at most, so by day the drop must be at least
  * [Config.dayDropBpm] and [Config.dayDropShare] of the level. These
  * thresholds are judgement, not fitted to data: no nap was recorded
  * against a reference yet.
@@ -47,6 +49,12 @@ object WearNaps {
         val maxNapMinutes: Int = 240,
         /** Worn waking minutes needed to know the wearer's waking level. */
         val minBaselineMinutes: Int = 90,
+        /**
+         * Where in the day's sorted pulses the waking level sits: 0.5 is the median, 0.25 the lower
+         * quarter. The median of a busy day is high, and a resting pulse on the sofa then looks like
+         * sleep. The lower quarter is the wearer's own rest.
+         */
+        val levelQuantile: Float = 0.25f,
         val dayDropBpm: Float = 10f,
         val dayDropShare: Float = 0.12f,
         val nightDropBpm: Float = 6f,
@@ -198,7 +206,10 @@ object WearNaps {
     private fun drop(baseline: Float, daytime: Boolean, config: Config): Float =
         if (daytime) maxOf(config.dayDropBpm, config.dayDropShare * baseline) else maxOf(config.nightDropBpm, config.nightDropShare * baseline)
 
-    /** Median heart rate of worn waking-hour minutes outside the nights (null with too few), and how many minutes it held. */
+    /**
+     * The [Config.levelQuantile] of the heart rate of worn waking-hour minutes outside the nights (null
+     * with too few), and how many minutes it held.
+     */
     private fun wakingLevel(grid: WearMinuteGrid, wear: WearStates, inNight: BooleanArray, config: Config): Pair<Float?, Int> {
         val values = ArrayList<Float>()
         for (index in 0 until grid.size) {
@@ -207,7 +218,7 @@ object WearNaps {
         }
         if (values.size < config.minBaselineMinutes) return null to values.size
         values.sort()
-        return values[values.size / 2] to values.size
+        return values[(values.size * config.levelQuantile).toInt().coerceIn(0, values.size - 1)] to values.size
     }
 
     /** Runs of quiet minutes, a gap of at most the merge length joining two when it stays worn. */
