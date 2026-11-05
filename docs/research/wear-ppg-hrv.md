@@ -127,6 +127,31 @@ across wearers, wrist positions, and skin tones; define a motion/quality gate
 version refuses rather than reports a noisy window; then port the pipeline
 from the numpy prototype to Kotlin on the watch.
 
+## Update (2026-11-05) — the first full night on the watch, and what else the sensors can give
+
+**Night HRV on the watch (Kotlin port, shipped in `review/wear-all`).** One night, 03:12 to 10:30, Galaxy Watch7 (`SM-L310`), 6-minute windows from `hr_raw` with the accelerometer gate:
+
+- 9 windows stored (219 to 257 beats each), 1 dropped for movement.
+- RMSSD fell from 106 ms in the first window to 54 ms in the last one, at wake-up. That is the shape a night should have (high in deep sleep, lower toward morning).
+- No reference device was worn. The absolute values are still not validated against a chest strap or ECG.
+
+**What the watch hardware offers.** `dumpsys sensorservice` lists a skin temperature sensor, a thermistor, ECG and BIA, but all four need `com.samsung.permission.SSENSOR`, so an ordinary app cannot read them. `hr_raw` gives two green-like channels (`v1`, `v5`). There is no SpO2 sensor type, and no red or infrared channel is visible.
+
+**Samsung's newer measures.**
+
+- The *AGEs index* (Samsung Health) is, according to Samsung, measured in sleep with the BioActive sensor and supported on Watch7 and later. Samsung has not published the signals or the algorithm, so it cannot be rebuilt from `hr_raw`. Treat any number we compute as a different quantity and do not give it that name.
+- *Vascular load* (sleep, pulse wave analysis) and the *antioxidant index* (thumb, skin carotenoids) are Watch8 and Ultra features. The antioxidant index needs the multi-wavelength LEDs. Neither is derivable from two green channels.
+
+Sources: [Samsung: how the sensor breaks new ground](https://news.samsung.com/ca/how-galaxy-watchs-innovative-sensor-breaks-new-ground-in-tracking-your-health), [Samsung support: Watch8 health features](https://www.samsung.com/uk/support/mobile-devices/health-features-on-the-galaxy-watch8-and-watch8-classic/), [Android Authority: AGEs APK teardown](https://www.androidauthority.com/samsung-galaxy-watch-ages-index-apk-teardown-3456073/).
+
+**Respiratory rate (not built).** It can be derived from what the night windows already have:
+
+1. From the beat intervals: breathing modulates the interval length (respiratory sinus arrhythmia). Resample the interval series to 4 Hz, take the spectrum, and read the peak between 0.1 and 0.5 Hz (6 to 30 breaths per minute).
+2. From the PPG itself: the baseline wander and the pulse amplitude also move with breathing. The same band applies, and it works as a second estimate when the beats are too few.
+3. Take the value only when both agree within 2 breaths per minute, and only in still windows (the accelerometer gate exists).
+
+Needs: no new sensor, no extra wake time (the 6-minute windows already run). Health Connect has `RespiratoryRateRecord`. Open: compare against Samsung Health's own sleep respiratory rate (it writes to Health Connect) over several nights before showing it.
+
 ## What this means for integration
 
 - The wake-lock change is a genuine, self-contained improvement to the raw
