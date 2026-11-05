@@ -25,6 +25,7 @@ import tech.mmarca.openvitals.wear.features.measure.MeasurementRunner
 import tech.mmarca.openvitals.wear.features.metric.MetricDetailScreen
 import tech.mmarca.openvitals.wear.features.quicklog.BloodPressureEntryScreen
 import tech.mmarca.openvitals.wear.features.quicklog.BreatheScreen
+import tech.mmarca.openvitals.wear.features.quicklog.CaffeineScreen
 import tech.mmarca.openvitals.wear.features.quicklog.EntryType
 import tech.mmarca.openvitals.wear.features.quicklog.LogValueScreen
 import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
@@ -193,6 +194,7 @@ fun OpenVitalsWearApp(
                         onLogBloodPressure = { navController.navigate(WearRoutes.LOG_BLOOD_PRESSURE) },
                         onLogValue = { navController.navigate(WearRoutes.logValue(it)) },
                         onBreathe = { navController.navigate(WearRoutes.BREATHE) },
+                        onLogCaffeine = { navController.navigate(WearRoutes.LOG_CAFFEINE) },
                         chosen = chosenQuickLog,
                         onEditItems = { navController.navigate(WearRoutes.QUICK_LOG_EDITOR) },
                     )
@@ -240,6 +242,12 @@ fun OpenVitalsWearApp(
                             log(EntryType.BLOOD_PRESSURE, systolic.toDouble(), diastolic.toDouble())
                             navController.popBackStack()
                         },
+                    )
+                }
+                composable(WearRoutes.LOG_CAFFEINE) {
+                    CaffeineScreen(
+                        onLog = { drink -> log(EntryType.CAFFEINE, drink.caffeineMg) },
+                        onDone = { navController.popBackStack() },
                     )
                 }
                 composable(WearRoutes.BREATHE) {

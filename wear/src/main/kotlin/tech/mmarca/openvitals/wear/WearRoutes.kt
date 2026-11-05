@@ -29,9 +29,10 @@ object WearRoutes {
     const val LOG_VALUE = "log_value/{$LOG_VALUE_ARG}"
     fun logValue(type: tech.mmarca.openvitals.wear.features.quicklog.EntryType) = "log_value/${type.name}"
     const val BREATHE = "breathe"
+    const val LOG_CAFFEINE = "log_caffeine"
 
     /** Routes an outside caller, such as a tile, may open. Anything else is ignored. */
     fun isDeepLinkable(route: String): Boolean =
-        route in setOf(QUICK_LOG, MEASURE, LOG_WEIGHT, LOG_BLOOD_PRESSURE, BREATHE) ||
+        route in setOf(QUICK_LOG, MEASURE, LOG_WEIGHT, LOG_BLOOD_PRESSURE, BREATHE, LOG_CAFFEINE) ||
             Measurement.entries.any { route == measurement(it) }
 }

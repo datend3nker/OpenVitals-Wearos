@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Coffee
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.MonitorWeight
 import androidx.compose.material.icons.outlined.SelfImprovement
@@ -51,6 +52,7 @@ import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
 import tech.mmarca.openvitals.wear.ui.components.metricUnitLabel
 import tech.mmarca.openvitals.wear.ui.preview.SampleData
 import tech.mmarca.openvitals.wear.ui.preview.WearPreviews
+import tech.mmarca.openvitals.wear.ui.theme.CaffeineColor
 import tech.mmarca.openvitals.wear.ui.theme.HydrationColor
 import tech.mmarca.openvitals.wear.ui.theme.MindfulnessColor
 import tech.mmarca.openvitals.wear.ui.theme.OpenVitalsWearTheme
@@ -76,6 +78,7 @@ fun QuickLogScreen(
     onLogBloodPressure: () -> Unit,
     onLogValue: (EntryType) -> Unit,
     onBreathe: () -> Unit,
+    onLogCaffeine: () -> Unit = {},
     chosen: List<QuickLogItem> = QuickLogItem.Defaults,
     onEditItems: () -> Unit = {},
 ) {
@@ -87,6 +90,8 @@ fun QuickLogScreen(
     val lastPressure = state.entries.lastOrNull { it.type == EntryType.BLOOD_PRESSURE }
     val waterToday = state.metrics[MetricTile.HYDRATION]?.current ?: 0.0
     val waterUnit = stringResource(metricUnitLabel(MetricTile.HYDRATION, unitSystem))
+    val caffeineToday = state.metrics[MetricTile.CAFFEINE]?.current ?: 0.0
+    val caffeineUnit = stringResource(metricUnitLabel(MetricTile.CAFFEINE, unitSystem))
     val notLogged = stringResource(R.string.quicklog_not_logged)
 
     ScreenScaffold(scrollState = listState) { contentPadding ->
@@ -137,6 +142,19 @@ fun QuickLogScreen(
                             onAddWater()
                             showSaved = true
                         },
+                        modifier = modifier,
+                        transformation = transformation,
+                    )
+                    QuickLogItem.CAFFEINE -> QuickLogButton(
+                        label = stringResource(R.string.metric_caffeine),
+                        secondary = stringResource(
+                            R.string.quicklog_caffeine_today,
+                            formatMetricValue(MetricTile.CAFFEINE, caffeineToday, unitSystem),
+                            caffeineUnit,
+                        ),
+                        icon = Icons.Outlined.Coffee,
+                        color = CaffeineColor,
+                        onClick = onLogCaffeine,
                         modifier = modifier,
                         transformation = transformation,
                     )

@@ -12,6 +12,7 @@ import tech.mmarca.openvitals.wear.R
  */
 enum class QuickLogItem(val entryType: EntryType, @StringRes private val fixedLabel: Int?) {
     WATER(EntryType.WATER, R.string.metric_hydration),
+    CAFFEINE(EntryType.CAFFEINE, R.string.metric_caffeine),
     WEIGHT(EntryType.WEIGHT, R.string.metric_weight),
     BLOOD_PRESSURE(EntryType.BLOOD_PRESSURE, R.string.quicklog_blood_pressure),
     BODY_FAT(EntryType.BODY_FAT, null),

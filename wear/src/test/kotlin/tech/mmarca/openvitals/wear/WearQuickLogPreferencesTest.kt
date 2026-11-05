@@ -14,9 +14,9 @@ import tech.mmarca.openvitals.wear.features.quicklog.QuickLogItem.WEIGHT
 class WearQuickLogPreferencesTest {
 
     @Test
-    fun decode_nothingStored_returnsAllItemsInTheOldOrder() {
+    fun decode_nothingStored_returnsAllItemsWithCaffeineBehindWater() {
         val values = LogValueSpecs.keys.map { type -> QuickLogItem.entries.first { it.entryType == type } }
-        assertEquals(listOf(WATER, WEIGHT, BLOOD_PRESSURE) + values + BREATHE, decodeQuickLogItems(null))
+        assertEquals(listOf(WATER, QuickLogItem.CAFFEINE, WEIGHT, BLOOD_PRESSURE) + values + BREATHE, decodeQuickLogItems(null))
     }
 
     @Test

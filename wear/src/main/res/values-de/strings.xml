@@ -163,6 +163,12 @@
     <string name="quicklog_title">Eintragen</string>
     <string name="quicklog_add_water">Wasser +%1$s %2$s</string>
     <string name="quicklog_water_today">%1$s / %2$s %3$s</string>
+    <string name="quicklog_caffeine_today">Heute: %1$s %2$s</string>
+    <string name="caffeine_drink_coffee">Kaffee</string>
+    <string name="caffeine_drink_espresso">Espresso</string>
+    <string name="caffeine_drink_black_tea">Schwarzer Tee</string>
+    <string name="caffeine_drink_cola">Cola</string>
+    <string name="caffeine_drink_energy_drink">Energydrink</string>
     <string name="quicklog_blood_pressure">Blutdruck</string>
     <string name="quicklog_blood_pressure_value">%1$s/%2$s mmHg</string>
     <string name="quicklog_systolic">Systolisch</string>
