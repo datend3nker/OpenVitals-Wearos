@@ -152,6 +152,15 @@ class WorkoutTrackerTest {
         assertEquals(170, snapshot.cadenceStepsPerMinute)
     }
 
+    @Test fun `a snapshot at the very start of a sport on foot has no cadence and does not throw`() {
+        val tracker = run()
+
+        val snapshot = tracker.snapshot(t0)
+
+        assertNull(snapshot.cadenceStepsPerMinute)
+        assertEquals(0L, snapshot.activeSeconds)
+    }
+
     @Test fun `a sport that is not on foot reports no steps`() {
         val tracker = run(WorkoutSport.BIKING)
         tracker.onStepTotal(t0, 10)

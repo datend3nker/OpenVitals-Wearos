@@ -241,7 +241,11 @@ class WorkoutTracker(
             speedMetresPerSecond = recentSpeed.takeIf { gps },
             averageSpeedMetresPerSecond = (distance / activeSeconds).takeIf { gps && hadFix && activeSeconds > 0 },
             steps = steps.takeIf { sport.steps && stepBaseline != null },
-            cadenceStepsPerMinute = (steps * 60.0 / activeSeconds).roundToInt().takeIf { sport.steps && activeSeconds >= MIN_CADENCE_SECONDS && steps > 0 },
+            cadenceStepsPerMinute = if (sport.steps && activeSeconds >= MIN_CADENCE_SECONDS && steps > 0) {
+                (steps * 60.0 / activeSeconds).roundToInt()
+            } else {
+                null
+            },
             ascentMetres = (ascent / 10.0).roundToInt().takeIf { sport.elevation && ascentByMinute.isNotEmpty() },
             floors = (ascent / 10.0 / AscentCredit.METRES_PER_FLOOR).roundToInt().takeIf { sport.floors && ascentByMinute.isNotEmpty() },
             heartRateBpm = hrNow?.takeIf { now - hrNowAt <= HEART_RATE_STALE_MILLIS },
