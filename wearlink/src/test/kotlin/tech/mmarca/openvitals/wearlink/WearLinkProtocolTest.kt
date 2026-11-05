@@ -242,6 +242,14 @@ class WearLinkProtocolTest {
     }
 
     @Test
+    fun `a caffeine entry in milligrams round-trips`() {
+        val entry = WearLinkProtocol.LogEntry(1_700_000_000_000L, WearLinkProtocol.LogKind.CAFFEINE, 95.0, null)
+
+        assertEquals("LG 1700000000000 CAFFEINE 95.0 -", WearLinkProtocol.formatLogEntry(entry))
+        assertEquals(entry, WearLinkProtocol.parseLogEntry(WearLinkProtocol.formatLogEntry(entry)))
+    }
+
+    @Test
     fun `a log line of an unknown kind, a bad time or a non-finite value is skipped`() {
         assertNull(WearLinkProtocol.parseLogEntry("LG 1700000000000 SLEEP_NAP 3.0 -"))
         assertNull(WearLinkProtocol.parseLogEntry("LG 0 WATER 250.0 -"))

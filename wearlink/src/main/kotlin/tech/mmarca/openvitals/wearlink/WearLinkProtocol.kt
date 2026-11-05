@@ -445,6 +445,9 @@ object WearLinkProtocol {
 
         /** Centimetres. */
         HEIGHT,
+
+        /** Milligrams of caffeine in one drink. */
+        CAFFEINE,
         ;
 
         companion object {
