@@ -168,6 +168,12 @@
     <string name="quicklog_minutes">%1$d min</string>
     <string name="quicklog_not_logged">Noch nicht eingetragen</string>
     <string name="quicklog_recent">Zuletzt</string>
+    <string name="quicklog_edit">Eintragen bearbeiten</string>
+    <string name="quicklog_none_chosen">Keine Einträge gewählt</string>
+    <string name="quicklog_editor_title">Einträge</string>
+    <string name="quicklog_editor_active_header">Angezeigte Einträge</string>
+    <string name="quicklog_editor_available_header">Einträge hinzufügen</string>
+    <string name="quicklog_editor_reorder_hint">Eintrag lange drücken und ziehen, um ihn zu sortieren. Antippen, um ihn zu entfernen.</string>
     <string name="breathe_title">Atmen</string>
     <string name="breathe_description">1 Minute geführtes Atmen</string>
     <string name="breathe_in">Einatmen</string>

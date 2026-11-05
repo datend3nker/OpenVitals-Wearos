@@ -168,6 +168,12 @@
     <string name="quicklog_minutes">%1$d min</string>
     <string name="quicklog_not_logged">Not logged yet</string>
     <string name="quicklog_recent">Recent</string>
+    <string name="quicklog_edit">Edit entries</string>
+    <string name="quicklog_none_chosen">No entries chosen</string>
+    <string name="quicklog_editor_title">Entries</string>
+    <string name="quicklog_editor_active_header">Shown Entries</string>
+    <string name="quicklog_editor_available_header">Add Entries</string>
+    <string name="quicklog_editor_reorder_hint">Long-press an entry and drag it to reorder. Tap to remove.</string>
     <string name="breathe_title">Breathe</string>
     <string name="breathe_description">1 minute guided breathing</string>
     <string name="breathe_in">Breathe in</string>
