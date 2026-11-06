@@ -42,8 +42,6 @@ internal data class CycleContentActions(
     val onTogglePillTaken: (Boolean) -> Unit = {},
     val onAddPastPeriod: () -> Unit = {},
     val onOpenSettings: () -> Unit = {},
-    /** Asks Health Connect for the optional overnight reads. */
-    val onAllowNightlyReading: () -> Unit = {},
     val onManageExclusion: (LongitudinalCycleItem) -> Unit = {},
     /** A swipe only asks; the screen confirms and deletes. */
     val onRequestDelete: (CycleObservation) -> Unit = {},
@@ -162,14 +160,9 @@ internal fun LazyListScope.cyclePeriodContent(
         }
         section(MetricDetailSectionId.CYCLE_THERMAL, today.hasCycleHistory) {
             SectionHeader(stringResource(R.string.section_cycle_thermal))
-            CycleThermalCard(
-                thermal = display.thermal,
-                skin = display.skin,
-                unitFormatter = unitFormatter,
-                dateTimeFormatterProvider = dateTimeFormatterProvider,
-                modifier = sectionModifier,
-            )
+            CycleThermalCard(thermal = display.thermal, unitFormatter = unitFormatter, modifier = sectionModifier)
             CycleSkinTemperatureInfoCard(
+                unitFormatter = unitFormatter,
                 hormonalInfluencing = today.hormonalInfluencing,
                 pcosDeclared = today.pcosDeclared,
                 modifier = sectionModifier,
@@ -178,16 +171,6 @@ internal fun LazyListScope.cyclePeriodContent(
         section(MetricDetailSectionId.CYCLE_PATTERNS, today.hasCycleHistory) {
             SectionHeader(stringResource(R.string.section_cycle_patterns))
             CyclePatternsCard(patterns = display.patterns, modifier = sectionModifier)
-        }
-        // Only with a current cycle to count days from. Information only; see the card.
-        section(MetricDetailSectionId.CYCLE_NIGHTLY, today.currentCycle != null) {
-            SectionHeader(stringResource(R.string.section_cycle_nightly))
-            CycleNightlyVitalsCard(
-                nightly = state.nightly,
-                modifier = sectionModifier,
-                missingPermissions = state.missingNightlyPermissions,
-                onAllowReading = actions.onAllowNightlyReading,
-            )
         }
     }
 }

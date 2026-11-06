@@ -10,7 +10,6 @@ import androidx.health.connect.client.records.IntermenstrualBleedingRecord
 import androidx.health.connect.client.records.MenstruationFlowRecord
 import androidx.health.connect.client.records.OvulationTestRecord
 import androidx.health.connect.client.records.SexualActivityRecord
-import androidx.health.connect.client.records.SkinTemperatureRecord
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import tech.mmarca.openvitals.core.period.PeriodLoadQuery
@@ -20,6 +19,8 @@ import tech.mmarca.openvitals.domain.cycle.CycleCalculations
 import tech.mmarca.openvitals.domain.cycle.CycleObservations
 import tech.mmarca.openvitals.domain.cycle.CycleStatistics
 import tech.mmarca.openvitals.domain.cycle.DayBleeding
+import tech.mmarca.openvitals.domain.cycle.OvulationMarkerDetector
+import tech.mmarca.openvitals.domain.cycle.RecordedCycle
 import tech.mmarca.openvitals.domain.model.CycleData
 import tech.mmarca.openvitals.domain.model.CycleDayLog
 import tech.mmarca.openvitals.domain.model.CycleDayLogWrite
@@ -27,7 +28,6 @@ import tech.mmarca.openvitals.domain.model.CycleEntryKind
 import tech.mmarca.openvitals.domain.model.CycleEntryWriteRequest
 import tech.mmarca.openvitals.domain.model.CycleRecordValues
 import tech.mmarca.openvitals.domain.model.HealthConnectAvailability
-import tech.mmarca.openvitals.domain.model.SkinTemperatureEntry
 import tech.mmarca.openvitals.domain.query.CyclePeriodData
 import tech.mmarca.openvitals.healthconnect.HealthConnectManager
 import java.time.LocalDate
@@ -56,7 +56,6 @@ class CycleRepositoryImpl @Inject constructor(
         HealthPermission.getReadPermission(BasalBodyTemperatureRecord::class)
     private val readIntermenstrualBleedingPermission =
         HealthPermission.getReadPermission(IntermenstrualBleedingRecord::class)
-    private val readSkinTemperaturePermission = HealthPermission.getReadPermission(SkinTemperatureRecord::class)
     private val readSexualActivityPermission = HealthPermission.getReadPermission(SexualActivityRecord::class)
 
     private val dayLogWriter = CycleDayLogWriter(this)
@@ -69,20 +68,12 @@ class CycleRepositoryImpl @Inject constructor(
         return phase4Permissions.filterNot { it in granted }.toSet()
     }
 
-    override val cycleNightlyPermissions: Set<String> get() = hc.cycleNightlyPermissions
-
-    override suspend fun missingNightlyPermissions(): Set<String> {
-        val granted = grantedPermissionsIfAvailable()
-        return cycleNightlyPermissions.filterNot { it in granted }.toSet()
-    }
-
     override suspend fun loadCyclePeriod(
         query: PeriodLoadQuery,
     ): CyclePeriodData {
         return coroutineScope {
             val window = query.windows.current
             val today = LocalDate.now()
-            val granted = grantedPermissionsIfAvailable()
             val data = async { loadCycleData(window.start, window.end) }
             val missing = async { missingPermissions() }
             val statistics = async { loadCycleStatistics(today) }
@@ -93,9 +84,6 @@ class CycleRepositoryImpl @Inject constructor(
             val temperatures = stats?.currentCycle?.let { cycle ->
                 async { loadCycleData(cycle.startDate, today).basalBodyTemperature }
             }
-            val skinTemperature = stats?.currentCycle?.let { cycle ->
-                async { loadSkinTemperature(cycle.startDate, today, granted) }
-            }
             CyclePeriodData(
                 data = data.await(),
                 missingPermissions = missing.await(),
@@ -103,19 +91,8 @@ class CycleRepositoryImpl @Inject constructor(
                 journalEntries = entries.await(),
                 allJournalEntries = allEntries.await(),
                 currentCycleTemperatures = temperatures?.await().orEmpty(),
-                currentCycleSkinTemperature = skinTemperature?.await().orEmpty(),
             )
         }
-    }
-
-    /**
-     * Night skin temperature for the shift line. An optional extra: it is not in the cycle permission set,
-     * so a missing grant never gates the screen; it is read when the vitals category already granted it.
-     */
-    private suspend fun loadSkinTemperature(start: LocalDate, end: LocalDate, granted: Set<String>): List<SkinTemperatureEntry> {
-        if (!hc.isSkinTemperatureAvailable() || readSkinTemperaturePermission !in granted) return emptyList()
-        val zone = ZoneId.systemDefault()
-        return hc.readSkinTemperatureEntries(start.atStartOfDay(zone).toInstant(), end.plusDays(1).atStartOfDay(zone).toInstant())
     }
 
     override suspend fun loadCycleData(start: LocalDate, end: LocalDate): CycleData {
@@ -274,32 +251,43 @@ class CycleRepositoryImpl @Inject constructor(
     }
 
     /**
-     * LH tests, temperatures and mucus over the cycles the marker estimate reads.
-     * A kind without its read permission contributes no marker; the estimate stays.
+     * LH tests, temperatures and mucus the marker estimate reads. The current cycle is read
+     * first; the earlier cycles, which only teach the user's own intervals, are read only
+     * when it holds a marker. A kind without its read permission contributes no marker; the
+     * estimate stays.
      */
     private suspend fun markerObservations(
         flowDays: Set<LocalDate>,
         today: LocalDate,
         granted: Set<String>,
-    ): CycleObservations = coroutineScope {
-        val from = CycleCalculations.bleedingSegments(flowDays)
-            .takeLast(CycleCalculations.MarkerHistoryCycles)
-            .firstOrNull()?.start ?: return@coroutineScope CycleObservations()
-        val zone = ZoneId.systemDefault()
-        val start = from.atStartOfDay(zone).toInstant()
-        val end = today.plusDays(1).atStartOfDay(zone).toInstant()
-        val tests = async { if (readOvulationTestPermission in granted) hc.readOvulationTests(start, end) else emptyList() }
-        val mucus = async { if (readCervicalMucusPermission in granted) hc.readCervicalMucusEntries(start, end) else emptyList() }
-        val temperatures = async {
-            if (readBasalBodyTemperaturePermission in granted) hc.readBasalBodyTemperatureEntries(start, end) else emptyList()
-        }
-        val journalEntries = async { journal.entries(from, today) }
-        CycleObservations.from(
-            CycleData(ovulationTests = tests.await(), cervicalMucus = mucus.await(), basalBodyTemperature = temperatures.await()),
-            journalEntries.await(),
-            zone,
-        )
+    ): CycleObservations {
+        val segments = CycleCalculations.bleedingSegments(flowDays).takeLast(CycleCalculations.MarkerHistoryCycles)
+        val currentStart = segments.lastOrNull()?.start ?: return CycleObservations()
+        val current = observationsBetween(currentStart, today, granted)
+        val currentCycle = RecordedCycle(startDate = currentStart, endDate = null)
+        if (OvulationMarkerDetector.detect(currentCycle, current, today).isEmpty()) return current
+        val historyStart = segments.first().start
+        if (historyStart == currentStart) return current
+        return observationsBetween(historyStart, currentStart.minusDays(1), granted) + current
     }
+
+    private suspend fun observationsBetween(from: LocalDate, to: LocalDate, granted: Set<String>): CycleObservations =
+        coroutineScope {
+            val zone = ZoneId.systemDefault()
+            val start = from.atStartOfDay(zone).toInstant()
+            val end = to.plusDays(1).atStartOfDay(zone).toInstant()
+            val tests = async { if (readOvulationTestPermission in granted) hc.readOvulationTests(start, end) else emptyList() }
+            val mucus = async { if (readCervicalMucusPermission in granted) hc.readCervicalMucusEntries(start, end) else emptyList() }
+            val temperatures = async {
+                if (readBasalBodyTemperaturePermission in granted) hc.readBasalBodyTemperatureEntries(start, end) else emptyList()
+            }
+            val journalEntries = async { journal.entries(from, to) }
+            CycleObservations.from(
+                CycleData(ovulationTests = tests.await(), cervicalMucus = mucus.await(), basalBodyTemperature = temperatures.await()),
+                journalEntries.await(),
+                zone,
+            )
+        }
 
     override suspend fun loadDayLog(date: LocalDate): CycleDayLog = coroutineScope {
         val data = async { loadCycleData(date, date) }

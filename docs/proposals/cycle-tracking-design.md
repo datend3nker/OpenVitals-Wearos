@@ -55,7 +55,7 @@ Status legend: **exists** already in OpenVitals · **new** built for this design
 |---|---|---|
 | `CycleEstimateCalculator` | Start-to-start intervals, last six inside 15..90 days, excluded cycles skipped, a gap over 90 days resets the history. Central date = last start + rounded mean. Half-width = 1.96 × √(variance shrunk toward a population prior with weight 2, or 0.5 once the record shows persistent 7-day swings), floored at 3 days, capped at 22, floored again so the window never starts inside recorded flow. Prior SD by age band (Apple Women's Health Study table), 4.54 days undeclared. A declared timing context floors the variance at the prior. Results: available, needs more history (fewer than two starts), intervals out of range. | new, replaces the mean-and-spread rule |
 | `CurrentCyclePhaseCalculator` | Menstrual is recorded (day 1 or flow today). Days 2–7 without flow detail are indeterminate. Follicular before the ovulation band, luteal after it, ovulatory only on the central day (central − 13) and only with six stable intervals varying at most 7 days. The two days before the central date and the estimate window are the "next period window"; past the window the estimate has expired. | new |
-| `MarkerEstimate` | Once the current cycle holds an ovulation marker (first positive LH test, first high day of the thermal shift, mucus peak followed by three lesser days), the next start is the marker day plus that marker's own interval to the next start, learned from earlier cycles and shrunk toward a prior (LH 13.8 ± 1.86, temperature 11.0 ± 2.07, mucus 13.0 ± 2.5, weight 2), half-width 1.96 SD floored at 2. A mucus peak or LH test 0–3 days before the first high day confirms the shift; a shift and markers that do not agree fall back to the calendar and say so. See *Marker estimate sources*. | new (2026-10) |
+| `MarkerEstimate` | Once the current cycle holds an ovulation marker (first positive LH test, first high day of the thermal shift, mucus peak followed by three lesser days), the next start is the marker day plus that marker's own interval to the next start, learned from earlier cycles and shrunk toward a prior (LH 13.8 ± 1.86, temperature 11.0 ± 2.07, mucus 13.0 ± 2.5, weight 2), half-width 1.96 SD floored at 2. An LH test 0–5 days, or a mucus peak 0–3 days, before the first high day confirms the shift; a marker before cycle day 7 is ignored; a shift and markers that do not agree fall back to the calendar and say so. See *Marker estimate sources*. | new (2026-10) |
 | Cycle facts | 24 population facts with sources, one per day by date hash, shown when the phase is indeterminate. | new |
 | Phase tips | 30 sourced tips, filtered by phase, declared contexts and the last three days' symptoms; ties broken by date hash. | new |
 
@@ -68,7 +68,6 @@ Status legend: **exists** already in OpenVitals · **new** built for this design
 | Variability | Bar per cycle against a 21–35 day reference band, badges for current, excluded and a 7-day swing, median and mean, tap for detail and exclusion. | new |
 | Thermal chart | Cycle-day axis, disturbed readings hollow, coverline once a sustained shift is found (six lows, three highs, third at least 0.2 °C above the highest low, readings at most three days apart). | adapted: the BBT card is rebuilt on this rule |
 | Patterns | Symptom counts by phase over all cycles, descriptive only. | new |
-| Nightly vitals | The current cycle's overnight resting pulse, HRV (RMSSD) and breathing rate by cycle day, one median per sleep session, one source per signal, a chip and a colour per signal, a missing signal named and not filled in ("not allowed" apart from "no data", with an optional permission button), resting pulse falling back to the device's labelled daily value, a details section with the evidence. Information only: no phase, ovulation, fertility or contraception statement, no effect on any estimate. `MetricDetailSectionId.CYCLE_NIGHTLY`. | new (2026-10-20) |
 | Cycle stats | Average, count, min–max of recent intervals. | new |
 
 ### 5. Reminders
@@ -122,11 +121,11 @@ What each number rests on, and how far it was checked. The priors only matter un
 | Temperature prior 11.0 ± 2.07: luteal phase counted from the temperature shift, median 10.9 days; between-women variance 4.3; shift 2.4 ± 1.5 days after the LH peak | Henry et al. 2024 | full text |
 | LH prior 13.8 ± 1.86: luteal phase 12.77 ± 1.86 days from the day after the LH surge, 75,981 cycles | Soumpasis, Grace, Johnson 2020, *Hum Reprod Open* hoaa011 | full text |
 | Six-low, three-high rule, last high 0.2 °C above the six; mucus peak known only once the secretion is sticky again; end of the fertile time three days after the peak | Frank-Herrmann et al. 2007, *Hum Reprod* 22(5):1310 | full text |
-| Mucus peak 1–3 days before the temperature rise in 74% of 2,276 cycles; basis for the 0–3 day agreement bound and the mucus prior (temperature prior + 2) | PubMed 3366346 (German sympto-thermal cohort) | abstract via search summary only |
+| Mucus peak 1–3 days before the temperature rise in 74% of 2,276 cycles; basis for the mucus 0–3 day agreement bound and the mucus prior (temperature prior + 2) | PubMed 3366346 (German sympto-thermal cohort) | abstract via search summary only |
 | LH peak +0.46 days from ultrasound ovulation; mucus peak and initial LH rise close to it in more than 72% of cycles | Ecochard et al. 2001, *BJOG* 108(8):822 | abstract |
 | Backtest: on the Marquette cycle data (159 women, 1,370 cycles) a marker plus the user's own interval gave a mean absolute error of 1.3 days and a window of 8.5 days at 96.6% coverage, against 2.1 days and 15.5 days for the calendar | `FedCycleData071012.csv` (Kaggle mirror), script outside the repository | the dataset's ovulation-day definition is undocumented |
 
-Settings without a source: watery mucus is not best quality; the 7–20 day plausible interval; the 2-day minimum half-width; LH before temperature before mucus as anchor order.
+Settings without a source: watery mucus is not best quality; the 7–20 day plausible interval; the 2-day minimum half-width; LH before temperature before mucus as anchor order; the 5-day LH agreement bound (a reading of the 2.4 ± 1.5 day figure); ignoring a marker before cycle day 7.
 
 ## Data model
 
@@ -156,35 +155,7 @@ What the information card under the thermal chart quotes. Each DOI resolved on C
 | For combined pills and progestin-only methods, ovulation inhibition and changes in cervical mucus are among the main mechanisms (the abstract does not cover rings, patches or implants, so the card says only that many methods stop ovulation) | Rivera et al. 1999, *Am J Obstet Gynecol*, 10.1016/s0002-9378(99)70120-1 | abstract |
 | Hormone users left out: Maijala sub-study excluded hormonal contraception (n = 8); Thigpen removed 6 cycles with hormone use and says the algorithm is not intended for people who do not ovulate due to hormonal contraceptives; Zhu enrolled only people not on hormonal therapy; Wang also allowed non-hormonal methods (condoms) | full texts of the three papers above | full text |
 
-The detection itself (`SkinTemperatureShiftCalculator`) rests on three of these papers; nothing in it feeds an estimate.
-
-| Step in the code | Source | Checked |
-|---|---|---|
-| Centre the series, reject outliers beyond 2 SD, fill gaps linearly (their Butterworth band-pass and hysteresis thresholding are not replicated) | Thigpen et al. 2025, *J Med Internet Res*, 10.2196/60667 | full text (centring, rejection beyond 2 SD, linear fill, the 7-17 and 10-90 day limits) |
-| Plausibility: luteal phase 7 to 17 days (completed cycles only), follicular phase 10 to 90 days | Thigpen et al. 2025, 10.2196/60667 | full text |
-| First high night: it and the next two nights each at least 0.2 °C above at least five of the six preceding nights | Shilaih et al. 2018, *Biosci Rep*, 10.1042/bsr20171279 | full text |
-| Signal gate: best 3-night mean minus lowest 6-night mean at least 0.2 °C (a product heuristic derived from the paper's condition that evaluated cycles show a signal of at least 0.2 °C) | Wang et al. 2025, *Hum Reprod*, 10.1093/humrep/deaf005 | full text |
-| Synthetic test rise of about 0.3 °C | Maijala et al. 2019, *BMC Womens Health*, 10.1186/s12905-019-0844-9 | full text |
-
-Product choices with no source: the nightly value is the mean of a night's samples (Shilaih uses the 99th percentile of LOESS-smoothed night data), and the six nights before the first high night are fixed for all three high nights (the paper's wording leaves the sliding reading open). A fixed 0.2 °C depends on the sensor: a smoothed set from one device showed a mean post-ovulation rise of only about 0.05 °C, which is why a weak signal is reported instead of guessed.
-
 What was looked for and not found, so the app does not claim it: a prior for the days from a wrist or finger temperature rise to the next period (the luteal lengths found were measured with basal temperature, LH tests or mucus, not with a skin sensor), a study of temperature-based ovulation detection in PCOS, and a measured time for the skin-temperature rhythm to normalise after stopping hormonal contraception. The 60-day washout in an earlier plan comes from Apple's exclusion criterion, not from a measurement. Until such a prior exists, skin temperature stays out of `MarkerEstimate`.
-
-## Sources for nightly vitals
-
-Every figure on the nightly vitals card was read from the paper (Europe PMC abstract or full text, bibliographic data checked against Crossref) before it was written. They are listed in `CycleSources` and attached to their statement in `NightlyVitalsEvidence`.
-
-| Source | DOI | What the card says from it |
-|---|---|---|
-| Goodale et al., J Med Internet Res 2019 | 10.2196/13404 | 237 recruited women (conception-seeking in the paper; the card does not say so) wearing the Ava bracelet at night: nightly heart rate 56.6 bpm in the follicular phase, 60.5 bpm in the late luteal phase (means 56.56 and 60.47 in the full text, which analyses the 30th-percentile nightly heart rate). |
-| Jasinski et al., npj Digit Med 2024 | 10.1038/s41746-024-01394-0 | 11,590 participants, 45,811 cycles, WHOOP: resting heart rate lowest on cycle day 5, highest on day 26; RMSSD highest on day 5, lowest on day 27. |
-| Lin et al., Sci Data 2026 (mcPHASES) | 10.1038/s41597-026-06805-3 | 42 young adults, Fitbit Sense, three months: median resting heart rate differs significantly between phases, lowest follicular, peak luteal. |
-| de Jager et al., Sports Med 2026 | 10.1007/s40279-025-02388-y | Living systematic review, 16 studies: wearable HRV higher at the start of the cycle, lower toward the end, differences of 3 to 9%; lower HRV with hormonal contraceptives, particularly late in the cycle. Its study table is also the source for the Oura (5-minute overnight intervals) and WHOOP (last slow-wave cycle; non-wake periods) aggregation notes. |
-| Gonzalez et al., npj Digit Med 2026 | 10.1038/s41746-026-02799-9 | 2,596 women, 42,759 cycles, WHOOP: resting heart rate +1.2% with a 10% fall in weekly sleep, regardless of phase. Full text: RHR and HRV are weighted averages over the sleep period, weighted toward its end and slow-wave windows; respiratory rate is the median over sleep. |
-| Pietila et al., JMIR Ment Health 2018 | 10.2196/mental.9519 | 4,098 Finnish employees, first 3 hours of sleep: alcohol dose-dependently lowers parasympathetic regulation; an HRV-based recovery measure fell by 9.3, 24.0 and 39.2 percentage units at low, moderate and high intake. |
-| Shi et al., npj Digit Med 2026 | 10.1038/s41746-025-02320-8 | Systematic review and network meta-analysis, 27 studies: multi-parameter wearables 0.89 vs temperature alone 0.87 pooled accuracy; the authors say such parameters could slightly improve accuracy. The card quotes only "a slight gain, 0.89 versus 0.87, overlapping confidence intervals", without naming the task (fertile-window detection) and without the temperature-only interval, which the paper gives as both 0.85 to 0.88 and 0.85 to 0.89. |
-
-Not quoted, on purpose: any ovulation-detection accuracy of the app itself (it has none), and Goodale's 90% machine-learning accuracy (a different task from what the card shows).
 
 ## Phases
 
