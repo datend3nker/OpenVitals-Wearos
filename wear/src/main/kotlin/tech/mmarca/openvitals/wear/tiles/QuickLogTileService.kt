@@ -36,7 +36,7 @@ import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.MetricStore
 import tech.mmarca.openvitals.wear.WearPreferences
 import tech.mmarca.openvitals.wear.WearReadingsSource
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.DisplayPreferences
 import tech.mmarca.openvitals.wear.WearRoutes
 import tech.mmarca.openvitals.wear.features.measure.Measurement
@@ -133,7 +133,7 @@ class QuickLogTileService : TileService() {
         val unitSystem = preferences.unitSystem
         val goal = preferences.waterGoalMl.toDouble()
         val hydration = HydrationColor.toArgb()
-        val unit = context.getString(metricUnitLabel(MetricTile.HYDRATION, unitSystem))
+        val unit = context.getString(metricUnitLabel(DashboardMetric.HYDRATION, unitSystem))
 
         val buttons = MultiButtonLayout.Builder()
             .addButtonContent(
@@ -144,7 +144,7 @@ class QuickLogTileService : TileService() {
                     hydration,
                     context.getString(
                         R.string.quicklog_add_water,
-                        formatMetricValue(MetricTile.HYDRATION, WaterServingMl, unitSystem),
+                        formatMetricValue(DashboardMetric.HYDRATION, WaterServingMl, unitSystem),
                         unit,
                     ),
                 ),
@@ -195,8 +195,8 @@ class QuickLogTileService : TileService() {
                     context,
                     context.getString(
                         R.string.quicklog_water_today,
-                        formatMetricValue(MetricTile.HYDRATION, waterToday, unitSystem),
-                        formatMetricValue(MetricTile.HYDRATION, goal, unitSystem),
+                        formatMetricValue(DashboardMetric.HYDRATION, waterToday, unitSystem),
+                        formatMetricValue(DashboardMetric.HYDRATION, goal, unitSystem),
                         unit,
                     ),
                 )

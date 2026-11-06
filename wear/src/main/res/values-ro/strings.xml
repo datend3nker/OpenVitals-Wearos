@@ -92,8 +92,6 @@
     <string name="tile_open">Deschide</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals azi</string>
-    <string name="tile_main_vitals_description">Vedere rapidă a valorilor și metricilor de azi.</string>
     <string name="tile_quick_log_label">OpenVitals jurnal rapid</string>
     <string name="tile_quick_log_description">Înregistrați un pahar cu apă dintr-o atingere, măsurați pulsul sau deschideți jurnalul rapid.</string>
     <string name="action_done">Gata</string>

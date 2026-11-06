@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.wear.compose.material3.AppScaffold
 import tech.mmarca.openvitals.wear.R
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.ui.components.ChoiceEditorScreen
 import tech.mmarca.openvitals.wear.ui.components.ChoiceEditorTexts
 import tech.mmarca.openvitals.wear.ui.components.ChoiceRow
@@ -19,10 +19,10 @@ import tech.mmarca.openvitals.wear.ui.theme.OpenVitalsWearTheme
  */
 @Composable
 fun TileEditorScreen(
-    available: List<MetricTile>,
-    tiles: List<MetricTile>,
-    onToggle: (MetricTile, Boolean) -> Unit,
-    onMove: (moved: MetricTile, target: MetricTile) -> Unit,
+    available: List<DashboardMetric>,
+    tiles: List<DashboardMetric>,
+    onToggle: (DashboardMetric, Boolean) -> Unit,
+    onMove: (moved: DashboardMetric, target: DashboardMetric) -> Unit,
     onReset: () -> Unit,
 ) {
     ChoiceEditorScreen(
@@ -50,7 +50,7 @@ private fun TileEditorScreenPreview() {
         AppScaffold {
             TileEditorScreen(
                 available = SampleData.uiState.availableMetrics.toList(),
-                tiles = MetricTile.DefaultTiles,
+                tiles = DashboardMetric.DefaultTiles,
                 onToggle = { _, _ -> },
                 onMove = { _, _ -> },
                 onReset = {},

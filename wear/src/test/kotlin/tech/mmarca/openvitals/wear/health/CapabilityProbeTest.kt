@@ -5,7 +5,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import tech.mmarca.openvitals.wear.MetricSource
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.features.measure.Measurement
 import tech.mmarca.openvitals.wear.features.recording.ActivityType
 import tech.mmarca.openvitals.wear.features.recording.WorkoutField
@@ -33,8 +33,8 @@ class CapabilityProbeTest {
     fun `a full watch offers every sensor metric except VO2 max`() {
         val capabilities = capabilitiesOf(everything)
         assertTrue(capabilities.probed)
-        val sensorTiles = MetricTile.entries.filter { it.source == MetricSource.SENSOR }.toSet()
-        assertEquals(sensorTiles - MetricTile.VO2_MAX, capabilities.sensorMetrics)
+        val sensorTiles = DashboardMetric.entries.filter { it.source == MetricSource.SENSOR }.toSet()
+        assertEquals(sensorTiles - DashboardMetric.VO2_MAX, capabilities.sensorMetrics)
         assertEquals(Measurement.entries.toSet(), capabilities.measurements)
     }
 
@@ -45,7 +45,7 @@ class CapabilityProbeTest {
         assertTrue(capabilities.measurements.isEmpty())
         assertTrue(capabilities.workouts.isEmpty())
         // Phone and logged metrics stay on offer.
-        assertTrue(MetricTile.SLEEP in capabilities.availableMetrics)
+        assertTrue(DashboardMetric.SLEEP in capabilities.availableMetrics)
     }
 
     @Test

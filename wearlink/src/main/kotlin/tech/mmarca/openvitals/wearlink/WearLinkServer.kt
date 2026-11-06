@@ -197,6 +197,14 @@ class WearLinkServer(
                 val applied = handler.setPreference(request.key, request.value)
                 writer.line(if (applied) WearLinkProtocol.PREFERENCE_OK else WearLinkProtocol.formatError(WearLinkProtocol.ErrorCode.BAD_REQUEST))
             }
+            is WearLinkProtocol.Request.Profile -> {
+                handler.applyProfile(request.profile)
+                writer.line(WearLinkProtocol.formatEnd(0, false))
+            }
+            is WearLinkProtocol.Request.Totals -> {
+                handler.applyTotals(request.totals)
+                writer.line(WearLinkProtocol.formatEnd(0, false))
+            }
         }
     }
 

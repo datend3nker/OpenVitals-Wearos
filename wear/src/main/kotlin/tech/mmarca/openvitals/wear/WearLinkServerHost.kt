@@ -12,6 +12,7 @@ import tech.mmarca.openvitals.wear.features.quicklog.EntryType
 import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
 import tech.mmarca.openvitals.wearlink.Page
 import tech.mmarca.openvitals.wearlink.WearLinkConnection
+import tech.mmarca.openvitals.wearlink.WearLinkProfile
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 import tech.mmarca.openvitals.wearlink.WearLinkRequestHandler
 import tech.mmarca.openvitals.wearlink.WearLinkServer
@@ -35,9 +36,14 @@ class WearLinkServerHost(
     logEntries: () -> List<LoggedEntry>,
     private val localName: () -> String,
     workouts: (sinceEpochMillis: Long, limit: Int) -> Page<WearLinkWorkout>,
+    /** The phone sent its settings or today's totals; the tiles that show them draw again. */
+    onPhoneProfile: () -> Unit = {},
     private val state: WearLinkState = WearLinkState,
 ) {
-    private val server = WearLinkServer(trust, Handler(store, live, preferences, hrvAvailable, logEntries, localName, workouts))
+    private val server = WearLinkServer(
+        trust,
+        Handler(store, live, preferences, hrvAvailable, logEntries, localName, workouts, onPhoneProfile),
+    )
 
     @Volatile
     private var serverSocket: BluetoothServerSocket? = null
@@ -127,6 +133,7 @@ class WearLinkServerHost(
         private val logEntries: () -> List<LoggedEntry>,
         private val localName: () -> String,
         private val workouts: (Long, Int) -> Page<WearLinkWorkout>,
+        private val onPhoneProfile: () -> Unit,
     ) : WearLinkRequestHandler {
         override fun localName(): String = localName.invoke()
 
@@ -148,6 +155,7 @@ class WearLinkServerHost(
             add(WearLinkProtocol.CAP_PREFERENCES)
             add(WearLinkProtocol.CAP_LOG)
             add(WearLinkProtocol.CAP_DAY_VALUES)
+            add(WearLinkProtocol.CAP_PROFILE)
         }
 
         /** Runs one request and, with the debug switch on, logs its type, size and time; a failure logs the exception's class and passes on. */
@@ -219,6 +227,21 @@ class WearLinkServerHost(
 
         override fun liveHeartRate(seconds: Int, emit: (WearLinkProtocol.HeartRateSample) -> Unit): Int =
             traced("LIVE_HR", { it }) { live.window(seconds, emit) }
+
+        override fun applyProfile(profile: WearLinkProfile.Profile) {
+            PhoneProfile.save(store, profile)
+            redraw()
+        }
+
+        override fun applyTotals(totals: WearLinkProfile.Totals) {
+            PhoneProfile.save(store, totals)
+            redraw()
+        }
+
+        /** Best effort: a failed redraw request must not turn the phone's `END` into an error. */
+        private fun redraw() {
+            runCatching(onPhoneProfile).onFailure { Log.w(TAG, "Tiles not asked to redraw", it) }
+        }
 
         private fun <T> page(metric: WearMetric<T>, sinceEpochMillis: Long, limit: Int): Page<T> {
             // One more than asked tells whether the limit cut the reply.

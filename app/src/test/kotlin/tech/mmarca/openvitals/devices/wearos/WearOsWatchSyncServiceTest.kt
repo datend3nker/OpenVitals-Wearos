@@ -43,6 +43,7 @@ import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.StepsCadenceRecord
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
+import tech.mmarca.openvitals.wearlink.WearLinkProfile
 
 /**
  * What a Wear OS sync does around the link. The watch is a fake here: the
@@ -162,6 +163,10 @@ class WearOsWatchSyncServiceTest {
             // What the real port counts: each day taken, the step length, and the weight when there is one.
             return values.size + 1 + (if (profile.weightTenthsKg != null) 1 else 0)
         }
+        override suspend fun pushProfile(
+            profile: WearLinkProfile.Profile?,
+            totals: WearLinkProfile.Totals?,
+        ): Boolean = false
     }
 
     private val pushedDayValues = mutableListOf<WearOsDayValue>()

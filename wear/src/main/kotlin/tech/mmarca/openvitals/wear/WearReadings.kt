@@ -80,7 +80,7 @@ internal data class NightSleep(
 
 /** What the screens read: the tiles and last night's stages. */
 internal data class WearReadingsState(
-    val metrics: Map<MetricTile, MetricUiState> = emptyMap(),
+    val metrics: Map<DashboardMetric, MetricUiState> = emptyMap(),
     val sleepStages: Map<SleepStage, Double> = emptyMap(),
     val sleepTimes: SleepTimes = SleepTimes(),
 )
@@ -231,30 +231,30 @@ internal object WearReadings {
      * seven, oldest first, today last. A tile with no row in any of them is
      * left out, so the screen says "no reading yet" instead of showing zero.
      */
-    fun metrics(days: List<DayReadings>, now: Instant, zone: ZoneId): Map<MetricTile, MetricUiState> {
+    fun metrics(days: List<DayReadings>, now: Instant, zone: ZoneId): Map<DashboardMetric, MetricUiState> {
         val today = days.lastOrNull() ?: return emptyMap()
         val thisHour = hourOf(now.toEpochMilli(), zone)
         return buildMap {
             if (days.any { it.hasSteps }) {
-                put(MetricTile.STEPS, cumulative(days, thisHour) { it.stepsByHour })
+                put(DashboardMetric.STEPS, cumulative(days, thisHour) { it.stepsByHour })
             }
             if (days.any { it.hasSteps }) {
-                put(MetricTile.DISTANCE, cumulative(days, thisHour) { it.distanceByHour })
+                put(DashboardMetric.DISTANCE, cumulative(days, thisHour) { it.distanceByHour })
             }
             if (days.any { it.kcalByHour.isNotEmpty() && it.hasSteps }) {
-                put(MetricTile.ACTIVE_CALORIES, cumulative(days, thisHour) { it.kcalByHour.ifEmpty { List(24) { 0.0 } } })
+                put(DashboardMetric.ACTIVE_CALORIES, cumulative(days, thisHour) { it.kcalByHour.ifEmpty { List(24) { 0.0 } } })
             }
             if (days.any { it.hasAscent }) {
-                put(MetricTile.ELEVATION, cumulative(days, thisHour) { it.ascentByHour })
+                put(DashboardMetric.ELEVATION, cumulative(days, thisHour) { it.ascentByHour })
                 put(
-                    MetricTile.FLOORS,
+                    DashboardMetric.FLOORS,
                     cumulative(days, thisHour) { day -> day.ascentByHour.map { it / AscentCredit.METRES_PER_FLOOR } },
                 )
             }
             val latest = days.lastNotNullOfOrNull { it.latestHeartRate }
             if (latest != null) {
                 put(
-                    MetricTile.HEART_RATE,
+                    DashboardMetric.HEART_RATE,
                     MetricUiState(
                         current = latest.bpm.toDouble(),
                         today = today.heartRate,
@@ -265,7 +265,7 @@ internal object WearReadings {
             }
             if (days.any { it.sleep != null }) {
                 put(
-                    MetricTile.SLEEP,
+                    DashboardMetric.SLEEP,
                     MetricUiState(
                         current = today.sleep?.totalMinutes?.toDouble(),
                         week = days.map { it.sleep?.totalMinutes?.toDouble() ?: 0.0 },
@@ -274,7 +274,7 @@ internal object WearReadings {
             }
             if (days.any { it.nightHrv != null }) {
                 put(
-                    MetricTile.HRV,
+                    DashboardMetric.HRV,
                     MetricUiState(
                         current = today.nightHrv,
                         week = days.dropWhile { it.nightHrv == null }.map { it.nightHrv ?: 0.0 },
@@ -283,7 +283,7 @@ internal object WearReadings {
             }
             if (days.any { it.hydrationMl != null }) {
                 put(
-                    MetricTile.HYDRATION,
+                    DashboardMetric.HYDRATION,
                     MetricUiState(
                         current = today.hydrationMl ?: 0.0,
                         week = days.map { it.hydrationMl ?: 0.0 },
@@ -292,7 +292,7 @@ internal object WearReadings {
             }
             if (days.any { it.weightKg != null }) {
                 put(
-                    MetricTile.WEIGHT,
+                    DashboardMetric.WEIGHT,
                     MetricUiState(
                         current = days.lastNotNullOfOrNull { it.weightKg },
                         week = days.dropWhile { it.weightKg == null }.mapNotNull { it.weightKg },
@@ -301,7 +301,7 @@ internal object WearReadings {
             }
             if (days.any { it.sleep?.restingHeartRate != null }) {
                 put(
-                    MetricTile.RESTING_HEART_RATE,
+                    DashboardMetric.RESTING_HEART_RATE,
                     MetricUiState(
                         current = today.sleep?.restingHeartRate?.toDouble(),
                         week = days.dropWhile { it.sleep?.restingHeartRate == null }

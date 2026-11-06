@@ -4,7 +4,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.features.quicklog.EntryType
 import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
 
@@ -12,11 +12,11 @@ import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
  * The entries of one kind a tile's detail screen lists: what the wearer measured or logged on the
  * watch. Heart rate has none: its detail screen already shows the day's curve.
  */
-internal fun MetricTile.entryType(): EntryType? = when (this) {
-    MetricTile.HRV -> EntryType.HRV
-    MetricTile.WEIGHT -> EntryType.WEIGHT
-    MetricTile.HYDRATION -> EntryType.WATER
-    MetricTile.CAFFEINE -> EntryType.CAFFEINE
+internal fun DashboardMetric.entryType(): EntryType? = when (this) {
+    DashboardMetric.HRV -> EntryType.HRV
+    DashboardMetric.WEIGHT -> EntryType.WEIGHT
+    DashboardMetric.HYDRATION -> EntryType.WATER
+    DashboardMetric.CAFFEINE -> EntryType.CAFFEINE
     else -> null
 }
 
@@ -29,7 +29,7 @@ internal data class RecentEntry(val timeMillis: Long, val dayLabel: String, val 
  */
 internal fun recentEntries(
     entries: List<LoggedEntry>,
-    metric: MetricTile,
+    metric: DashboardMetric,
     today: LocalDate,
     zone: ZoneId,
     count: Int = RecentCount,

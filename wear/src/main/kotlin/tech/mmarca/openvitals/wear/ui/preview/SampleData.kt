@@ -5,7 +5,7 @@ import tech.mmarca.openvitals.wear.RecordingUiState
 import tech.mmarca.openvitals.wear.SettingsUiState
 import tech.mmarca.openvitals.wear.SleepStage
 import tech.mmarca.openvitals.wear.SleepTimes
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.WearUiState
 import tech.mmarca.openvitals.wear.features.measure.Measurement
 import tech.mmarca.openvitals.wear.features.quicklog.EntryType
@@ -20,68 +20,68 @@ import tech.mmarca.openvitals.wear.health.WearCapabilities
  */
 object SampleData {
     val metrics = mapOf(
-        MetricTile.STEPS to MetricUiState(
+        DashboardMetric.STEPS to MetricUiState(
             current = 6_482.0,
             goal = 10_000.0,
             today = doubles(0, 0, 0, 0, 0, 0, 120, 840, 1_310, 420, 260, 380, 1_150, 540, 310, 752),
             week = doubles(8_210, 11_034, 5_420, 9_876, 12_310, 7_045, 6_482),
         ),
-        MetricTile.HEART_RATE to MetricUiState(
+        DashboardMetric.HEART_RATE to MetricUiState(
             current = 72.0,
             today = doubles(64, 66, 63, 70, 78, 91, 104, 98, 86, 79, 74, 71, 69, 72, 75, 72),
             week = doubles(68, 71, 66, 70, 74, 69, 73),
         ),
-        MetricTile.DISTANCE to MetricUiState(
+        DashboardMetric.DISTANCE to MetricUiState(
             current = 4_730.0,
             today = doubles(0, 0, 0, 0, 0, 0, 90, 610, 960, 300, 190, 280, 840, 390, 230, 840),
             week = doubles(6_010, 8_120, 3_950, 7_240, 9_030, 5_160, 4_730),
         ),
-        MetricTile.ACTIVE_CALORIES to MetricUiState(
+        DashboardMetric.ACTIVE_CALORIES to MetricUiState(
             current = 312.0,
             goal = 500.0,
             today = doubles(0, 0, 0, 0, 0, 0, 6, 41, 63, 20, 13, 18, 55, 26, 15, 55),
             week = doubles(402, 538, 265, 480, 601, 344, 312),
         ),
-        MetricTile.FLOORS to MetricUiState(
+        DashboardMetric.FLOORS to MetricUiState(
             current = 9.0,
             goal = 10.0,
             today = doubles(0, 0, 0, 0, 0, 0, 1, 2, 0, 1, 0, 0, 3, 1, 0, 1),
             week = doubles(12, 8, 5, 11, 14, 7, 9),
         ),
-        MetricTile.ELEVATION to MetricUiState(
+        DashboardMetric.ELEVATION to MetricUiState(
             current = 86.0,
             today = doubles(0, 0, 0, 0, 0, 0, 4, 21, 9, 6, 0, 0, 28, 9, 0, 9),
             week = doubles(112, 74, 40, 96, 131, 62, 86),
         ),
-        MetricTile.BLOOD_OXYGEN to MetricUiState(
+        DashboardMetric.BLOOD_OXYGEN to MetricUiState(
             current = 97.0,
             today = doubles(97, 96, 98, 97, 95, 96, 97, 98, 97, 97),
             week = doubles(97, 96, 97, 98, 96, 97, 97),
         ),
-        MetricTile.VO2_MAX to MetricUiState(
+        DashboardMetric.VO2_MAX to MetricUiState(
             current = 44.0,
             week = doubles(43, 43, 44, 44, 44, 44, 44),
         ),
-        MetricTile.RESTING_HEART_RATE to MetricUiState(
+        DashboardMetric.RESTING_HEART_RATE to MetricUiState(
             current = 58.0,
             week = doubles(60, 59, 61, 58, 57, 59, 58),
         ),
-        MetricTile.HRV to MetricUiState(
+        DashboardMetric.HRV to MetricUiState(
             current = 46.0,
             week = doubles(41, 48, 39, 52, 44, 47, 46),
         ),
-        MetricTile.SLEEP to MetricUiState(
+        DashboardMetric.SLEEP to MetricUiState(
             current = 442.0,
             goal = 480.0,
             week = doubles(401, 468, 377, 455, 512, 430, 442),
         ),
-        MetricTile.HYDRATION to MetricUiState(
+        DashboardMetric.HYDRATION to MetricUiState(
             current = 1_250.0,
             goal = 2_000.0,
             today = doubles(0, 0, 0, 0, 0, 0, 0, 250, 250, 0, 0, 0, 500, 0, 0, 250),
             week = doubles(1_750, 2_250, 1_500, 2_000, 1_250, 1_750, 1_250),
         ),
-        MetricTile.WEIGHT to MetricUiState(
+        DashboardMetric.WEIGHT to MetricUiState(
             current = 72.4,
             week = listOf(73.1, 72.9, 72.8, 72.6, 72.7, 72.5, 72.4),
         ),
@@ -106,7 +106,7 @@ object SampleData {
     /** A watch with Health Services, a barometer and no single-beat sensor. */
     val capabilities = WearCapabilities(
         probed = true,
-        sensorMetrics = MetricTile.entries.toSet() - MetricTile.BLOOD_OXYGEN,
+        sensorMetrics = DashboardMetric.entries.toSet() - DashboardMetric.BLOOD_OXYGEN,
         measurements = setOf(Measurement.HEART_RATE, Measurement.AIR_PRESSURE),
         workouts = ActivityType.entries.associateWith { activity ->
             buildSet {

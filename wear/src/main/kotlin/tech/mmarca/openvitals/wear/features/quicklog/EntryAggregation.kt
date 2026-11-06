@@ -4,7 +4,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import tech.mmarca.openvitals.wear.MetricUiState
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.WearUiState
 
 private const val DaysInWeek = 7
@@ -25,11 +25,11 @@ internal fun WearUiState.withEntries(
 
     byType[EntryType.WATER]?.let { water ->
         // The phone's total for a day already holds what it synced from the watch, so the larger of the two stands.
-        val phoneWeek = metrics[MetricTile.HYDRATION]?.week.orEmpty()
+        val phoneWeek = metrics[DashboardMetric.HYDRATION]?.week.orEmpty()
         val week = lastDays(today).mapIndexed { index, day ->
             waterOnDay(phoneWeek.getOrNull(index), water, day, zone)
         }
-        updated[MetricTile.HYDRATION] = MetricUiState(
+        updated[DashboardMetric.HYDRATION] = MetricUiState(
             current = week.last(),
             goal = preferences.waterGoalMl.toDouble(),
             today = water.onDay(today, zone).hourlyTotals(zone),
@@ -39,21 +39,21 @@ internal fun WearUiState.withEntries(
     byType[EntryType.CAFFEINE]?.let { drinks ->
         // The phone sends no caffeine total, so the watch's own entries are all there is.
         val week = lastDays(today).map { day -> drinks.onDay(day, zone).sumOf { it.value } }
-        updated[MetricTile.CAFFEINE] = MetricUiState(
+        updated[DashboardMetric.CAFFEINE] = MetricUiState(
             current = week.last(),
             today = drinks.onDay(today, zone).hourlyTotals(zone),
             week = week,
         )
     }
     byType[EntryType.WEIGHT]?.let { weights ->
-        updated[MetricTile.WEIGHT] = MetricUiState(
+        updated[DashboardMetric.WEIGHT] = MetricUiState(
             current = weights.last().value,
             today = weights.onDay(today, zone).map { it.value },
             week = lastDays(today).mapNotNull { day -> weights.onDay(day, zone).lastOrNull()?.value },
         )
     }
-    byType[EntryType.HEART_RATE]?.let { updated.fillCurrent(MetricTile.HEART_RATE, it.last().value) }
-    byType[EntryType.HRV]?.let { updated.fillCurrent(MetricTile.HRV, it.last().value) }
+    byType[EntryType.HEART_RATE]?.let { updated.fillCurrent(DashboardMetric.HEART_RATE, it.last().value) }
+    byType[EntryType.HRV]?.let { updated.fillCurrent(DashboardMetric.HRV, it.last().value) }
 
     return copy(metrics = updated, entries = entries)
 }
@@ -74,7 +74,7 @@ internal fun waterOnDay(
     phoneMl ?: 0.0,
 )
 
-private fun MutableMap<MetricTile, MetricUiState>.fillCurrent(metric: MetricTile, value: Double) {
+private fun MutableMap<DashboardMetric, MetricUiState>.fillCurrent(metric: DashboardMetric, value: Double) {
     val existing = this[metric] ?: MetricUiState()
     if (existing.current == null) this[metric] = existing.copy(current = value)
 }

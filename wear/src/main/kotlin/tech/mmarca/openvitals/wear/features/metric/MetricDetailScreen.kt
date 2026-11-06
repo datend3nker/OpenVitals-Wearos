@@ -44,7 +44,7 @@ import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
 import tech.mmarca.openvitals.wear.SleepStage
 import tech.mmarca.openvitals.wear.SleepTimes
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.DisplayPreferences
 import tech.mmarca.openvitals.wear.ui.components.BarChart
 import tech.mmarca.openvitals.wear.ui.components.BarSegment
@@ -81,7 +81,7 @@ private val HeroTopPadding = 36.dp
  */
 @Composable
 fun MetricDetailScreen(
-    metric: MetricTile,
+    metric: DashboardMetric,
     state: MetricUiState,
     unitSystem: UnitSystem,
     maxHeartRate: Int = DisplayPreferences().maxHeartRate,
@@ -98,7 +98,7 @@ fun MetricDetailScreen(
     val stats = remember(metric, state, restingHeartRate) { metricStats(metric, state, restingHeartRate) }
     val recent = remember(metric, entries) { recentEntries(entries, metric, LocalDate.now(), ZoneId.systemDefault()) }
     val zoneShares = remember(metric, state.today, maxHeartRate) {
-        if (metric == MetricTile.HEART_RATE) heartRateZoneShares(state.today, maxHeartRate) else emptyList()
+        if (metric == DashboardMetric.HEART_RATE) heartRateZoneShares(state.today, maxHeartRate) else emptyList()
     }
 
     ScreenScaffold(scrollState = listState) { contentPadding ->
@@ -117,7 +117,7 @@ fun MetricDetailScreen(
                     )
                 }
             }
-            if (metric == MetricTile.SLEEP && sleepStages.isNotEmpty()) {
+            if (metric == DashboardMetric.SLEEP && sleepStages.isNotEmpty()) {
                 item { ListSubHeader { Text(stringResource(R.string.detail_sleep_stages)) } }
                 item {
                     BreakdownSection(
@@ -132,7 +132,7 @@ fun MetricDetailScreen(
                     )
                 }
             }
-            if (metric == MetricTile.SLEEP && sleepTimes.bedTime != null && sleepTimes.fellAsleep != null && sleepTimes.wokeUp != null) {
+            if (metric == DashboardMetric.SLEEP && sleepTimes.bedTime != null && sleepTimes.fellAsleep != null && sleepTimes.wokeUp != null) {
                 item { ListSubHeader { Text(stringResource(R.string.detail_sleep_times)) } }
                 item {
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -231,7 +231,7 @@ fun MetricDetailScreen(
 
 @Composable
 private fun MetricHero(
-    metric: MetricTile,
+    metric: DashboardMetric,
     state: MetricUiState,
     unit: String,
     unitSystem: UnitSystem,
@@ -362,9 +362,9 @@ private fun DayLabels(count: Int) {
 private data class MetricStat(@param:StringRes val label: Int, val value: Double)
 
 /** The stats that make sense for the metric's kind, from the data that is there. */
-private fun metricStats(metric: MetricTile, state: MetricUiState, restingHeartRate: Double?): List<MetricStat> =
+private fun metricStats(metric: DashboardMetric, state: MetricUiState, restingHeartRate: Double?): List<MetricStat> =
     buildList {
-        if (metric == MetricTile.HEART_RATE && restingHeartRate != null) {
+        if (metric == DashboardMetric.HEART_RATE && restingHeartRate != null) {
             add(MetricStat(R.string.stat_resting, restingHeartRate))
         }
         when (metric.kind) {
@@ -391,7 +391,7 @@ private fun metricStats(metric: MetricTile, state: MetricUiState, restingHeartRa
 private fun MetricDetailScreenGoalPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            MetricDetailScreen(MetricTile.STEPS, SampleData.metrics.getValue(MetricTile.STEPS), UnitSystem.METRIC)
+            MetricDetailScreen(DashboardMetric.STEPS, SampleData.metrics.getValue(DashboardMetric.STEPS), UnitSystem.METRIC)
         }
     }
 }
@@ -402,8 +402,8 @@ private fun MetricDetailScreenSampledPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
             MetricDetailScreen(
-                MetricTile.HEART_RATE,
-                SampleData.metrics.getValue(MetricTile.HEART_RATE),
+                DashboardMetric.HEART_RATE,
+                SampleData.metrics.getValue(DashboardMetric.HEART_RATE),
                 UnitSystem.METRIC,
                 restingHeartRate = 58.0,
                 onMeasure = {},
@@ -417,7 +417,7 @@ private fun MetricDetailScreenSampledPreview() {
 private fun MetricDetailScreenEmptyPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            MetricDetailScreen(MetricTile.ELEVATION, MetricUiState(), UnitSystem.METRIC)
+            MetricDetailScreen(DashboardMetric.ELEVATION, MetricUiState(), UnitSystem.METRIC)
         }
     }
 }
@@ -428,8 +428,8 @@ private fun MetricDetailScreenSleepPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
             MetricDetailScreen(
-                MetricTile.SLEEP,
-                SampleData.metrics.getValue(MetricTile.SLEEP),
+                DashboardMetric.SLEEP,
+                SampleData.metrics.getValue(DashboardMetric.SLEEP),
                 UnitSystem.METRIC,
                 sleepStages = SampleData.sleepStages,
                 sleepTimes = SampleData.sleepTimes,

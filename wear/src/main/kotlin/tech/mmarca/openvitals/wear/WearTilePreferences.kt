@@ -9,15 +9,15 @@ class WearTilePreferences(context: Context) {
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun loadTiles(): List<MetricTile> = decodeTiles(prefs.getString(KEY_TILES, null))
+    fun loadTiles(): List<DashboardMetric> = decodeTiles(prefs.getString(KEY_TILES, null))
 
-    fun saveTiles(tiles: List<MetricTile>) {
+    fun saveTiles(tiles: List<DashboardMetric>) {
         prefs.edit { putString(KEY_TILES, encodeTiles(tiles)) }
     }
 
-    fun resetTiles(): List<MetricTile> {
+    fun resetTiles(): List<DashboardMetric> {
         prefs.edit { remove(KEY_TILES) }
-        return MetricTile.DefaultTiles
+        return DashboardMetric.DefaultTiles
     }
 
     private companion object {
@@ -26,21 +26,21 @@ class WearTilePreferences(context: Context) {
     }
 }
 
-internal fun encodeTiles(tiles: List<MetricTile>): String = tiles.joinToString(",") { it.name }
+internal fun encodeTiles(tiles: List<DashboardMetric>): String = tiles.joinToString(",") { it.name }
 
 /**
  * Reads a stored tile list. Nothing stored means the defaults; an empty string
  * means the user switched every tile off. Unknown names are dropped.
  */
-internal fun decodeTiles(raw: String?): List<MetricTile> {
-    if (raw == null) return MetricTile.DefaultTiles
+internal fun decodeTiles(raw: String?): List<DashboardMetric> {
+    if (raw == null) return DashboardMetric.DefaultTiles
     return raw.split(",")
-        .mapNotNull { name -> MetricTile.entries.firstOrNull { it.name == name.trim() } }
+        .mapNotNull { name -> DashboardMetric.entries.firstOrNull { it.name == name.trim() } }
         .distinct()
 }
 
 /** Moves [moved] to the position of [target], shifting the tiles in between. */
-internal fun List<MetricTile>.withTileMoved(moved: MetricTile, target: MetricTile): List<MetricTile> {
+internal fun List<DashboardMetric>.withTileMoved(moved: DashboardMetric, target: DashboardMetric): List<DashboardMetric> {
     val targetIndex = indexOf(target)
     if (moved == target || moved !in this || targetIndex < 0) return this
     return toMutableList().apply {

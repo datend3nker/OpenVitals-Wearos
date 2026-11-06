@@ -92,8 +92,6 @@
     <string name="tile_open">Iftaħ</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals Illum</string>
-    <string name="tile_main_vitals_description">Ħarsa malajr lejn is-sinjali vitali u l-metriċi ta\' llum.</string>
     <string name="tile_quick_log_label">OpenVitals Reġistru malajr</string>
     <string name="tile_quick_log_description">Ireġistra kikkra ilma b\'lemħa waħda, ikejjel ir-rata tal-qalb jew iftaħ ir-reġistru malajr.</string>
     <string name="action_done">Lest</string>

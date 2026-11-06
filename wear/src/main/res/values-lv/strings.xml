@@ -92,8 +92,6 @@
     <string name="tile_open">Atvērt</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals šodien</string>
-    <string name="tile_main_vitals_description">Īss šodienas vitālo rādītāju un mērījumu pārskats.</string>
     <string name="tile_quick_log_label">OpenVitals Ātrais ieraksts</string>
     <string name="tile_quick_log_description">Ar vienu pieskārienu reģistrējiet glāzi ūdens, izmēriet sirdsdarbību vai atveriet ātro ierakstu.</string>
     <string name="action_done">Gatavs</string>

@@ -92,8 +92,6 @@
     <string name="tile_open">Atidaryti</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals šiandien</string>
-    <string name="tile_main_vitals_description">Greita šiandienos gyvybinių rodiklių ir matavimų apžvalga.</string>
     <string name="tile_quick_log_label">OpenVitals Greitas įrašas</string>
     <string name="tile_quick_log_description">Vienu palietimu įrašykite stiklinę vandens, išmatuokite pulsą arba atidarykite greitą įrašą.</string>
     <string name="action_done">Atlikta</string>

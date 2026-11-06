@@ -92,8 +92,6 @@
     <string name="tile_open">Odpri</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals danes</string>
-    <string name="tile_main_vitals_description">Hiter pregled današnjih vitalnih znakov in meritev.</string>
     <string name="tile_quick_log_label">OpenVitals hitri vnos</string>
     <string name="tile_quick_log_description">Z enim dotikom zabeležite kozarec vode, izmerite srčni utrip ali odprite hitri vnos.</string>
     <string name="action_done">Končano</string>

@@ -92,8 +92,6 @@
     <string name="tile_open">Opna</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals í dag</string>
-    <string name="tile_main_vitals_description">Fljótsýn yfir lífsmörk og mælingar dagsins.</string>
     <string name="tile_quick_log_label">OpenVitals Fljótskráning</string>
     <string name="tile_quick_log_description">Skráðu glas af vatni með einum snertingu, mældu hjartsláttinn eða opnaðu fljótskráninguna.</string>
     <string name="action_done">Lokið</string>

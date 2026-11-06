@@ -92,8 +92,6 @@
     <string name="tile_open">Открыть</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals сегодня</string>
-    <string name="tile_main_vitals_description">Быстрый обзор показателей и измерений за сегодня.</string>
     <string name="tile_quick_log_label">OpenVitals быстрая запись</string>
     <string name="tile_quick_log_description">Записать стакан воды одним нажатием, измерить пульс или открыть быструю запись.</string>
     <string name="action_done">Готово</string>

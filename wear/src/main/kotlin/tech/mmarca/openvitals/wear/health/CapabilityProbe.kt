@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.hardware.Sensor
 import android.hardware.SensorManager
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.PpgRawLogger
 import tech.mmarca.openvitals.wear.features.measure.Measurement
 import tech.mmarca.openvitals.wear.features.recording.ActivityType
@@ -56,10 +56,10 @@ class CapabilityProbe(private val context: Context) {
  */
 fun capabilitiesOf(sensors: WatchSensors): WearCapabilities {
     val sensorMetrics = buildSet {
-        if (sensors.stepCounter) addAll(listOf(MetricTile.STEPS, MetricTile.DISTANCE, MetricTile.ACTIVE_CALORIES))
-        if (sensors.heartRate) add(MetricTile.HEART_RATE)
-        if (sensors.barometer) addAll(listOf(MetricTile.FLOORS, MetricTile.ELEVATION))
-        if (sensors.vendorSpo2) add(MetricTile.BLOOD_OXYGEN)
+        if (sensors.stepCounter) addAll(listOf(DashboardMetric.STEPS, DashboardMetric.DISTANCE, DashboardMetric.ACTIVE_CALORIES))
+        if (sensors.heartRate) add(DashboardMetric.HEART_RATE)
+        if (sensors.barometer) addAll(listOf(DashboardMetric.FLOORS, DashboardMetric.ELEVATION))
+        if (sensors.vendorSpo2) add(DashboardMetric.BLOOD_OXYGEN)
     }
     val measurements = buildSet {
         if (sensors.heartRate) add(Measurement.HEART_RATE)

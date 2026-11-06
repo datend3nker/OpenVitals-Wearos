@@ -22,7 +22,7 @@ import androidx.wear.compose.material3.Text
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.RecordingUiState
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.ui.components.MetricValueRow
 import tech.mmarca.openvitals.wear.ui.components.formatCount
 import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
@@ -68,8 +68,8 @@ fun WorkoutSummaryScreen(
                 item {
                     SummaryRow(
                         label = stringResource(R.string.metric_distance),
-                        value = formatMetricValue(MetricTile.DISTANCE, state.distanceMeters.toDouble(), unitSystem),
-                        unit = stringResource(metricUnitLabel(MetricTile.DISTANCE, unitSystem)),
+                        value = formatMetricValue(DashboardMetric.DISTANCE, state.distanceMeters.toDouble(), unitSystem),
+                        unit = stringResource(metricUnitLabel(DashboardMetric.DISTANCE, unitSystem)),
                     )
                 }
             }
@@ -113,8 +113,8 @@ fun WorkoutSummaryScreen(
                 item {
                     SummaryRow(
                         label = stringResource(R.string.metric_elevation),
-                        value = formatMetricValue(MetricTile.ELEVATION, state.elevationGainMeters.toDouble(), unitSystem),
-                        unit = stringResource(metricUnitLabel(MetricTile.ELEVATION, unitSystem)),
+                        value = formatMetricValue(DashboardMetric.ELEVATION, state.elevationGainMeters.toDouble(), unitSystem),
+                        unit = stringResource(metricUnitLabel(DashboardMetric.ELEVATION, unitSystem)),
                     )
                 }
             }

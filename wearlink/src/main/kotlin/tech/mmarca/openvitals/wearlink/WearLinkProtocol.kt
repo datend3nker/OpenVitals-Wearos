@@ -4,9 +4,11 @@ import java.util.UUID
 
 /**
  * The line protocol between OpenVitals on the phone and the OpenVitals Wear OS
- * app, over one RFCOMM socket per request. Every line is UTF-8, space-separated
- * fields, `\n`-terminated. The phone sends one request line; the watch answers
- * with zero or more data lines and one terminating line, then both sides close.
+ * app, over an RFCOMM socket per exchange. Every line is UTF-8, space-separated
+ * fields, `\n`-terminated. The phone sends a request line; the watch answers
+ * with zero or more data lines and one terminating line. The phone may send
+ * the next request on the same connection (a live heart rate window, the
+ * `PROFILE` and `TOTALS` after a sync), and closes it when done.
  *
  * One source for both apps: `:wearlink` is compiled into `:app` and `:wear`.
  *
@@ -47,6 +49,9 @@ import java.util.UUID
  *   less than the watch's idle timeout), one `HR` line as each reading
  *   arrives, then `END <count> 0`. Only a watch announcing `hl` serves it; a
  *   watch off the wrist answers `END 0 0` at once. Nothing is stored for it.
+ * - `PROFILE ...` and `TOTALS ...` → `END 0 0`. The phone's settings and
+ *   Health Connect's totals for today, for the watch's tiles
+ *   ([WearLinkProfile]). Only a watch announcing `pf` is sent them.
  *
  * Reply lines:
  * - `HR <epochMillis> <bpm>` — one heart rate sample.
@@ -113,6 +118,8 @@ object WearLinkProtocol {
     /** Asks the watch for every preference it holds; the reply is one [PREFERENCE] line each, then `END`. */
     const val GET_PREFERENCES: String = "GET_PREF"
     const val PREFERENCE: String = "PREF"
+    const val PROFILE: String = "PROFILE"
+    const val TOTALS: String = "TOTALS"
     const val END: String = "END"
 
     /** Longer than this a line is a protocol violation; the reader closes rather than buffers. */
@@ -141,6 +148,7 @@ object WearLinkProtocol {
 
     /** The watch accepts `PUT_DAY`: the phone sends it a day's value the watch cannot know. */
     const val CAP_DAY_VALUES: String = "dv"
+    const val CAP_PROFILE: String = "pf"
     const val NO_CAPABILITIES: String = "-"
 
     /** The days of values the phone sends are the last seven; a day further back is refused. */
@@ -252,6 +260,8 @@ object WearLinkProtocol {
         data class SetPreference(val key: String, val value: String) : Request()
         data class PutDay(val kind: DayKind, val epochDay: Long, val tenths: Int) : Request()
         data object GetPreferences : Request()
+        data class Profile(val profile: WearLinkProfile.Profile) : Request()
+        data class Totals(val totals: WearLinkProfile.Totals) : Request()
     }
 
     fun formatHello(hello: Hello): String =
@@ -315,6 +325,8 @@ object WearLinkProtocol {
         is Request.SetPreference -> "$SET_PREFERENCE ${request.key} ${request.value}"
         is Request.PutDay -> "$PUT_DAY ${request.kind.word} ${request.epochDay} ${request.tenths}"
         Request.GetPreferences -> GET_PREFERENCES
+        is Request.Profile -> WearLinkProfile.formatProfile(request.profile)
+        is Request.Totals -> WearLinkProfile.formatTotals(request.totals)
     }
 
     /** Null unless [line] is a well-formed request. */
@@ -341,6 +353,8 @@ object WearLinkProtocol {
         parsePreferenceRequest(line)?.let { return it }
         parsePutDayRequest(line)?.let { return it }
         if (fields(line) == listOf(GET_PREFERENCES)) return Request.GetPreferences
+        WearLinkProfile.parseProfile(line)?.let { return Request.Profile(it) }
+        WearLinkProfile.parseTotals(line)?.let { return Request.Totals(it) }
         return null
     }
 

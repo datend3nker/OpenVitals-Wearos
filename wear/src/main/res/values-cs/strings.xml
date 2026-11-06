@@ -92,8 +92,6 @@
     <string name="tile_open">Otevřít</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals dnes</string>
-    <string name="tile_main_vitals_description">Rychlý přehled dnešních vitálních hodnot a metrik.</string>
     <string name="tile_quick_log_label">OpenVitals rychlý záznam</string>
     <string name="tile_quick_log_description">Zapiš sklenici vody jedním klepnutím, změř tep nebo otevři rychlý záznam.</string>
     <string name="action_done">Hotovo</string>

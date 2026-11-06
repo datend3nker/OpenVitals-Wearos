@@ -8,7 +8,7 @@ object WearRoutes {
     const val TILE_EDITOR = "tile_editor"
     const val METRIC_ARG = "metric"
     const val METRIC = "metric/{$METRIC_ARG}"
-    fun metric(metric: MetricTile) = "metric/${metric.name}"
+    fun metric(metric: DashboardMetric) = "metric/${metric.name}"
     const val ACTIVITY_PICKER = "activity_picker"
     const val RECORDING = "recording"
     const val WORKOUT_SUMMARY = "workout_summary"

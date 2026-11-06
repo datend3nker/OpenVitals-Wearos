@@ -172,6 +172,10 @@ class WearAppService : Service() {
             logEntries = { EntryLog(this).load() },
             localName = ::localName,
             workouts = WorkoutStore(MetricStoreWorkoutRows(store))::workoutsSince,
+            onPhoneProfile = {
+                MetricTileService.requestUpdates(this)
+                MetricComplicationService.requestUpdates(this)
+            },
         )
         isForeground = startInForeground()
         if (!isForeground) {

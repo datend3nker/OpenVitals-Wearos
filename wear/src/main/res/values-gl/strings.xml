@@ -92,8 +92,6 @@
     <string name="tile_open">Abrir</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals hoxe</string>
-    <string name="tile_main_vitals_description">Vista rápida dos signos vitais e das métricas de hoxe.</string>
     <string name="tile_quick_log_label">OpenVitals Rexistro rápido</string>
     <string name="tile_quick_log_description">Rexistra un vaso de auga cun toque, mide a frecuencia cardíaca ou abre o rexistro rápido.</string>
     <string name="action_done">Feito</string>

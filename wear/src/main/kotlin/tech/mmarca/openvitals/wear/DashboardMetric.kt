@@ -61,7 +61,7 @@ enum class MetricSource {
  * Readings are stored in the base unit noted per entry; the unit system
  * only changes how they are displayed.
  */
-enum class MetricTile(
+enum class DashboardMetric(
     @param:StringRes val label: Int,
     val icon: ImageVector,
     val accentColor: Color,

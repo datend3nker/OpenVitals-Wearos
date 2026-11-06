@@ -92,8 +92,6 @@
     <string name="tile_open">Åbn</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals i dag</string>
-    <string name="tile_main_vitals_description">Hurtigt overblik over dagens vitale værdier og målinger.</string>
     <string name="tile_quick_log_label">OpenVitals hurtiglog</string>
     <string name="tile_quick_log_description">Log et glas vand med ét tryk, mål din puls eller åbn hurtiglog.</string>
     <string name="action_done">Færdig</string>

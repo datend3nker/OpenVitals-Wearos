@@ -99,8 +99,6 @@
     <string name="tile_open">Open</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals Today</string>
-    <string name="tile_main_vitals_description">Quick view of today\'s vitals and metrics.</string>
     <string name="tile_quick_log_label">OpenVitals Quick log</string>
     <string name="tile_quick_log_description">Log a glass of water with one tap, measure your heart rate or open the quick log.</string>
     <string name="action_done">Done</string>
@@ -249,4 +247,48 @@
     <string name="interval_every_10_seconds">Every 10 seconds</string>
     <string name="interval_power_save">Power save</string>
     <string name="interval_off">Off</string>
+    <string name="tile_heart_rate_label">Heart rate</string>
+    <string name="tile_heart_rate_description">Your latest heart rate and its curve today, as the watch app recorded them</string>
+    <string name="tile_heart_rate_caption_now">bpm · just now</string>
+    <plurals name="tile_heart_rate_caption_minutes">
+        <item quantity="one">bpm · %1$d min ago</item>
+        <item quantity="other">bpm · %1$d min ago</item>
+    </plurals>
+    <string name="tile_heart_rate_spoken_now">%1$d bpm, just now</string>
+    <plurals name="tile_heart_rate_spoken_minutes">
+        <item quantity="one">%1$d bpm, %2$d minute ago</item>
+        <item quantity="other">%1$d bpm, %2$d minutes ago</item>
+    </plurals>
+    <string name="tile_heart_rate_range">%1$d–%2$d bpm today</string>
+    <string name="tile_heart_rate_none">no recent reading</string>
+    <string name="tile_steps_label">Steps</string>
+    <string name="tile_steps_description">Your steps today and when you took them</string>
+    <string name="tile_steps_caption">steps today</string>
+    <string name="tile_steps_no_sensor">no step counter</string>
+    <string name="tile_floors_label">Floors</string>
+    <string name="tile_floors_description">The floors you climbed since midnight and when you climbed them</string>
+    <string name="tile_floors_caption">floors today</string>
+    <string name="tile_floors_climbed">%1$s m climbed</string>
+    <string name="tile_floors_no_sensor">no barometer</string>
+    <string name="tile_distance_label">Distance</string>
+    <string name="tile_distance_description">How far you walked today, from your steps and the step length set on your phone</string>
+    <string name="tile_distance_caption_km">km today</string>
+    <string name="tile_distance_caption_mi">mi today</string>
+    <string name="tile_active_calories_label">Active calories</string>
+    <string name="tile_active_calories_description">The energy your walking cost today, from your steps and the weight known on your phone</string>
+    <string name="tile_active_calories_caption">active kcal today</string>
+    <string name="tile_goal_progress">%1$d%% of %2$s</string>
+    <string name="tile_amount_km">%1$s km</string>
+    <string name="tile_amount_mi">%1$s mi</string>
+    <string name="tile_amount_kcal">%1$s kcal</string>
+    <string name="tile_needs_phone">sync with your phone</string>
+    <string name="tile_needs_weight">add your weight on your phone</string>
+    <string name="complication_heart_rate_number_label">Heart rate (number)</string>
+    <string name="complication_distance_number_label">Distance (number)</string>
+    <string name="complication_value_bpm">%1$s bpm</string>
+    <string name="complication_title_steps">steps</string>
+    <string name="complication_title_kcal">kcal</string>
+    <string name="complication_title_floors">floors</string>
+    <string name="tile_read_failed">can\'t read the watch\'s data</string>
+    <string name="tile_not_granted">allow in the watch app</string>
 </resources>

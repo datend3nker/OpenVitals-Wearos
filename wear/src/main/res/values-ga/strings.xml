@@ -92,8 +92,6 @@
     <string name="tile_open">Oscail</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals Inniu</string>
-    <string name="tile_main_vitals_description">Amharc tapa ar mhéadrachtaí agus ar shláinte an lae inniu.</string>
     <string name="tile_quick_log_label">OpenVitals Logáil thapa</string>
     <string name="tile_quick_log_description">Logáil gloine uisce le tapáil amháin, tomhais do ritim croí nó oscail an logáil thapa.</string>
     <string name="action_done">Déanta</string>

@@ -29,10 +29,10 @@ import tech.mmarca.openvitals.wear.MetricKind
 import tech.mmarca.openvitals.wear.MetricUiState
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.ui.components.ActivityRing
 import tech.mmarca.openvitals.wear.ui.components.ActivityRings
-import tech.mmarca.openvitals.wear.ui.components.MetricTile
+import tech.mmarca.openvitals.wear.ui.components.DashboardMetricCard
 import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
 import tech.mmarca.openvitals.wear.ui.components.metricUnitLabel
 import tech.mmarca.openvitals.wear.ui.preview.SampleData
@@ -48,11 +48,11 @@ import tech.mmarca.openvitals.wear.ui.theme.OpenVitalsWearTheme
  */
 @Composable
 fun DashboardScreen(
-    tiles: List<MetricTile>,
-    metrics: Map<MetricTile, MetricUiState>,
+    tiles: List<DashboardMetric>,
+    metrics: Map<DashboardMetric, MetricUiState>,
     unitSystem: UnitSystem,
     canMeasure: Boolean,
-    onOpenMetric: (MetricTile) -> Unit,
+    onOpenMetric: (DashboardMetric) -> Unit,
     onMeasure: () -> Unit,
     onQuickLog: () -> Unit,
     onEditTiles: () -> Unit,
@@ -113,7 +113,7 @@ fun DashboardScreen(
             }
             items(tiles, key = { it.name }) { metric ->
                 val state = metrics[metric]
-                MetricTile(
+                DashboardMetricCard(
                     title = stringResource(metric.label),
                     value = state?.current?.let { formatMetricValue(metric, it, unitSystem) },
                     unit = stringResource(metricUnitLabel(metric, unitSystem)),
@@ -160,8 +160,8 @@ fun DashboardScreen(
 /** Rings for the first three chosen cumulative metrics that have a goal. */
 @Composable
 private fun activityRings(
-    tiles: List<MetricTile>,
-    metrics: Map<MetricTile, MetricUiState>,
+    tiles: List<DashboardMetric>,
+    metrics: Map<DashboardMetric, MetricUiState>,
     unitSystem: UnitSystem,
 ): List<ActivityRing> =
     tiles.mapNotNull { metric ->
@@ -182,7 +182,7 @@ private fun activityRings(
 private fun DashboardScreenPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.METRIC, true, {}, {}, {}, {}, {}, {})
+            DashboardScreen(DashboardMetric.DefaultTiles, SampleData.metrics, UnitSystem.METRIC, true, {}, {}, {}, {}, {}, {})
         }
     }
 }
@@ -192,7 +192,7 @@ private fun DashboardScreenPreview() {
 private fun DashboardScreenEmptyPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(MetricTile.DefaultTiles, emptyMap(), UnitSystem.METRIC, false, {}, {}, {}, {}, {}, {})
+            DashboardScreen(DashboardMetric.DefaultTiles, emptyMap(), UnitSystem.METRIC, false, {}, {}, {}, {}, {}, {})
         }
     }
 }
@@ -202,7 +202,7 @@ private fun DashboardScreenEmptyPreview() {
 private fun DashboardScreenImperialPreview() {
     OpenVitalsWearTheme {
         AppScaffold {
-            DashboardScreen(MetricTile.DefaultTiles, SampleData.metrics, UnitSystem.IMPERIAL, true, {}, {}, {}, {}, {}, {})
+            DashboardScreen(DashboardMetric.DefaultTiles, SampleData.metrics, UnitSystem.IMPERIAL, true, {}, {}, {}, {}, {}, {})
         }
     }
 }

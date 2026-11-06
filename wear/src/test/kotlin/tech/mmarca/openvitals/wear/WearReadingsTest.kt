@@ -36,8 +36,8 @@ class WearReadingsTest {
 
     @Test
     fun theTilesForWaterAndWeightAppearOnlyWhenThePhoneSentADay() {
-        assertFalse(MetricTile.HYDRATION in WearReadings.metrics(week(day(today)), now, zone))
-        assertFalse(MetricTile.WEIGHT in WearReadings.metrics(week(day(today)), now, zone))
+        assertFalse(DashboardMetric.HYDRATION in WearReadings.metrics(week(day(today)), now, zone))
+        assertFalse(DashboardMetric.WEIGHT in WearReadings.metrics(week(day(today)), now, zone))
 
         val yesterday = today.minusDays(1)
         val sent = week(
@@ -46,10 +46,10 @@ class WearReadingsTest {
         )
         val metrics = WearReadings.metrics(sent, now, zone)
 
-        assertEquals(1800.0, metrics.getValue(MetricTile.HYDRATION).current!!, 0.0)
-        assertEquals(listOf(0.0, 0.0, 0.0, 0.0, 0.0, 2100.0, 1800.0), metrics.getValue(MetricTile.HYDRATION).week)
-        assertEquals(81.2, metrics.getValue(MetricTile.WEIGHT).current!!, 0.0)
-        assertEquals(listOf(81.5, 81.2), metrics.getValue(MetricTile.WEIGHT).week)
+        assertEquals(1800.0, metrics.getValue(DashboardMetric.HYDRATION).current!!, 0.0)
+        assertEquals(listOf(0.0, 0.0, 0.0, 0.0, 0.0, 2100.0, 1800.0), metrics.getValue(DashboardMetric.HYDRATION).week)
+        assertEquals(81.2, metrics.getValue(DashboardMetric.WEIGHT).current!!, 0.0)
+        assertEquals(listOf(81.5, 81.2), metrics.getValue(DashboardMetric.WEIGHT).week)
     }
 
     @Test
@@ -62,13 +62,13 @@ class WearReadingsTest {
         )
 
         val withoutWeight = metrics(null)
-        assertEquals(176.0, withoutWeight.getValue(MetricTile.DISTANCE).current!!, 1e-9)
-        assertFalse(MetricTile.ACTIVE_CALORIES in withoutWeight)
+        assertEquals(176.0, withoutWeight.getValue(DashboardMetric.DISTANCE).current!!, 1e-9)
+        assertFalse(DashboardMetric.ACTIVE_CALORIES in withoutWeight)
 
         val withWeight = metrics(70.0)
         // Two minutes at 100 steps count; 20 steps a minute is under one MET and adds nothing.
         val expected = 2 * tech.mmarca.openvitals.domain.insights.WalkingEnergy.activeKcalPerMinute(100, 70.0)
-        assertEquals(expected, withWeight.getValue(MetricTile.ACTIVE_CALORIES).current!!, 1e-9)
+        assertEquals(expected, withWeight.getValue(DashboardMetric.ACTIVE_CALORIES).current!!, 1e-9)
     }
 
     @Test
@@ -78,7 +78,7 @@ class WearReadingsTest {
             earlier = mapOf(1 to day(today.minusDays(1), steps = listOf(StepMinute(at(today.minusDays(1), 12), 500)))),
         )
 
-        val steps = WearReadings.metrics(readings, now, zone).getValue(MetricTile.STEPS)
+        val steps = WearReadings.metrics(readings, now, zone).getValue(DashboardMetric.STEPS)
 
         assertEquals(125.0, steps.current!!, 0.0)
         assertEquals(40.0 + 60.0, steps.today[8], 0.0)
@@ -90,7 +90,7 @@ class WearReadingsTest {
     fun todayStopsAtTheCurrentHour() {
         val readings = week(day(today, steps = listOf(StepMinute(at(today, 3), 10))))
 
-        val steps = WearReadings.metrics(readings, now, zone).getValue(MetricTile.STEPS)
+        val steps = WearReadings.metrics(readings, now, zone).getValue(DashboardMetric.STEPS)
 
         assertEquals(11, steps.today.size)
     }
@@ -109,7 +109,7 @@ class WearReadingsTest {
             earlier = mapOf(2 to day(today.minusDays(2), steps = listOf(StepMinute(at(today.minusDays(2), 9), 300)))),
         )
 
-        assertEquals(0.0, WearReadings.metrics(readings, now, zone).getValue(MetricTile.STEPS).current!!, 0.0)
+        assertEquals(0.0, WearReadings.metrics(readings, now, zone).getValue(DashboardMetric.STEPS).current!!, 0.0)
     }
 
     @Test
@@ -120,8 +120,8 @@ class WearReadingsTest {
             day(today, ascent = listOf(climbed), steps = listOf(StepMinute(at(today, 9, 10), 20), StepMinute(at(today, 9, 9), 20))),
         )
 
-        val without = WearReadings.metrics(walkedNothing, now, zone).getValue(MetricTile.ELEVATION)
-        val with = WearReadings.metrics(walked, now, zone).getValue(MetricTile.ELEVATION)
+        val without = WearReadings.metrics(walkedNothing, now, zone).getValue(DashboardMetric.ELEVATION)
+        val with = WearReadings.metrics(walked, now, zone).getValue(DashboardMetric.ELEVATION)
 
         assertEquals(0.0, without.current!!, 0.0)
         assertEquals(6.0, with.current!!, 1e-9) // 40 steps carry 12 m, the 6 m climbed all count
@@ -133,7 +133,7 @@ class WearReadingsTest {
             day(today, ascent = listOf(AscentMinute(at(today, 9, 10), 90)), steps = listOf(StepMinute(at(today, 9, 10), 60))),
         )
 
-        val floors = WearReadings.metrics(readings, now, zone).getValue(MetricTile.FLOORS)
+        val floors = WearReadings.metrics(readings, now, zone).getValue(DashboardMetric.FLOORS)
 
         assertEquals(3.0, floors.current!!, 1e-9) // 9 m climbed, 60 steps carry 18 m
     }
@@ -146,7 +146,7 @@ class WearReadingsTest {
             HeartRateSample(at(today, 9, 7), 90),
         )
 
-        val heartRate = WearReadings.metrics(week(day(today, heartRate = samples)), now, zone).getValue(MetricTile.HEART_RATE)
+        val heartRate = WearReadings.metrics(week(day(today, heartRate = samples)), now, zone).getValue(DashboardMetric.HEART_RATE)
 
         assertEquals(90.0, heartRate.current!!, 0.0)
         assertEquals(listOf(65.0, 90.0), heartRate.today)
@@ -159,7 +159,7 @@ class WearReadingsTest {
             earlier = mapOf(3 to day(today.minusDays(3), heartRate = listOf(HeartRateSample(at(today.minusDays(3), 8), 60), HeartRateSample(at(today.minusDays(3), 9), 70)))),
         )
 
-        val heartRate = WearReadings.metrics(readings, now, zone).getValue(MetricTile.HEART_RATE)
+        val heartRate = WearReadings.metrics(readings, now, zone).getValue(DashboardMetric.HEART_RATE)
 
         // Four bars: three days ago, two empty days, today. The chart labels the last four days.
         assertEquals(listOf(65.0, 0.0, 0.0, 80.0), heartRate.week)
@@ -172,7 +172,7 @@ class WearReadingsTest {
             earlier = mapOf(1 to day(today.minusDays(1), heartRate = listOf(HeartRateSample(at(today.minusDays(1), 23, 50), 58)))),
         )
 
-        val heartRate = WearReadings.metrics(readings, now, zone).getValue(MetricTile.HEART_RATE)
+        val heartRate = WearReadings.metrics(readings, now, zone).getValue(DashboardMetric.HEART_RATE)
 
         assertEquals(58.0, heartRate.current!!, 0.0)
         assertTrue(heartRate.today.isEmpty())
@@ -181,8 +181,8 @@ class WearReadingsTest {
     @Test
     fun noDaysGiveNoTiles() {
         assertTrue(WearReadings.metrics(emptyList(), now, zone).isEmpty())
-        assertNull(WearReadings.metrics(week(day(today)), now, zone)[MetricTile.HEART_RATE])
-        assertFalse(WearReadings.metrics(week(day(today)), now, zone).containsKey(MetricTile.STEPS))
+        assertNull(WearReadings.metrics(week(day(today)), now, zone)[DashboardMetric.HEART_RATE])
+        assertFalse(WearReadings.metrics(week(day(today)), now, zone).containsKey(DashboardMetric.STEPS))
     }
 
     /** A worn minute as the watch stores it: [movement] in tenths, a pulse, still or moving. */
@@ -227,9 +227,9 @@ class WearReadingsTest {
 
         val readings = week(WearReadings.day(today, zone, emptyList(), emptyList(), emptyList(), sleep = night))
         val metrics = WearReadings.metrics(readings, now, zone)
-        assertEquals(night.asleepMinutes.toDouble(), metrics.getValue(MetricTile.SLEEP).current!!, 0.0)
-        assertEquals(7, metrics.getValue(MetricTile.SLEEP).week.size)
-        assertEquals(resting.toDouble(), metrics.getValue(MetricTile.RESTING_HEART_RATE).current!!, 0.0)
+        assertEquals(night.asleepMinutes.toDouble(), metrics.getValue(DashboardMetric.SLEEP).current!!, 0.0)
+        assertEquals(7, metrics.getValue(DashboardMetric.SLEEP).week.size)
+        assertEquals(resting.toDouble(), metrics.getValue(DashboardMetric.RESTING_HEART_RATE).current!!, 0.0)
         assertEquals(night.stageMinutes, WearReadings.sleepStages(readings))
     }
 
@@ -250,7 +250,7 @@ class WearReadingsTest {
         assertTrue(both.asleepMinutes > 360)
         assertEquals(napOnly.napMinutes, both.napMinutes)
         val readings = week(WearReadings.day(today, zone, emptyList(), emptyList(), emptyList(), sleep = both))
-        assertEquals(both.totalMinutes.toDouble(), WearReadings.metrics(readings, now, zone).getValue(MetricTile.SLEEP).current!!, 0.0)
+        assertEquals(both.totalMinutes.toDouble(), WearReadings.metrics(readings, now, zone).getValue(DashboardMetric.SLEEP).current!!, 0.0)
     }
 
     @Test
@@ -264,7 +264,7 @@ class WearReadingsTest {
 
         val yesterday = day(today.minusDays(1)).copy(nightHrv = 38.0)
         val readings = week(day(today).copy(nightHrv = 45.0), earlier = mapOf(1 to yesterday))
-        val hrv = WearReadings.metrics(readings, now, zone).getValue(MetricTile.HRV)
+        val hrv = WearReadings.metrics(readings, now, zone).getValue(DashboardMetric.HRV)
 
         assertEquals(45.0, hrv.current!!, 0.0)
         assertEquals(listOf(38.0, 45.0), hrv.week)
@@ -272,12 +272,12 @@ class WearReadingsTest {
 
     @Test
     fun noWindowsMeanNoHrvTile() {
-        assertFalse(WearReadings.metrics(week(day(today)), now, zone).containsKey(MetricTile.HRV))
+        assertFalse(WearReadings.metrics(week(day(today)), now, zone).containsKey(DashboardMetric.HRV))
     }
 
     @Test
     fun noMinutesMeanNoSleepTile() {
         assertNull(WearReadings.night(today, zone, emptyList()))
-        assertFalse(WearReadings.metrics(week(day(today)), now, zone).containsKey(MetricTile.SLEEP))
+        assertFalse(WearReadings.metrics(week(day(today)), now, zone).containsKey(DashboardMetric.SLEEP))
     }
 }

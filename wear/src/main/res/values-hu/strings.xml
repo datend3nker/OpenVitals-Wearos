@@ -92,8 +92,6 @@
     <string name="tile_open">Megnyitás</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals ma</string>
-    <string name="tile_main_vitals_description">A mai életjelek és mutatók gyors áttekintése.</string>
     <string name="tile_quick_log_label">OpenVitals gyors napló</string>
     <string name="tile_quick_log_description">Egy pohár víz rögzítése egy koppintással, pulzusmérés vagy a gyors napló megnyitása.</string>
     <string name="action_done">Kész</string>

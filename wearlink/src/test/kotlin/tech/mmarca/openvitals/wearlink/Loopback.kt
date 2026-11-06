@@ -140,4 +140,16 @@ class MemoryHandler(
         preferences += key to value
         return true
     }
+
+    /** What `PROFILE` and `TOTALS` handed over, newest last. */
+    val profiles = ArrayList<WearLinkProfile.Profile>()
+    val totals = ArrayList<WearLinkProfile.Totals>()
+
+    override fun applyProfile(profile: WearLinkProfile.Profile) {
+        profiles += profile
+    }
+
+    override fun applyTotals(totals: WearLinkProfile.Totals) {
+        this.totals += totals
+    }
 }

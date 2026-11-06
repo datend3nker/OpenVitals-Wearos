@@ -46,7 +46,7 @@ import androidx.wear.compose.material3.lazy.transformedHeight
 import java.util.Date
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.WearUiState
 import tech.mmarca.openvitals.wear.ui.components.formatMetricValue
 import tech.mmarca.openvitals.wear.ui.components.metricUnitLabel
@@ -88,10 +88,10 @@ fun QuickLogScreen(
     var showSaved by remember { mutableStateOf(false) }
     val lastWeight = state.entries.lastOrNull { it.type == EntryType.WEIGHT }
     val lastPressure = state.entries.lastOrNull { it.type == EntryType.BLOOD_PRESSURE }
-    val waterToday = state.metrics[MetricTile.HYDRATION]?.current ?: 0.0
-    val waterUnit = stringResource(metricUnitLabel(MetricTile.HYDRATION, unitSystem))
-    val caffeineToday = state.metrics[MetricTile.CAFFEINE]?.current ?: 0.0
-    val caffeineUnit = stringResource(metricUnitLabel(MetricTile.CAFFEINE, unitSystem))
+    val waterToday = state.metrics[DashboardMetric.HYDRATION]?.current ?: 0.0
+    val waterUnit = stringResource(metricUnitLabel(DashboardMetric.HYDRATION, unitSystem))
+    val caffeineToday = state.metrics[DashboardMetric.CAFFEINE]?.current ?: 0.0
+    val caffeineUnit = stringResource(metricUnitLabel(DashboardMetric.CAFFEINE, unitSystem))
     val notLogged = stringResource(R.string.quicklog_not_logged)
 
     ScreenScaffold(scrollState = listState) { contentPadding ->
@@ -127,13 +127,13 @@ fun QuickLogScreen(
                     QuickLogItem.WATER -> QuickLogButton(
                         label = stringResource(
                             R.string.quicklog_add_water,
-                            formatMetricValue(MetricTile.HYDRATION, WaterServingMl, unitSystem),
+                            formatMetricValue(DashboardMetric.HYDRATION, WaterServingMl, unitSystem),
                             waterUnit,
                         ),
                         secondary = stringResource(
                             R.string.quicklog_water_today,
-                            formatMetricValue(MetricTile.HYDRATION, waterToday, unitSystem),
-                            formatMetricValue(MetricTile.HYDRATION, state.preferences.waterGoalMl.toDouble(), unitSystem),
+                            formatMetricValue(DashboardMetric.HYDRATION, waterToday, unitSystem),
+                            formatMetricValue(DashboardMetric.HYDRATION, state.preferences.waterGoalMl.toDouble(), unitSystem),
                             waterUnit,
                         ),
                         icon = Icons.Outlined.WaterDrop,
@@ -149,7 +149,7 @@ fun QuickLogScreen(
                         label = stringResource(R.string.metric_caffeine),
                         secondary = stringResource(
                             R.string.quicklog_caffeine_today,
-                            formatMetricValue(MetricTile.CAFFEINE, caffeineToday, unitSystem),
+                            formatMetricValue(DashboardMetric.CAFFEINE, caffeineToday, unitSystem),
                             caffeineUnit,
                         ),
                         icon = Icons.Outlined.Coffee,

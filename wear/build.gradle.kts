@@ -108,6 +108,12 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     testImplementation(libs.kotlinx.coroutines.test)
+    // The metric tiles: Material 3 tile layouts, no Play Services.
+    implementation(libs.androidx.wear.protolayout.material3)
+    // A suspend function as the ListenableFuture a TileService returns.
+    implementation(libs.androidx.concurrent.futures.ktx)
+    // The complications: today's values for watch faces, no Play Services.
+    implementation(libs.androidx.wear.watchface.complications.data.source.ktx)
     testImplementation(libs.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     // Real org.json for local tests (the android.jar copy is a throwing stub): the feature vector is JSON.

@@ -6,7 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 import tech.mmarca.openvitals.wear.MetricUiState
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.WearUiState
 
 class EntryLogTest {
@@ -71,7 +71,7 @@ class EntryLogTest {
             LoggedEntry(EntryType.WATER, at(today, 10), 250.0),
             LoggedEntry(EntryType.WATER, at(today, 10), 250.0),
         )
-        val hydration = WearUiState().withEntries(entries, today, zone).metrics.getValue(MetricTile.HYDRATION)
+        val hydration = WearUiState().withEntries(entries, today, zone).metrics.getValue(DashboardMetric.HYDRATION)
 
         assertEquals(750.0, hydration.current!!, 0.0)
         assertEquals(2_000.0, hydration.goal!!, 0.0)
@@ -89,13 +89,13 @@ class EntryLogTest {
         )
         assertEquals(entries, decodeEntries(encodeEntries(entries)))
 
-        val caffeine = WearUiState().withEntries(entries, today, zone).metrics.getValue(MetricTile.CAFFEINE)
+        val caffeine = WearUiState().withEntries(entries, today, zone).metrics.getValue(DashboardMetric.CAFFEINE)
 
         assertEquals(143.0, caffeine.current!!, 0.0)
         assertEquals(16, caffeine.today.size)
         assertEquals(48.0, caffeine.today[15], 0.0)
         assertEquals(listOf(0.0, 0.0, 0.0, 0.0, 0.0, 95.0, 143.0), caffeine.week)
-        assertEquals(null, WearUiState().withEntries(entries, today, zone).metrics[MetricTile.HYDRATION])
+        assertEquals(null, WearUiState().withEntries(entries, today, zone).metrics[DashboardMetric.HYDRATION])
     }
 
     @Test
@@ -103,17 +103,17 @@ class EntryLogTest {
         val measured = listOf(LoggedEntry(EntryType.HEART_RATE, at(today, 9), 64.0))
 
         val empty = WearUiState().withEntries(measured, today, zone)
-        assertEquals(64.0, empty.metrics.getValue(MetricTile.HEART_RATE).current!!, 0.0)
+        assertEquals(64.0, empty.metrics.getValue(DashboardMetric.HEART_RATE).current!!, 0.0)
 
-        val withReading = WearUiState(metrics = mapOf(MetricTile.HEART_RATE to MetricUiState(current = 72.0)))
+        val withReading = WearUiState(metrics = mapOf(DashboardMetric.HEART_RATE to MetricUiState(current = 72.0)))
             .withEntries(measured, today, zone)
-        assertEquals(72.0, withReading.metrics.getValue(MetricTile.HEART_RATE).current!!, 0.0)
+        assertEquals(72.0, withReading.metrics.getValue(DashboardMetric.HEART_RATE).current!!, 0.0)
     }
 
     @Test
     fun noEntries_leaveMetricsAlone() {
         val state = WearUiState().withEntries(emptyList(), today, zone)
-        assertNull(state.metrics[MetricTile.HYDRATION])
+        assertNull(state.metrics[DashboardMetric.HYDRATION])
     }
 
     @Test

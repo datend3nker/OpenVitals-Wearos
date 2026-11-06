@@ -300,6 +300,8 @@ class HeartRateRecorder(
          * Stored sample spacing at the continuous interval. Enough for resting
          * and daily curves; a tenth of the bytes. The power-save interval
          * stores one reading per window, so it never meets this gap.
+         * Stored sample spacing. Enough for resting and daily curves; a tenth of the bytes.
+         * [TileDay.MAX_HEART_RATE_SAMPLES_PER_DAY] counts on it: a closer spacing needs a higher limit there.
          */
         const val MIN_SAMPLE_GAP_MILLIS = 10_000L
 

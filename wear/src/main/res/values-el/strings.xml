@@ -92,8 +92,6 @@
     <string name="tile_open">Άνοιγμα</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals σήμερα</string>
-    <string name="tile_main_vitals_description">Γρήγορη προβολή των ζωτικών σημείων και των μετρήσεων του σήμερα.</string>
     <string name="tile_quick_log_label">OpenVitals γρήγορη καταγραφή</string>
     <string name="tile_quick_log_description">Καταγραφή ενός ποτηριού νερού με ένα πάτημα, μέτρηση καρδιακού ρυθμού ή άνοιγμα της γρήγορης καταγραφής.</string>
     <string name="action_done">Τέλος</string>

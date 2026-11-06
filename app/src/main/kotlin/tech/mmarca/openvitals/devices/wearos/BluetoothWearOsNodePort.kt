@@ -24,6 +24,7 @@ import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.wearlink.WearLinkClient
 import tech.mmarca.openvitals.wearlink.WearLinkConnection
 import tech.mmarca.openvitals.wearlink.WearLinkOutcome
+import tech.mmarca.openvitals.wearlink.WearLinkProfile
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
 import tech.mmarca.openvitals.wearlink.WearLinkWorkout
 import tech.mmarca.openvitals.wearlink.WearLinkSession
@@ -326,6 +327,13 @@ class BluetoothWearOsNodePort @Inject constructor(
             unwrap(session.setPreference(key, value))
             true
         }
+    override suspend fun pushProfile(
+        profile: WearLinkProfile.Profile?,
+        totals: WearLinkProfile.Totals?,
+            // A watch app from before the tiles would answer the request with an error.
+            if (WearLinkProtocol.CAP_PROFILE !in session.peer.capabilities) return@withSession false
+            profile?.let { unwrap(session.pushProfile(it)) }
+            totals?.let { unwrap(session.pushTotals(it)) }
 
     /** The name the watch gave in its last `OK`, for the status card. */
     @Volatile

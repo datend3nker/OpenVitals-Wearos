@@ -4,6 +4,7 @@ import java.time.Instant
 import tech.mmarca.openvitals.domain.model.WearSleepMinute
 import tech.mmarca.openvitals.wearlink.HeartRateInterval
 import tech.mmarca.openvitals.wearlink.WearLinkProtocol
+import tech.mmarca.openvitals.wearlink.WearLinkProfile
 
 /**
  * What the phone can tell about the OpenVitals Wear OS app on a watch.
@@ -329,4 +330,11 @@ interface WearOsNodePort {
 
     /** The last interval the phone stored for [period] on the registered watch; [HeartRateInterval.EVERY_10_SECONDS] when never set. */
     fun heartRateInterval(targetAddress: String?, period: WearOsHeartRatePeriod): HeartRateInterval
+     * Hands the watch the phone's settings and Health Connect's totals for
+     * today, for its tiles ([WearOsTileProfilePush]); either may be null, and
+     * the watch keeps its last one. False when no bonded watch matches or the
+     * watch app takes no profile. Any other failure throws [WearOsLinkFailure].
+    suspend fun pushProfile(
+        profile: WearLinkProfile.Profile?,
+        totals: WearLinkProfile.Totals?,
 }

@@ -92,8 +92,6 @@
     <string name="tile_open">Ava</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals täna</string>
-    <string name="tile_main_vitals_description">Kiire ülevaade tänastest vitaalnäitajatest ja mõõdikutest.</string>
     <string name="tile_quick_log_label">OpenVitals kiirlogi</string>
     <string name="tile_quick_log_description">Logi klaas vett ühe puudutusega, mõõda pulssi või ava kiirlogi.</string>
     <string name="action_done">Valmis</string>

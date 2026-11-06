@@ -92,8 +92,6 @@
     <string name="tile_open">Apri</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals oggi</string>
-    <string name="tile_main_vitals_description">Vista rapida dei parametri vitali e delle misure di oggi.</string>
     <string name="tile_quick_log_label">OpenVitals Registrazione rapida</string>
     <string name="tile_quick_log_description">Registra un bicchiere d\'acqua con un tocco, misura la frequenza cardiaca o apri la registrazione rapida.</string>
     <string name="action_done">Fatto</string>

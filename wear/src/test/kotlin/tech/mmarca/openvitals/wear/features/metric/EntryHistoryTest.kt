@@ -4,7 +4,7 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 import tech.mmarca.openvitals.wear.features.quicklog.EntryType
 import tech.mmarca.openvitals.wear.features.quicklog.LoggedEntry
 
@@ -24,7 +24,7 @@ class EntryHistoryTest {
             LoggedEntry(EntryType.WEIGHT, at(today, 8), 81.0),
         )
 
-        val recent = recentEntries(entries, MetricTile.HRV, today, zone)
+        val recent = recentEntries(entries, DashboardMetric.HRV, today, zone)
 
         assertEquals(listOf(64.0, 78.0, 55.0), recent.map { it.value })
         assertEquals(listOf("", "", "4.11."), recent.map { it.dayLabel })
@@ -37,21 +37,21 @@ class EntryHistoryTest {
             LoggedEntry(EntryType.WATER, at(today, 9), 250.0),
         )
 
-        assertEquals(listOf(95.0), recentEntries(entries, MetricTile.CAFFEINE, today, zone).map { it.value })
+        assertEquals(listOf(95.0), recentEntries(entries, DashboardMetric.CAFFEINE, today, zone).map { it.value })
     }
 
     @Test
     fun `at most five are listed, and a tile with no entry kind lists none`() {
         val entries = (0 until 8).map { LoggedEntry(EntryType.HRV, at(today, it), it.toDouble()) }
 
-        assertEquals(listOf(7.0, 6.0, 5.0, 4.0, 3.0), recentEntries(entries, MetricTile.HRV, today, zone).map { it.value })
-        assertEquals(emptyList<RecentEntry>(), recentEntries(entries, MetricTile.STEPS, today, zone))
+        assertEquals(listOf(7.0, 6.0, 5.0, 4.0, 3.0), recentEntries(entries, DashboardMetric.HRV, today, zone).map { it.value })
+        assertEquals(emptyList<RecentEntry>(), recentEntries(entries, DashboardMetric.STEPS, today, zone))
     }
 
     @Test
     fun `the heart rate screen lists no entries, the curve of the day is its history`() {
         val entries = listOf(LoggedEntry(EntryType.HEART_RATE, at(today, 9), 61.0))
 
-        assertEquals(emptyList<RecentEntry>(), recentEntries(entries, MetricTile.HEART_RATE, today, zone))
+        assertEquals(emptyList<RecentEntry>(), recentEntries(entries, DashboardMetric.HEART_RATE, today, zone))
     }
 }

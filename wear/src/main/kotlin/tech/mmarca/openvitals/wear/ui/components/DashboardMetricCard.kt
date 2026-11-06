@@ -19,7 +19,7 @@ import androidx.wear.compose.material3.Text
 
 /** The watch counterpart of the phone's `MetricCard`: accent icon, title, value and unit. */
 @Composable
-fun MetricTile(
+fun DashboardMetricCard(
     title: String,
     value: String?,
     unit: String,

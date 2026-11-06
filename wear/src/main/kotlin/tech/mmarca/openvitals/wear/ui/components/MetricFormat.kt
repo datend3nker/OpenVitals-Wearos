@@ -10,7 +10,7 @@ import java.util.Locale
 import kotlin.math.roundToInt
 import tech.mmarca.openvitals.wear.R
 import tech.mmarca.openvitals.wear.UnitSystem
-import tech.mmarca.openvitals.wear.MetricTile
+import tech.mmarca.openvitals.wear.DashboardMetric
 
 private const val MetersPerKilometer = 1000.0
 private const val MetersPerMile = 1609.344
@@ -22,25 +22,25 @@ private const val MinutesPerHour = 60
 fun formatCount(value: Int): String = NumberFormat.getIntegerInstance().format(value)
 
 /** [value] is in the metric's base unit. The matching unit label is [metricUnitLabel]. */
-fun formatMetricValue(metric: MetricTile, value: Double, unitSystem: UnitSystem): String =
+fun formatMetricValue(metric: DashboardMetric, value: Double, unitSystem: UnitSystem): String =
     when (metric) {
-        MetricTile.DISTANCE -> {
+        DashboardMetric.DISTANCE -> {
             val metersPerUnit = when (unitSystem) {
                 UnitSystem.METRIC -> MetersPerKilometer
                 UnitSystem.IMPERIAL -> MetersPerMile
             }
             String.format(Locale.getDefault(), "%.1f", value / metersPerUnit)
         }
-        MetricTile.ELEVATION -> when (unitSystem) {
+        DashboardMetric.ELEVATION -> when (unitSystem) {
             UnitSystem.METRIC -> formatCount(value.roundToInt())
             UnitSystem.IMPERIAL -> formatCount((value * FeetPerMeter).roundToInt())
         }
-        MetricTile.SLEEP -> formatHoursMinutes(value)
-        MetricTile.WEIGHT -> when (unitSystem) {
+        DashboardMetric.SLEEP -> formatHoursMinutes(value)
+        DashboardMetric.WEIGHT -> when (unitSystem) {
             UnitSystem.METRIC -> formatOneDecimal(value)
             UnitSystem.IMPERIAL -> formatOneDecimal(value * PoundsPerKilogram)
         }
-        MetricTile.HYDRATION -> when (unitSystem) {
+        DashboardMetric.HYDRATION -> when (unitSystem) {
             UnitSystem.METRIC -> formatCount(value.roundToInt())
             UnitSystem.IMPERIAL -> formatCount((value / MillilitresPerFluidOunce).roundToInt())
         }
@@ -49,7 +49,7 @@ fun formatMetricValue(metric: MetricTile, value: Double, unitSystem: UnitSystem)
 
 /** [kilograms] in the unit system's body weight unit, one decimal. */
 fun formatWeight(kilograms: Double, unitSystem: UnitSystem): String =
-    formatMetricValue(MetricTile.WEIGHT, kilograms, unitSystem)
+    formatMetricValue(DashboardMetric.WEIGHT, kilograms, unitSystem)
 
 /** "7:05" for 425 minutes. */
 fun formatHoursMinutes(minutes: Double): String {
@@ -64,31 +64,31 @@ fun formatClockTime(instant: Instant, zone: ZoneId = ZoneId.systemDefault()): St
     DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(Locale.getDefault()).format(instant.atZone(zone))
 
 @StringRes
-fun metricUnitLabel(metric: MetricTile, unitSystem: UnitSystem): Int =
+fun metricUnitLabel(metric: DashboardMetric, unitSystem: UnitSystem): Int =
     when (metric) {
-        MetricTile.STEPS -> R.string.unit_steps
-        MetricTile.HEART_RATE -> R.string.unit_bpm
-        MetricTile.DISTANCE -> when (unitSystem) {
+        DashboardMetric.STEPS -> R.string.unit_steps
+        DashboardMetric.HEART_RATE -> R.string.unit_bpm
+        DashboardMetric.DISTANCE -> when (unitSystem) {
             UnitSystem.METRIC -> R.string.unit_km
             UnitSystem.IMPERIAL -> R.string.unit_mi
         }
-        MetricTile.ACTIVE_CALORIES -> R.string.unit_kcal
-        MetricTile.FLOORS -> R.string.unit_floors
-        MetricTile.ELEVATION -> when (unitSystem) {
+        DashboardMetric.ACTIVE_CALORIES -> R.string.unit_kcal
+        DashboardMetric.FLOORS -> R.string.unit_floors
+        DashboardMetric.ELEVATION -> when (unitSystem) {
             UnitSystem.METRIC -> R.string.unit_m
             UnitSystem.IMPERIAL -> R.string.unit_ft
         }
-        MetricTile.BLOOD_OXYGEN -> R.string.unit_percent
-        MetricTile.VO2_MAX -> R.string.unit_vo2_max
-        MetricTile.RESTING_HEART_RATE -> R.string.unit_bpm
-        MetricTile.HRV -> R.string.unit_ms
-        MetricTile.SLEEP -> R.string.unit_hours
-        MetricTile.HYDRATION -> when (unitSystem) {
+        DashboardMetric.BLOOD_OXYGEN -> R.string.unit_percent
+        DashboardMetric.VO2_MAX -> R.string.unit_vo2_max
+        DashboardMetric.RESTING_HEART_RATE -> R.string.unit_bpm
+        DashboardMetric.HRV -> R.string.unit_ms
+        DashboardMetric.SLEEP -> R.string.unit_hours
+        DashboardMetric.HYDRATION -> when (unitSystem) {
             UnitSystem.METRIC -> R.string.unit_ml
             UnitSystem.IMPERIAL -> R.string.unit_fl_oz
         }
-        MetricTile.CAFFEINE -> R.string.unit_mg
-        MetricTile.WEIGHT -> when (unitSystem) {
+        DashboardMetric.CAFFEINE -> R.string.unit_mg
+        DashboardMetric.WEIGHT -> when (unitSystem) {
             UnitSystem.METRIC -> R.string.unit_kg
             UnitSystem.IMPERIAL -> R.string.unit_lb
         }

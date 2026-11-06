@@ -92,8 +92,6 @@
     <string name="tile_open">Avaa</string>
     <string name="tile_today_summary">%1$s · %2$s</string>
     <string name="tile_value">%1$s %2$s</string>
-    <string name="tile_main_vitals_label">OpenVitals tänään</string>
-    <string name="tile_main_vitals_description">Pikanäkymä tämän päivän vitaalimittareihin ja arvoihin.</string>
     <string name="tile_quick_log_label">OpenVitals pikakirjaus</string>
     <string name="tile_quick_log_description">Kirjaa lasillinen vettä yhdellä napautuksella, mittaa syke tai avaa pikakirjaus.</string>
     <string name="action_done">Valmis</string>
