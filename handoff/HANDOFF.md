@@ -1,13 +1,13 @@
 # Handoff, 2026-11-12
 
 Branch `heart-rate-zones` (fork/heart-rate-zones, commits 133bdebb, 52302665) is pushed, no PR yet.
-Branch `calories-compendium-keytel` (#357) and `coffee-recipe-catalog` (#359) are pushed.
+#357 (calories) and #359 (coffee recipes) are merged into main (2026-11-11 and 2026-11-12).
 
 ## Open
 1. Open the PR for heart-rate-zones (draft or normal); text below.
 2. Correct the OpenLink agent brief: a profile field for zones IS justified, because the user can set own limits (HeartZoneThresholds, five lower bpm). OpenLink #7 leaves OpenLinkProfile unchanged. Ask whether summary zoneLowerBoundsBpm means five ACSM zones, zone 1 first.
 3. Strings activity_heart_rate_zones_manual: feature names in 16 languages are guessed; ar/el/iw are AI translations.
-4. #357/#359: CI not rechecked after pushes; flaky Instant.now() privacy test on main; existing installs miss corrected drink presets; unsourced: Americano 30 ml, Ice Java 15 ml, white coffee profile, Starbucks Tall 66 mg.
+4. After #357/#359 (merged): flaky Instant.now() privacy test on main; existing installs miss corrected drink presets; unsourced: Americano 30 ml, Ice Java 15 ml, white coffee profile, Starbucks Tall 66 mg.
 5. Differences from OpenWatch #36: no observed max in the detail screen; its basis doc says resting = profile else night, code uses the profile only; 60 s sample gap is an app choice. Body Energy zones (0 to 5, 75 percent split) differ from #36's five.
 6. Untracked locally: .claude/skills/caveman-learn/ (not committed).
 
