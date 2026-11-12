@@ -27,6 +27,7 @@ import tech.mmarca.openvitals.domain.insights.BodyEnergySeedSource
 import tech.mmarca.openvitals.domain.insights.BodyEnergyTimeline
 import tech.mmarca.openvitals.domain.insights.BodyEnergyTimelineAlgorithmVersion
 import tech.mmarca.openvitals.domain.insights.BodyEnergyTimelineInputs
+import tech.mmarca.openvitals.domain.insights.HrvBaseline
 import tech.mmarca.openvitals.domain.insights.calculateBodyEnergyTimeline
 import tech.mmarca.openvitals.domain.model.HealthConnectAvailability
 import tech.mmarca.openvitals.domain.model.RefreshMode
@@ -315,7 +316,7 @@ class BodyEnergyRepositoryImpl(
                     restingHeartRateBpm = restingHr,
                     baselineRestingHeartRateBpm = baselines.baselineRestingHeartRateBpm,
                     observedMaxHeartRateBpm = baselines.observedMaxHeartRateBpm,
-                    hrvBaselineRmssdMs = baselines.hrvBaselineRmssdMs,
+                    hrvBaseline = baselines.hrvBaseline,
                     respiratoryRateBaseline = baselines.respiratoryRateBaseline,
                     previousEndScore = seed.score,
                     seedSource = seed.source,
@@ -380,10 +381,7 @@ class BodyEnergyRepositoryImpl(
             heartRepository.loadMaxHeartRate(baselineStartInstant, dayStart)
         }
         val hrvBaseline = async {
-            heartRepository.loadDailyHRV(baselineStart, baselineEnd)
-                .map { it.rmssdMs }
-                .filter { it > 0.0 }
-                .medianDoubleOrNull()
+            HrvBaseline.of(heartRepository.loadDailyHRV(baselineStart, baselineEnd).map { it.rmssdMs })
         }
         val respiratoryBaseline = async {
             vitalsRepository.loadDailyVitals(VitalsPeriodMetric.RESPIRATORY_RATE, baselineStart, baselineEnd)
@@ -394,7 +392,7 @@ class BodyEnergyRepositoryImpl(
         BodyEnergyBaselines(
             baselineRestingHeartRateBpm = baselineResting.await(),
             observedMaxHeartRateBpm = observedMax.await(),
-            hrvBaselineRmssdMs = hrvBaseline.await(),
+            hrvBaseline = hrvBaseline.await(),
             respiratoryRateBaseline = respiratoryBaseline.await(),
         )
     }
@@ -402,7 +400,7 @@ class BodyEnergyRepositoryImpl(
     private data class BodyEnergyBaselines(
         val baselineRestingHeartRateBpm: Long?,
         val observedMaxHeartRateBpm: Long?,
-        val hrvBaselineRmssdMs: Double?,
+        val hrvBaseline: HrvBaseline?,
         val respiratoryRateBaseline: Double?,
     )
 

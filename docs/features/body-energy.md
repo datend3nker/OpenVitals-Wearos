@@ -33,12 +33,33 @@ time. Sleep charges per minute slept, scaled by three things:
 
 - **How well the night went.** See below; this is usually the biggest of the
   three.
-- **Overnight HRV**, against the personal baseline.
+- **Overnight HRV**, against the personal baseline: the mean of the natural
+  log of rMSSD over the 28 nights before, with a band of half their standard
+  deviation around it, the smallest worthwhile change of Plews et al. (Sports
+  Med 2013, doi:10.1007/s40279-013-0071-8). Inside the band the night charges
+  as usual; below it a tenth less, three bands below a quarter less; above it
+  12 % more. It needs a week of nights. Only the night's HRV is held against
+  this baseline: waking HRV no longer scales the drain.
 - **Breathing rate**, which penalises a night spent above the usual.
 
 **Drain** comes from basal metabolism (a gentle downward slope whenever nothing
-else is happening, scaled by measured BMR), from active energy expenditure, from
+else is happening, scaled by measured BMR), from activity, from
 heart-rate-derived stress, and from recovery debt after a hard session.
+
+Activity drains the larger of two estimates, never their sum: active energy
+expenditure, and the heart rate's Banister TRIMP (Morton, Fitz-Clarke and
+Banister, J Appl Physiol 1990, doi:10.1152/jappl.1990.69.3.1171), the same
+weighting cardio load uses, with the women's constants when the body profile
+says so. TRIMP counts from the ACSM's light intensity on, 30 % of the heart
+rate reserve (Garber et al., Med Sci Sports Exerc 2011, table 4); below that
+the basal drain covers it. So the drain climbs smoothly with effort instead of
+in zone steps. With manual zones there is no reserve to weigh, and each zone
+keeps its own rate.
+
+The sources cover the parts; the points they move are the app's own scale. No
+published model of a "body battery" exists to check them against: the composite
+scores of 14 wearables were reviewed and none disclosed or validated its formula
+(Doherty et al., Transl Exerc Biomed 2025, doi:10.1515/teb-2025-0001).
 
 Each component is scaled by a personal gain — see [Calibration](#calibration).
 The gains are the only per-user tuning; everything else above is the same model

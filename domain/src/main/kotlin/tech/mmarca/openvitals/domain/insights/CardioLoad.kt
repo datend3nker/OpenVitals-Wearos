@@ -201,7 +201,7 @@ private fun calculateTrimp(
         }
 
         coveredMinutes += intervalMinutes
-        score += intervalMinutes * heartRateReserve * weighting.factor * exp(weighting.exponent * heartRateReserve)
+        score += intervalMinutes * weighting.perMinute(heartRateReserve)
     }
 
     if (coveredMinutes <= 0.0) return null
@@ -224,10 +224,14 @@ private fun calculateTrimp(
 const val BanisterTrimpUrl = "https://pmc.ncbi.nlm.nih.gov/articles/PMC6561225/"
 const val TrainingLoadReviewUrl = "https://pmc.ncbi.nlm.nih.gov/articles/PMC4213373/"
 
-private enum class BanisterWeighting(val factor: Double, val exponent: Double) {
+internal enum class BanisterWeighting(val factor: Double, val exponent: Double) {
     MEN(0.64, 1.92),
     WOMEN(0.86, 1.67),
     ;
+
+    /** TRIMP per minute at [heartRateReserve], a fraction from 0 to 1. */
+    fun perMinute(heartRateReserve: Double): Double =
+        heartRateReserve * factor * exp(exponent * heartRateReserve)
 
     companion object {
         fun of(sex: BiologicalSex?): BanisterWeighting = if (sex == BiologicalSex.FEMALE) WOMEN else MEN
